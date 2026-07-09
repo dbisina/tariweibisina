@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { JetBrains_Mono, Instrument_Serif, Space_Grotesk, Unbounded } from "next/font/google";
 import { RealmSync } from "@/components/realm-sync";
 import "./globals.css";
 
@@ -16,6 +16,18 @@ const instrumentSerif = Instrument_Serif({
   style: ["normal", "italic"],
 });
 
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-grotesk",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
+const unbounded = Unbounded({
+  variable: "--font-unbounded",
+  subsets: ["latin"],
+  weight: ["300", "500", "700"],
+});
+
 export const metadata: Metadata = {
   title: "tariwei — Daniel Tariwei Bisina",
   description:
@@ -30,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${jetbrainsMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      className={`${jetbrainsMono.variable} ${instrumentSerif.variable} ${spaceGrotesk.variable} ${unbounded.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

@@ -1,567 +1,397 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import * as THREE from "three";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Instance, Instances } from "@react-three/drei";
-import { useSiteStore } from "@/lib/store";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSiteStore, type AudioMode } from "@/lib/store";
 import { Logo } from "@/components/logo";
+import styles from "./realm-select.module.css";
 
 /**
- * Attempt C — "Choose Your Realm" portal.
- *
- * Design decision: the card itself is never a single solid mesh (that reads
- * as the banned rounded-corner SaaS card / browser-chrome mockup). Instead:
- *  - A React Three Fiber canvas renders two tilted fields of scattered glass
- *    shards (one per realm) plus a third "rift" field where the two fields
- *    interleave in the empty middle gap, lit by a pulsing additive-shader
- *    glow band — the literal collision the brief asks for.
- *  - A thin DOM layer sits on top as the actual "glass pane" per card, using
- *    real backdrop-filter blur so the WebGL shard field is genuinely visible
- *    refracted/blurred through it — no fake mockup, just real token-colored
- *    content (mini nav + heading) using the site's own CSS variables scoped
- *    per realm via a local `data-realm` attribute.
+ * "Choose Your Realm" portal — direct port of the approved theme-select.html
+ * (FRACTURE) reference design:
+ *  - Raw WebGL fullscreen shader: split light/dark environment with a slanted
+ *    seam, voronoi glass-shatter band where the two worlds collide, lightning
+ *    bolts flickering along the rift, mouse-following light.
+ *  - Two floating holographic cards angled toward each other (±22°), each with
+ *    an animated holo border, sheen sweep, and a mini preview of the site in
+ *    that realm.
+ *  - Choosing a realm sweeps the seam off-screen, then asks for the audio
+ *    mode (silence / zen / classical) before entering the site.
  */
 
-type Side = "dark" | "light";
+type Side = "light" | "dark";
 
-interface RealmColorSet {
-  bg: string;
-  ink: string;
-  acc: string;
-  acc2: string;
+const VERT = `
+attribute vec2 aPos;
+void main(){ gl_Position = vec4(aPos,0.,1.); }
+`;
+
+const FRAG = `
+precision highp float;
+uniform vec2 uRes;
+uniform float uTime;
+uniform vec2 uMouse;
+uniform float uBlend;   // 0.5 = split, 0 = all light, 1 = all dark
+
+float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+vec2 hash2(vec2 p){
+  return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
+}
+float noise(vec2 p){
+  vec2 i=floor(p), f=fract(p);
+  f=f*f*(3.-2.*f);
+  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),
+             mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
+}
+float fbm(vec2 p){
+  float v=0., a=.5;
+  for(int i=0;i<5;i++){ v+=a*noise(p); p*=2.03; a*=.5; }
+  return v;
 }
 
-interface RealmColors {
-  dark: RealmColorSet;
-  light: RealmColorSet;
+/* voronoi returning edge distance + cell id */
+vec3 voronoi(vec2 p){
+  vec2 n=floor(p), f=fract(p);
+  vec2 mg, mr;
+  float md=8.;
+  for(int j=-1;j<=1;j++)
+  for(int i=-1;i<=1;i++){
+    vec2 g=vec2(float(i),float(j));
+    vec2 o=hash2(n+g);
+    vec2 r=g+o-f;
+    float d=dot(r,r);
+    if(d<md){ md=d; mr=r; mg=g; }
+  }
+  md=8.;
+  for(int j=-2;j<=2;j++)
+  for(int i=-2;i<=2;i++){
+    vec2 g=mg+vec2(float(i),float(j));
+    vec2 o=hash2(n+g);
+    vec2 r=g+o-f;
+    if(dot(mr-r,mr-r)>.00001)
+      md=min(md, dot(.5*(mr+r), normalize(r-mr)));
+  }
+  return vec3(md, hash2(n+mg));
 }
 
-const FALLBACK_COLORS: RealmColors = {
-  dark: { bg: "#0b0b0c", ink: "#f4f3ef", acc: "#ff5a2c", acc2: "#ff4a1c" },
-  light: { bg: "#f3f1eb", ink: "#131316", acc: "#e8430f", acc2: "#ff5a2c" },
-};
+void main(){
+  vec2 uv = gl_FragCoord.xy / uRes;
+  float aspect = uRes.x/uRes.y;
+  vec2 p = vec2(uv.x*aspect, uv.y);
+  float t = uTime;
 
-/** Reads the real --bg/--ink/--acc/--acc-2 custom properties from globals.css
- * for both realms (dark = :root default, light = [data-realm="light"]),
- * rather than hardcoding a second set of hex values. */
-function useRealmColors(): RealmColors {
-  const [colors, setColors] = useState<RealmColors>(FALLBACK_COLORS);
+  /* ---- convergent slanted seam ---- */
+  float slant = 0.42;
+  float seamX = 0.5*aspect + slant*(uv.y-0.5)*aspect*0.6;
+  /* blend override sweeps seam off-screen when a theme is chosen.
+     Sign flipped vs the reference HTML, whose sweep was inverted:
+     light needs the seam pushed right (all pixels on the light side). */
+  seamX -= (uBlend-0.5)*2.4*aspect;
 
-  useEffect(() => {
-    const read = (style: CSSStyleDeclaration, name: string, fallback: string) => {
-      const v = style.getPropertyValue(name).trim();
-      return v || fallback;
-    };
+  /* ambient environment warp */
+  float warp = fbm(p*2.2 + t*0.06)*0.05;
+  float side = p.x - seamX + warp;   /* <0 light, >0 dark */
 
-    const darkStyle = getComputedStyle(document.documentElement);
+  /* ---- glass shatter band around the seam ---- */
+  float band = exp(-abs(side)*7.0);          /* 1 at seam, falls off */
+  vec3 vor = voronoi(p*9.0 + vec2(0., t*0.05));
+  float cracks = 1.0 - smoothstep(0.0, 0.05, vor.x);   /* thin crack lines */
 
-    const probe = document.createElement("div");
-    probe.setAttribute("data-realm", "light");
-    probe.style.position = "absolute";
-    probe.style.opacity = "0";
-    probe.style.pointerEvents = "none";
-    probe.style.width = "0";
-    probe.style.height = "0";
-    document.body.appendChild(probe);
-    const lightStyle = getComputedStyle(probe);
+  /* shards refract: offset the side test per-cell so pieces of each
+     world break across the boundary */
+  float shardShift = (vor.y-0.5)*0.22*band + (vor.z-0.5)*0.1*band;
+  float sideShifted = side + shardShift;
 
-    setColors({
-      dark: {
-        bg: read(darkStyle, "--bg", FALLBACK_COLORS.dark.bg),
-        ink: read(darkStyle, "--ink", FALLBACK_COLORS.dark.ink),
-        acc: read(darkStyle, "--acc", FALLBACK_COLORS.dark.acc),
-        acc2: read(darkStyle, "--acc-2", FALLBACK_COLORS.dark.acc2),
-      },
-      light: {
-        bg: read(lightStyle, "--bg", FALLBACK_COLORS.light.bg),
-        ink: read(lightStyle, "--ink", FALLBACK_COLORS.light.ink),
-        acc: read(lightStyle, "--acc", FALLBACK_COLORS.light.acc),
-        acc2: read(lightStyle, "--acc-2", FALLBACK_COLORS.light.acc2),
-      },
-    });
+  float mixDark = smoothstep(-0.006, 0.006, sideShifted);
 
-    document.body.removeChild(probe);
-  }, []);
+  /* ---- base environments ---- */
+  vec3 lightEnv = vec3(0.965,0.960,0.950);
+  lightEnv -= fbm(p*3.0 - t*0.04)*0.05;                 /* soft grain */
+  lightEnv -= exp(-abs(side)*3.5)*0.10;                 /* shadow toward seam */
 
-  return colors;
+  vec3 darkEnv = vec3(0.030,0.032,0.048);
+  darkEnv += fbm(p*3.5 + t*0.05)*0.035;
+  darkEnv += vec3(0.05,0.08,0.16)*exp(-abs(side)*3.0);  /* blue energy toward seam */
+
+  vec3 col = mix(lightEnv, darkEnv, mixDark);
+
+  /* crack lines glow inside the band */
+  vec3 crackCol = mix(vec3(0.25,0.45,0.9), vec3(0.7,0.85,1.0), vor.y);
+  col += crackCol * cracks * band * 1.4;
+  /* faint dark crack lines on the light side for visibility */
+  col -= vec3(0.35)*cracks*band*(1.0-mixDark)*0.8;
+
+  /* ---- lightning along the seam ---- */
+  float flick = step(0.55, hash(vec2(floor(t*9.0), 3.7)));
+  float jag  = (fbm(vec2(uv.y*7.0, t*2.3))-0.5)*0.14;
+  float bolt = exp(-abs(side + jag)*90.0);
+  float jag2 = (fbm(vec2(uv.y*12.0+40.0, t*3.1))-0.5)*0.22;
+  float bolt2= exp(-abs(side + jag2)*140.0);
+  float flick2 = step(0.7, hash(vec2(floor(t*13.0), 9.2)));
+
+  vec3 boltCol = vec3(0.55,0.75,1.0);
+  col += boltCol * bolt  * (0.35 + 1.3*flick);
+  col += vec3(0.9,0.95,1.0) * bolt2 * flick2 * 1.6;
+  /* seam core glow */
+  col += vec3(0.4,0.6,1.0) * exp(-abs(side)*30.0) * 0.5;
+
+  /* subtle vignette */
+  vec2 q = uv - 0.5;
+  col *= 1.0 - dot(q,q)*0.55;
+
+  /* mouse light */
+  vec2 m = vec2(uMouse.x*aspect, uMouse.y);
+  col += vec3(0.10,0.12,0.18) * exp(-length(p-m)*3.0) * mixDark;
+  col += vec3(0.06) * exp(-length(p-m)*3.0) * (1.0-mixDark);
+
+  gl_FragColor = vec4(col, 1.0);
 }
+`;
 
-function useIsNarrow(breakpointPx: number) {
-  const [narrow, setNarrow] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${breakpointPx}px)`);
-    const update = () => setNarrow(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, [breakpointPx]);
-  return narrow;
-}
-
-type ShardDef = {
-  pos: THREE.Vector3;
-  rot: THREE.Euler;
-  spin: number;
-  driftPhase: number;
-  restScale: number;
-  fullScale: number;
-  threshold: number;
-  useAlt: boolean;
-};
-
-function buildShardDefs(
-  count: number,
-  reserveCount: number,
-  spread: readonly [readonly [number, number], readonly [number, number], readonly [number, number]],
-  hasAlt: boolean
-): ShardDef[] {
-  const total = count + reserveCount;
-  const [xr, yr, zr] = spread;
-  return Array.from({ length: total }, (_, i) => {
-    const isReserve = i >= count;
-    return {
-      pos: new THREE.Vector3(
-        THREE.MathUtils.randFloat(xr[0], xr[1]),
-        THREE.MathUtils.randFloat(yr[0], yr[1]),
-        THREE.MathUtils.randFloat(zr[0], zr[1])
-      ),
-      rot: new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI),
-      spin: THREE.MathUtils.randFloat(0.05, 0.18) * (Math.random() > 0.5 ? 1 : -1),
-      driftPhase: Math.random() * Math.PI * 2,
-      restScale: isReserve ? 0.02 : THREE.MathUtils.randFloat(0.55, 0.85),
-      fullScale: THREE.MathUtils.randFloat(0.85, 1.3),
-      threshold: isReserve ? THREE.MathUtils.randFloat(0.4, 0.85) : 0,
-      useAlt: hasAlt ? Math.random() > 0.5 : false,
-    };
-  });
-}
-
-function ShardField({
-  anchor,
-  rotationY,
-  tint,
-  tint2,
-  phase,
-  getIntensity,
-  spread,
-  count,
-  reserveCount,
-}: {
-  anchor: [number, number, number];
-  rotationY: number;
-  tint: string;
-  tint2?: string;
-  phase: number;
-  getIntensity: () => number;
-  spread: readonly [readonly [number, number], readonly [number, number], readonly [number, number]];
-  count: number;
-  reserveCount: number;
-}) {
-  const groupRef = useRef<THREE.Group>(null);
-  const instanceRefs = useRef<(THREE.Group | null)[]>([]);
-
-  const geometry = useMemo(() => {
-    const g = new THREE.TetrahedronGeometry(0.16, 0);
-    g.scale(1, 0.55, 1);
-    return g;
-  }, []);
-
-  const material = useMemo(
-    () =>
-      new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(tint),
-        transmission: 0.55,
-        thickness: 0.6,
-        roughness: 0.22,
-        metalness: 0,
-        ior: 1.35,
-        iridescence: 0.4,
-        iridescenceIOR: 1.2,
-        iridescenceThicknessRange: [100, 400],
-        transparent: true,
-        opacity: 0.92,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      }),
-    [tint]
-  );
-
-  const defs = useMemo(
-    () => buildShardDefs(count, reserveCount, spread, Boolean(tint2)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [count, reserveCount, tint2]
-  );
-
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    const intensity = getIntensity();
-
-    if (groupRef.current) {
-      const breathe = 1 + 0.028 * Math.sin(t * 0.55 + phase);
-      groupRef.current.scale.setScalar(breathe);
-    }
-
-    instanceRefs.current.forEach((obj, i) => {
-      if (!obj) return;
-      const d = defs[i];
-      const growFactor =
-        d.threshold > 0
-          ? THREE.MathUtils.smoothstep(intensity, Math.max(0, d.threshold - 0.15), Math.min(1, d.threshold + 0.15))
-          : 0.65 + 0.35 * intensity;
-      const scale = THREE.MathUtils.lerp(d.restScale, d.fullScale, growFactor);
-      obj.scale.setScalar(scale);
-      obj.position.set(
-        d.pos.x + Math.sin(t * 0.4 + d.driftPhase) * 0.06,
-        d.pos.y + Math.cos(t * 0.33 + d.driftPhase * 1.3) * 0.06,
-        d.pos.z + Math.sin(t * 0.28 + d.driftPhase * 0.6) * 0.06
-      );
-      obj.rotation.set(d.rot.x + t * d.spin, d.rot.y + t * d.spin * 0.7, d.rot.z + t * d.spin * 0.5);
-    });
-  });
-
+function CardPreview() {
   return (
-    <group ref={groupRef} position={anchor} rotation={[0, rotationY, 0]}>
-      <Instances geometry={geometry} material={material} limit={defs.length}>
-        {defs.map((d, i) => (
-          <Instance
-            key={i}
-            ref={(el) => {
-              // drei's Instance ref type is `unknown` at the type level; at
-              // runtime it is always a PositionMesh, which extends THREE.Group.
-              instanceRefs.current[i] = el as THREE.Group | null;
-            }}
-            color={d.useAlt && tint2 ? tint2 : tint}
-          />
-        ))}
-      </Instances>
-    </group>
-  );
-}
-
-function RiftGlow({
-  getIntensityDark,
-  getIntensityLight,
-  colorDark,
-  colorLight,
-  width,
-}: {
-  getIntensityDark: () => number;
-  getIntensityLight: () => number;
-  colorDark: string;
-  colorLight: string;
-  width: number;
-}) {
-  const matRef = useRef<THREE.ShaderMaterial>(null);
-
-  const uniforms = useMemo(
-    () => ({
-      uTime: { value: 0 },
-      uIntensityDark: { value: 0.3 },
-      uIntensityLight: { value: 0.3 },
-      uColorDark: { value: new THREE.Color(colorDark) },
-      uColorLight: { value: new THREE.Color(colorLight) },
-    }),
-    // colors rarely change after mount (measured once); keep the material stable
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
-  );
-
-  useEffect(() => {
-    uniforms.uColorDark.value.set(colorDark);
-    uniforms.uColorLight.value.set(colorLight);
-  }, [colorDark, colorLight, uniforms]);
-
-  useFrame(({ clock }) => {
-    uniforms.uTime.value = clock.elapsedTime;
-    uniforms.uIntensityDark.value = getIntensityDark();
-    uniforms.uIntensityLight.value = getIntensityLight();
-  });
-
-  return (
-    <mesh position={[0, 0, -0.55]}>
-      <planeGeometry args={[width, 4.6, 1, 1]} />
-      <shaderMaterial
-        ref={matRef}
-        uniforms={uniforms}
-        transparent
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
-        vertexShader={`
-          varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `}
-        fragmentShader={`
-          varying vec2 vUv;
-          uniform float uTime;
-          uniform float uIntensityDark;
-          uniform float uIntensityLight;
-          uniform vec3 uColorDark;
-          uniform vec3 uColorLight;
-
-          void main() {
-            vec2 c = vUv - 0.5;
-            float d = length(c * vec2(2.1, 1.05));
-            float core = smoothstep(0.62, 0.0, d);
-            float flicker = 0.82 + 0.18 * sin(uTime * 1.4 + c.y * 3.0);
-            float side = smoothstep(-0.5, 0.5, c.x);
-            vec3 col = mix(uColorDark, uColorLight, side);
-            float intensity = mix(uIntensityDark, uIntensityLight, side);
-            float alpha = core * flicker * (0.28 + 0.72 * intensity);
-            gl_FragColor = vec4(col * (0.9 + intensity * 0.7), alpha);
-          }
-        `}
-      />
-    </mesh>
-  );
-}
-
-function Scene({ hoveredSide, colors }: { hoveredSide: Side | null; colors: RealmColors }) {
-  const { viewport } = useThree();
-  const intensityDark = useRef(0.3);
-  const intensityLight = useRef(0.3);
-
-  useFrame((_, delta) => {
-    const targetDark = hoveredSide === "dark" ? 1 : 0.3;
-    const targetLight = hoveredSide === "light" ? 1 : 0.3;
-    intensityDark.current = THREE.MathUtils.damp(intensityDark.current, targetDark, 4, delta);
-    intensityLight.current = THREE.MathUtils.damp(intensityLight.current, targetLight, 4, delta);
-  });
-
-  const anchorX = Math.max(0.55, viewport.width * 0.19);
-
-  return (
-    <>
-      <ambientLight intensity={0.55} />
-      <pointLight position={[-4, 3, 5]} intensity={1.1} color={colors.dark.acc} />
-      <pointLight position={[4, 3, 5]} intensity={1.1} color={colors.light.acc} />
-      <pointLight position={[0, 0, 4]} intensity={0.5} color="#ffffff" />
-
-      <ShardField
-        anchor={[-anchorX, 0, 0]}
-        rotationY={0.42}
-        tint={colors.dark.ink}
-        phase={0}
-        getIntensity={() => intensityDark.current}
-        spread={[
-          [-1.3, 0.95],
-          [-1.9, 1.9],
-          [-0.35, 0.35],
-        ]}
-        count={26}
-        reserveCount={14}
-      />
-      <ShardField
-        anchor={[anchorX, 0, 0]}
-        rotationY={-0.42}
-        tint={colors.light.ink}
-        phase={1.7}
-        getIntensity={() => intensityLight.current}
-        spread={[
-          [-0.95, 1.3],
-          [-1.9, 1.9],
-          [-0.35, 0.35],
-        ]}
-        count={26}
-        reserveCount={14}
-      />
-      <ShardField
-        anchor={[0, 0, -0.5]}
-        rotationY={0}
-        tint={colors.dark.ink}
-        tint2={colors.light.ink}
-        phase={3.1}
-        getIntensity={() => Math.max(intensityDark.current, intensityLight.current)}
-        spread={[
-          [-0.85, 0.85],
-          [-1.7, 1.7],
-          [-0.4, 0.4],
-        ]}
-        count={22}
-        reserveCount={10}
-      />
-
-      <RiftGlow
-        getIntensityDark={() => intensityDark.current}
-        getIntensityLight={() => intensityLight.current}
-        colorDark={colors.dark.acc}
-        colorLight={colors.light.acc}
-        width={Math.max(1.1, anchorX * 0.95)}
-      />
-    </>
-  );
-}
-
-function RealmCard({
-  side,
-  label,
-  hovered,
-  picked,
-  onEnter,
-  onLeave,
-  onPick,
-  tiltDeg,
-}: {
-  side: Side;
-  label: string;
-  hovered: boolean;
-  picked: boolean;
-  onEnter: () => void;
-  onLeave: () => void;
-  onPick: () => void;
-  tiltDeg: number;
-}) {
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Enter ${label}`}
-      aria-pressed={picked}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      onFocus={onEnter}
-      onBlur={onLeave}
-      onClick={onPick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onPick();
-        }
-      }}
-      data-realm={side === "light" ? "light" : undefined}
-      className="group relative w-full max-w-[420px] sm:w-[38vw] cursor-pointer outline-none"
-      style={{
-        transform: `rotateY(${tiltDeg}deg)`,
-        transformStyle: "preserve-3d",
-        transition: "transform 0.6s cubic-bezier(.22,.7,.16,1)",
-      }}
-    >
-      <div
-        className="relative overflow-hidden border transition-[backdrop-filter,box-shadow,transform] duration-500"
-        style={{
-          background: "color-mix(in srgb, var(--bg) 55%, transparent)",
-          borderColor: "var(--ln)",
-          backdropFilter: `blur(${hovered ? 26 : 14}px) saturate(150%)`,
-          WebkitBackdropFilter: `blur(${hovered ? 26 : 14}px) saturate(150%)`,
-          clipPath:
-            side === "dark"
-              ? "polygon(0 0, 100% 0, 100% 100%, 8% 100%, 0 88%)"
-              : "polygon(0 0, 92% 0, 100% 12%, 100% 100%, 0 100%)",
-          boxShadow: hovered ? "0 30px 80px rgba(0,0,0,0.35)" : "0 14px 40px rgba(0,0,0,0.18)",
-          transform: hovered ? "scale(1.03)" : "scale(1)",
-        }}
-      >
-        <div className="px-6 py-8 sm:px-8 sm:py-10">
-          <div className="flex items-center justify-between font-mono text-[10px] tracking-[0.24em] uppercase text-mut">
-            <span>{label}</span>
-            <span className="text-acc">{picked ? "✓ set" : hovered ? "release to enter" : "hover"}</span>
-          </div>
-
-          <div
-            className="mt-8 rounded-[2px] border transition-all duration-500"
-            style={{
-              borderColor: "var(--ln)",
-              background: "var(--bg)",
-              opacity: hovered ? 1 : 0.45,
-              filter: hovered ? "blur(0px)" : "blur(1.5px)",
-              transform: hovered ? "scale(1)" : "scale(0.96)",
-            }}
-          >
-            <div className="flex items-center justify-between px-3 pt-3">
-              <span className="font-display text-[11px] font-medium text-ink">tariwei</span>
-              <div className="flex gap-1">
-                <span className="h-[3px] w-3 rounded-full" style={{ background: "var(--ln)" }} />
-                <span className="h-[3px] w-3 rounded-full" style={{ background: "var(--ln)" }} />
-                <span className="h-[3px] w-3 rounded-full" style={{ background: "var(--acc)" }} />
-              </div>
-            </div>
-            <div className="px-3 pb-4 pt-5">
-              <p className="font-display text-[20px] sm:text-[24px] leading-[1] tracking-tight text-ink">
-                From the metal
-                <br />
-                to the <span className="font-accent italic text-acc">pixel.</span>
-              </p>
-              <div className="mt-3 flex gap-1.5">
-                <span className="h-1.5 flex-[2] rounded-full" style={{ background: "var(--ln)" }} />
-                <span className="h-1.5 flex-1 rounded-full" style={{ background: "var(--acc)" }} />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex items-center justify-between font-mono text-[10px] tracking-[0.2em] text-mut uppercase">
-            <span>{side === "dark" ? "near-black · warm ink" : "warm white · deep ink"}</span>
-            <span className="text-ink">enter →</span>
-          </div>
-        </div>
+    <div className={styles.preview} aria-hidden="true">
+      <div className={styles.pRow}>
+        <span className={styles.pDot} />
+        <span className={styles.pDot} />
+        <span className={styles.pDot} />
+      </div>
+      <div className={styles.pBlock} />
+      <div className={styles.pRow}>
+        <div className={styles.pBarAccent} />
+        <div className={styles.pBar} />
+      </div>
+      <div className={styles.pRow}>
+        <div className={styles.pBar} />
+        <div className={styles.pBar} />
       </div>
     </div>
   );
 }
 
-export function RealmSelect() {
-  const colors = useRealmColors();
-  const [hoveredSide, setHoveredSide] = useState<Side | null>(null);
-  const [pickedSide, setPickedSide] = useState<Side | null>(null);
-  const isNarrow = useIsNarrow(640);
+const AUDIO_OPTIONS: { mode: AudioMode; label: string; hint: string }[] = [
+  { mode: "none", label: "Silence", hint: "no sound at all" },
+  { mode: "zen", label: "Zen", hint: "ambience + scroll sfx" },
+  { mode: "classical", label: "Classical", hint: "a subtle piece of the day" },
+];
 
-  const handlePick = useCallback((side: Side) => {
-    setPickedSide(side);
-    useSiteStore.getState().setRealm(side);
+export function RealmSelect() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+  const firstAudioRef = useRef<HTMLButtonElement>(null);
+  const blendTarget = useRef(0.5);
+  const chosenAt = useRef(0);
+  const lastPicked = useRef<Side>("dark");
+  const [picked, setPicked] = useState<Side | null>(null);
+  const returning = useSiteStore((s) => s.hasEnteredBefore);
+  // Keeps the heading/color stable while the chosen screen fades out after "Choose again"
+  const shown = picked ?? lastPicked.current;
+
+  /* ---- WebGL background ---- */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const gl = canvas.getContext("webgl", { antialias: true });
+    if (!gl) return; // CSS #111 background stays as the fallback
+
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const makeShader = (type: number, src: string) => {
+      const s = gl.createShader(type)!;
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(s));
+      }
+      return s;
+    };
+
+    const prog = gl.createProgram()!;
+    gl.attachShader(prog, makeShader(gl.VERTEX_SHADER, VERT));
+    gl.attachShader(prog, makeShader(gl.FRAGMENT_SHADER, FRAG));
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "aPos");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+    const uRes = gl.getUniformLocation(prog, "uRes");
+    const uTime = gl.getUniformLocation(prog, "uTime");
+    const uMouse = gl.getUniformLocation(prog, "uMouse");
+    const uBlend = gl.getUniformLocation(prog, "uBlend");
+
+    const mouse = [0.5, 0.5];
+    let blend = 0.5;
+    let raf = 0;
+
+    const resize = () => {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      canvas.width = innerWidth * dpr;
+      canvas.height = innerHeight * dpr;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    };
+    resize();
+
+    const onMove = (e: PointerEvent) => {
+      mouse[0] = e.clientX / innerWidth;
+      mouse[1] = 1 - e.clientY / innerHeight;
+    };
+
+    addEventListener("resize", resize);
+    addEventListener("pointermove", onMove);
+
+    const start = performance.now();
+    const frame = () => {
+      const t = reduceMotion ? 12.0 : (performance.now() - start) / 1000;
+      blend += (blendTarget.current - blend) * 0.045;
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform1f(uTime, t);
+      gl.uniform2f(uMouse, mouse[0], mouse[1]);
+      gl.uniform1f(uBlend, blend);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+
+    return () => {
+      // No loseContext() here: under StrictMode the effect remounts on the
+      // same canvas, and a deliberately lost context stays lost.
+      cancelAnimationFrame(raf);
+      removeEventListener("resize", resize);
+      removeEventListener("pointermove", onMove);
+    };
   }, []);
 
+  /* ---- whole card group tilts toward the cursor ---- */
+  useEffect(() => {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const onMove = (e: PointerEvent) => {
+      const el = cardsRef.current;
+      if (!el) return;
+      const x = e.clientX / innerWidth - 0.5;
+      const y = e.clientY / innerHeight - 0.5;
+      el.style.transform = `rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`;
+    };
+    addEventListener("pointermove", onMove);
+    return () => removeEventListener("pointermove", onMove);
+  }, []);
+
+  const choose = useCallback((side: Side) => {
+    setPicked(side);
+    lastPicked.current = side;
+    chosenAt.current = performance.now();
+    blendTarget.current = side === "light" ? 0 : 1; // sweep the seam away
+  }, []);
+
+  // Move keyboard focus into the audio screen once it has faded in
+  useEffect(() => {
+    if (!picked) return;
+    const id = setTimeout(() => firstAudioRef.current?.focus(), 550);
+    return () => clearTimeout(id);
+  }, [picked]);
+
+  const back = useCallback(() => {
+    setPicked(null);
+    blendTarget.current = 0.5; // seam converges back
+  }, []);
+
+  const enter = useCallback(
+    (mode: AudioMode) => {
+      if (!picked) return;
+      // The audio screen fades in over ~0.5s; ignore clicks that land on it
+      // while it is still invisible (e.g. an impatient double-click on a card)
+      if (performance.now() - chosenAt.current < 550) return;
+      const store = useSiteStore.getState();
+      store.setAudioMode(mode);
+      store.setRealm(picked); // flips the page into the site
+    },
+    [picked]
+  );
+
   return (
-    <div className="fixed inset-0 overflow-hidden bg-bg text-ink select-none">
-      <div className="absolute inset-0">
-        <Canvas
-          camera={{ position: [0, 0, 7.5], fov: 42 }}
-          gl={{ antialias: true, alpha: true }}
-          dpr={[1, 2]}
-          style={{ width: "100%", height: "100%", display: "block" }}
-        >
-          <Scene hoveredSide={hoveredSide} colors={colors} />
-        </Canvas>
+    <div
+      className={styles.root}
+      data-stage={picked ? "chosen" : "pick"}
+      data-picked={picked ?? undefined}
+    >
+      <canvas ref={canvasRef} className={styles.gl} />
+
+      <header className={styles.header}>
+        <div className={styles.brand}>
+          <Logo className="h-4 w-auto" />
+        </div>
+        <div className={styles.tagline}>One site · Two realities</div>
+      </header>
+
+      <main className={styles.stage} inert={picked !== null}>
+        <div className={styles.cards} ref={cardsRef}>
+          <button
+            type="button"
+            className={`${styles.card} ${styles.light}`}
+            onClick={() => choose("light")}
+          >
+            <div className={styles.cardInner}>
+              <div className={styles.eyebrow}>Realm 01</div>
+              <h2>Light</h2>
+              <CardPreview />
+              <p className={styles.desc}>
+                A bright, paper-clean reading surface. High contrast type on warm white.
+                Built for daylight and long sessions.
+              </p>
+              <span className={styles.enter}>Enter light realm</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.card} ${styles.dark}`}
+            onClick={() => choose("dark")}
+          >
+            <div className={styles.cardInner}>
+              <div className={styles.eyebrow}>Realm 02</div>
+              <h2>Dark</h2>
+              <CardPreview />
+              <p className={styles.desc}>
+                Deep-space black with soft glow accents. Low-light comfort, OLED-friendly,
+                zero glare after midnight.
+              </p>
+              <span className={styles.enter}>Enter dark realm</span>
+            </div>
+          </button>
+        </div>
+      </main>
+
+      <div className={styles.prompt}>
+        {returning ? "Welcome back · choose your realm" : "Choose your realm to continue"}
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 top-[7%] sm:top-[9%] z-20 flex flex-col items-center gap-3 px-4 text-center">
-        <Logo className="mb-1 h-5 w-auto text-ink/60" />
-        <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-mut">
-          Two renders. One site.
-        </span>
-        <h1 className="font-display text-[clamp(2rem,6vw,4.2rem)] leading-[0.95] tracking-tight text-ink">
-          Choose Your <span className="font-accent italic text-acc">Realm</span>
-        </h1>
-      </div>
-
-      <div className="absolute inset-x-0 bottom-[6%] z-10 flex flex-col items-center justify-center gap-8 px-4 sm:bottom-[9%] sm:flex-row sm:gap-[6vw]">
-        <RealmCard
-          side="dark"
-          label="Dark Realm"
-          hovered={hoveredSide === "dark"}
-          picked={pickedSide === "dark"}
-          onEnter={() => setHoveredSide("dark")}
-          onLeave={() => setHoveredSide((s) => (s === "dark" ? null : s))}
-          onPick={() => handlePick("dark")}
-          tiltDeg={isNarrow ? 0 : 20}
-        />
-        <RealmCard
-          side="light"
-          label="Light Realm"
-          hovered={hoveredSide === "light"}
-          picked={pickedSide === "light"}
-          onEnter={() => setHoveredSide("light")}
-          onLeave={() => setHoveredSide((s) => (s === "light" ? null : s))}
-          onPick={() => handlePick("light")}
-          tiltDeg={isNarrow ? 0 : -20}
-        />
-      </div>
-
-      <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center">
-        <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-mut/70">
-          hover to inspect · click to enter
-        </span>
+      <div
+        className={styles.chosenMsg}
+        inert={picked === null}
+        style={{ color: shown === "light" ? "#0a0a0f" : "#f5f4f2" }}
+      >
+        <h1>{shown === "light" ? "Light realm" : "Dark realm"}</h1>
+        <p>Now pick your sound</p>
+        <div className={styles.audioRow}>
+          {AUDIO_OPTIONS.map((opt, i) => (
+            <button
+              key={opt.mode}
+              ref={i === 0 ? firstAudioRef : undefined}
+              type="button"
+              className={styles.audioBtn}
+              onClick={() => enter(opt.mode)}
+            >
+              {opt.label}
+              <span className={styles.audioBtnHint}>{opt.hint}</span>
+            </button>
+          ))}
+        </div>
+        <button type="button" className={styles.backBtn} onClick={back}>
+          Choose again
+        </button>
       </div>
     </div>
   );

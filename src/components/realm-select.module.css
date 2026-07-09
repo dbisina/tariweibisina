@@ -1,0 +1,516 @@
+.root {
+  --ink: #0a0a0f;
+  --paper: #f5f4f2;
+  --bolt: #7db8ff;
+  --holo-a: #8ec5ff;
+  --holo-b: #ffb3e6;
+  --holo-c: #b8ffd9;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #111;
+  color: #fff;
+  font-family: var(--font-grotesk), "Space Grotesk", sans-serif;
+  transition: background 0.8s ease;
+}
+
+/* Fallback when WebGL is unavailable: without the shader sweeping the
+   background to paper-white, near-black chosen-screen text would sit on #111.
+   Harmless when WebGL works because the opaque canvas covers the root. */
+.root[data-picked="light"] {
+  background: #f5f4f2;
+}
+
+.gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---------- layout ---------- */
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  perspective-origin: 50% 45%;
+}
+
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 36px;
+  z-index: 10;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  color: #fff;
+}
+
+.brand {
+  font-family: var(--font-unbounded), "Unbounded", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.35em;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tagline {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.prompt {
+  position: absolute;
+  bottom: 34px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  animation: pulse 3.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.cards {
+  display: flex;
+  gap: 7vw;
+  align-items: center;
+  transform-style: preserve-3d;
+  z-index: 5;
+}
+
+/* ---------- holographic card ---------- */
+.card {
+  position: relative;
+  width: min(340px, 40vw);
+  border-radius: 18px;
+  padding: 2px; /* holo border thickness */
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: linear-gradient(
+    130deg,
+    var(--holo-a),
+    var(--holo-b) 40%,
+    var(--holo-c) 70%,
+    var(--holo-a)
+  );
+  background-size: 300% 300%;
+  animation: holoShift 7s linear infinite;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  border: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+@keyframes holoShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+.light {
+  transform: rotateY(22deg);
+  animation: holoShift 7s linear infinite, floatA 6s ease-in-out infinite;
+}
+
+.dark {
+  transform: rotateY(-22deg);
+  animation: holoShift 7s linear infinite reverse, floatB 7s ease-in-out infinite;
+}
+
+@keyframes floatA {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -18px;
+  }
+}
+
+@keyframes floatB {
+  0%,
+  100% {
+    translate: 0 -14px;
+  }
+  50% {
+    translate: 0 6px;
+  }
+}
+
+.card:hover {
+  scale: 1.03;
+}
+
+.card:focus-visible {
+  outline: 3px solid var(--bolt);
+  outline-offset: 4px;
+}
+
+.cardInner {
+  border-radius: 16px;
+  padding: 26px 24px 24px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+}
+
+.light .cardInner {
+  background: rgba(250, 250, 248, 0.92);
+  color: var(--ink);
+}
+
+.dark .cardInner {
+  background: rgba(12, 12, 18, 0.92);
+  color: var(--paper);
+}
+
+/* holo sheen sweep */
+.cardInner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 45%,
+    rgba(180, 220, 255, 0.25) 50%,
+    transparent 65%
+  );
+  background-size: 250% 250%;
+  animation: sheen 5s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+.dark .cardInner::after {
+  opacity: 0.5;
+}
+
+@keyframes sheen {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 6px;
+}
+
+.card h2 {
+  font-family: var(--font-unbounded), "Unbounded", sans-serif;
+  font-weight: 500;
+  font-size: clamp(20px, 2.4vw, 28px);
+  letter-spacing: 0.02em;
+  margin-bottom: 16px;
+}
+
+/* mini UI preview */
+.preview {
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.light .preview {
+  background: #ffffff;
+  border: 1px solid #e4e2dd;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.dark .preview {
+  background: #16161f;
+  border: 1px solid #262636;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.pRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.light .pDot {
+  background: #d8d5cf;
+}
+
+.dark .pDot {
+  background: #33334a;
+}
+
+.pBar {
+  height: 8px;
+  border-radius: 4px;
+  flex: 1;
+}
+
+.light .pBar {
+  background: #eceae5;
+}
+
+.dark .pBar {
+  background: #22222f;
+}
+
+.pBarAccent {
+  height: 8px;
+  border-radius: 4px;
+  flex: 0 0 42%;
+  background: linear-gradient(90deg, var(--holo-a), var(--holo-b));
+}
+
+.pBlock {
+  height: 34px;
+  border-radius: 6px;
+}
+
+.light .pBlock {
+  background: linear-gradient(120deg, #f2f0ec, #e7e4de);
+}
+
+.dark .pBlock {
+  background: linear-gradient(120deg, #1b1b28, #12121c);
+}
+
+.desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  opacity: 0.78;
+  margin-bottom: 18px;
+}
+
+.enter {
+  /* rendered as a <span> (nested buttons are invalid), so it needs the
+     block layout a <button> got for free in the reference */
+  display: block;
+  text-align: center;
+  font-family: var(--font-grotesk), "Space Grotesk", sans-serif;
+  font-weight: 600;
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: transform 0.15s ease, box-shadow 0.3s ease;
+}
+
+.light .enter {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.dark .enter {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.card:hover .enter {
+  box-shadow: 0 0 24px rgba(141, 184, 255, 0.55);
+}
+
+.enter:active {
+  transform: scale(0.97);
+}
+
+/* ---------- chosen state ---------- */
+.root[data-stage="chosen"] .cards,
+.root[data-stage="chosen"] .prompt {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  /* the pulse animation would otherwise keep overriding the prompt's opacity */
+  animation: none;
+}
+
+.chosenMsg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease 0.5s;
+  text-align: center;
+  padding: 0 24px;
+}
+
+.root[data-stage="chosen"] .chosenMsg {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.chosenMsg h1 {
+  font-family: var(--font-unbounded), "Unbounded", sans-serif;
+  font-weight: 700;
+  font-size: clamp(26px, 5vw, 52px);
+  letter-spacing: 0.04em;
+}
+
+.chosenMsg p {
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.audioRow {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.audioBtn {
+  background: none;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 12px 26px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-grotesk), "Space Grotesk", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: transform 0.15s ease, background 0.25s ease, color 0.25s ease;
+}
+
+.audioBtn:hover {
+  transform: translateY(-2px);
+}
+
+.audioBtn:focus-visible,
+.backBtn:focus-visible {
+  outline: 3px solid var(--bolt);
+  outline-offset: 4px;
+}
+
+.audioBtnHint {
+  display: block;
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  opacity: 0.55;
+  text-transform: none;
+}
+
+.backBtn {
+  margin-top: 18px;
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.55;
+  cursor: pointer;
+  font-family: var(--font-grotesk), "Space Grotesk", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.backBtn:hover {
+  opacity: 0.9;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 720px) {
+  .stage {
+    /* stacked cards can outgrow short screens; let them scroll */
+    overflow-y: auto;
+    align-items: flex-start;
+    padding: 90px 0 80px;
+  }
+
+  .cards {
+    flex-direction: column;
+    gap: 26px;
+    margin: auto; /* stays centered while content fits, scrolls when it does not */
+  }
+
+  .card {
+    width: min(320px, 84vw);
+  }
+
+  .light {
+    transform: rotateX(8deg) rotateY(10deg);
+  }
+
+  .dark {
+    transform: rotateX(-8deg) rotateY(-10deg);
+  }
+
+  .header {
+    padding: 20px 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tagline {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .cardInner::after,
+  .prompt {
+    animation: none !important;
+  }
+}
