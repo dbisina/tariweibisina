@@ -1,6 +1,9 @@
 # Portfolio Site — Vision & Spec Log
 
-Owner: Daniel Tariwei Bisina. Brand name shown in the SVG signature/logo: **Terry Way**.
+Owner: Daniel Tariwei Bisina. Brand name shown in the SVG signature/logo: **Tariwei**
+(earlier draft of this doc had this wrong as "Terry Way" — a transcription slip from the
+original dictated prompt; corrected 2026-07-09, verbatim section at the bottom is left
+unedited as received).
 Preferred LLM: Claude. Preferred coding agent: Claude Code. Log started 2026-07-09.
 
 This file exists so work can resume in any tool (Claude Code, Cursor, Gemini CLI, a fresh
@@ -16,7 +19,7 @@ original request is preserved verbatim at the bottom.
   (colors, font, layout density) as the target; the IA/flow it encodes is closer to right.
 - No git repo existed at start. No framework existed at start.
 - Next.js scaffolded into project root: Next 16.2.10, React 19.2.4, TypeScript, Tailwind v4,
-  App Router, `src/`, package name `terry-way-portfolio`. Build verified clean.
+  App Router, `src/`, package name `tariwei-portfolio`. Build verified clean.
 - Next.js 16 ships its own bundled docs at `node_modules/next/dist/docs/01-app/` with a
   self-inserted `AGENTS.md` warning that App Router APIs/conventions may differ from training
   data — read the relevant doc page there before writing any App Router code (routing,
@@ -31,7 +34,7 @@ real animated page transition, not a hard cut. Scroll-triggered animation on all
 site-wide, with **different** (not just scaled-down) behavior on mobile vs desktop. Responsive
 down to a viewport narrower than an iPhone 4 / Galaxy Fold's outer screen.
 
-Logo is SVG (the "Terry Way" signature). Wherever it appears — preloader, nav, footer — it runs
+Logo is SVG (the "Tariwei" signature). Wherever it appears — preloader, nav, footer — it runs
 a continuous stroke-shimmer animation.
 
 ## Site flow
