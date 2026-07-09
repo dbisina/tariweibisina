@@ -98,6 +98,68 @@ a continuous stroke-shimmer animation.
   pull repos in as case-study drafts. Also supports manual upload from Daniel's machine, or fully
   manual entry. The LLM turns whichever raw input into the structured case-study page.
 
+### Gemini API integration spec (researched 2026-07-09)
+
+Confirmed live from https://ai.google.dev/gemini-api/docs/models — the models page does not
+list context window sizes, but does confirm modality/tool/live support per model:
+
+| Model | Input | Output | Tool calling | Live API | Notes |
+|---|---|---|---|---|---|
+| `gemini-3.5-flash` | text/image/video/audio | text/image/video/audio | yes | yes | flagship, "sustained frontier performance" |
+| `gemini-3.1-flash-lite` | text/image/video/audio | text/image/video/audio | yes | yes | budget tier, same capability set |
+| `gemini-3.1-flash-live-preview` | audio/video | audio/text | yes | yes | dedicated real-time dialogue model, preview |
+| `gemini-2.5-flash-native-audio-preview-12-2025` | audio/video | audio/text | yes | yes | older-gen realtime fallback |
+
+**Model choice**: `gemini-3.5-flash` as Rimuru's main brain (chat + tool calls + project
+Q&A). `gemini-3.1-flash-live-preview` specifically for the realtime voice/"live mode" path —
+Google itself splits normal request/response from the Live API (separate WebSocket transport),
+so there's no single model spanning both; use both, routed by mode.
+
+**Tool calling shape**: request carries a `tools` array, each entry
+`{type, name, description, parameters}` (parameters = OpenAPI-subset JSON Schema). Model
+responds with a `function_call` step; you send back a `function_result` step. Tool-choice modes:
+`auto` / `any` / `none` (+ preview `validated` mode enforcing schema adherence). Keep active
+tools to roughly 10-20 — large/deeply-nested schemas can be rejected under `any` mode. This
+shape maps directly onto OpenAI and Anthropic's tool-use formats (same three concepts,
+different field names) — build the internal tool interface as
+`{name, description, parameters, handler}` and put one thin per-provider adapter behind it.
+
+**Audio input**: supported directly — upload via `client.files.upload()` then reference by
+`uri`, or inline `mime_type` + base64 `data`. Formats: wav/mp3/aiff/aac/ogg/flac. Cost: 32
+tokens/sec of audio. Max 9.5h audio per prompt, 20MB max inline (bigger needs Files API). This
+is turn-based (upload a clip, get an answer) — not the same as live streaming below.
+
+**Live/realtime voice mode**: stateful WebSocket (WSS), not the normal request/response API.
+Input audio: 16-bit PCM/16kHz/little-endian. Output audio: 16-bit PCM/24kHz/little-endian.
+Supports tool use inside live sessions, barge-in (user interrupts mid-response), live
+transcription both directions, live translation (70+ languages). Use ephemeral tokens for any
+browser-facing connection — never embed a raw API key client-side. Gap: exact message-schema
+field names (`setup`/`clientContent`/`toolCall` etc.) weren't captured in this pass — fetch the
+Live API "Get started"/"Session management" doc pages before wiring actual code.
+
+**Session/context handling**: API-native continuation via `previous_interaction_id` returned on
+each response, threaded into the next call to continue history server-side (or pass
+`store: false` to manage history client-side instead). No documented retention/expiry was found
+for stored interactions — don't assume indefinite retention, set our own TTL. For Rimuru's
+cookie/IP-keyed returning-visitor memory: store the last `previous_interaction_id` against the
+session key ourselves, thread it back in within our own TTL window.
+
+**Portability** — swap-safe behind an adapter: the tool-call concept itself, the
+`auto`/`any`/`none` tri-state, JSON-Schema structured output, "a token that continues a
+conversation" as a concept. Gemini-specific, needs a provider shim: the
+`previous_interaction_id` mechanics, the WebSocket Live API entirely (OpenAI/Anthropic realtime
+voice use different transports/schemas), the audio token-cost formula, caching thresholds, and
+the `interactions` API surface name itself. Build the assistant core around plain
+`{messages, tools, response_schema}` and isolate everything Gemini-specific inside one
+`GeminiProvider` module — a later Claude/GPT/DeepSeek swap should only touch that file.
+
+**Open flag before writing real code**: the SDK call shape referenced across current docs
+(`client.interactions.create()`, "interactions" as the top-level concept) reads as a newer
+surface than the older `generate_content`/`GenerativeModel` pattern common in most public
+examples/tutorials. Verify against whatever `@google/genai` SDK version actually gets installed
+before building against this — don't assume the docs-cited shape matches the installed
+package's API 1:1.
+
 ## Audio system
 
 Offered right after realm selection, independent of light/dark: **None / Zen / Classical**.
