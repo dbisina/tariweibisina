@@ -8,10 +8,10 @@
   --acc: #ff5a2c;
   --acc-2: #ff4a1c;
 
-  --font-display: "Cabinet Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "General Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-accent: "Instrument Serif", serif;
+  --font-display: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-accent: var(--font-instrument-serif), serif;
 }
 
 [data-realm="light"] {

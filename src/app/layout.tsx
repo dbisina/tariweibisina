@@ -45,13 +45,6 @@ export default function RootLayout({
       className={`${jetbrainsMono.variable} ${instrumentSerif.variable} ${spaceGrotesk.variable} ${unbounded.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <link rel="preconnect" href="https://api.fontshare.com" />
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700&f[]=general-sans@400,500,600&display=swap"
-          rel="stylesheet"
-        />
-      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <RealmSync />
         {children}
