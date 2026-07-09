@@ -11,11 +11,16 @@ Last updated: 2026-07-09 (session ce619179, branch `worktree-fracture-realm-sele
 
 Done (committed on master):
 - Preloader (name animation), design foundation, logo SVG
-- Realm-select portal v1 (being replaced — see below), theme-switch bug fix
+- Realm-select FRACTURE port + audio pick (merged from worktree branch, ff to master)
+- Fonts fully swapped: Unbounded (display) + Space Grotesk (body) via next/font,
+  Fontshare links removed, globals.css tokens updated
 - About/Hero, homepage featured-project cards
 - Second portal (Engineer vs Business) + path shells
+- Catalog v1 at /business/catalog: rings/spiral toggle, scroll rotation, tilted cards,
+  custom cursor. Functional but NOT yet matched against k95.it/cinetica.studio live —
+  Chrome extension was disconnected (Chrome auto-updated); visual fidelity pass pending.
 
-In progress (this branch):
+From the fracture-branch session (already merged; kept for context):
 - Realm-select v2: exact port of `theme-select.html` (FRACTURE design) — Daniel supplied
   this file as THE reference for how theme selection must look. Angled holographic
   cards ±22°, WebGL split-environment background with glass-shatter seam + lightning,
