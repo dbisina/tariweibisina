@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { RealmSync } from "@/components/realm-sync";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -40,6 +41,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <RealmSync />
         {children}
       </body>
     </html>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Preloader } from "@/components/preloader";
+import { RealmSelect } from "@/components/realm-select";
 import { useSiteStore } from "@/lib/store";
 
 export default function Home() {
@@ -11,11 +12,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {!preloadDone && <Preloader onDone={() => setPreloadDone(true)} />}
-      {preloadDone && !realm && (
-        <div className="min-h-screen flex items-center justify-center font-mono text-sm text-mut">
-          realm-select portal — building next
-        </div>
-      )}
+      {preloadDone && !realm && <RealmSelect />}
       {preloadDone && realm && (
         <div className="min-h-screen flex items-center justify-center font-mono text-sm text-mut">
           home — realm: {realm}
