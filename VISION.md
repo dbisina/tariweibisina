@@ -4,7 +4,9 @@ Owner: Daniel Tariwei Bisina. Brand name shown in the SVG signature/logo: **Tari
 (earlier draft of this doc had this wrong as "Terry Way" — a transcription slip from the
 original dictated prompt; corrected 2026-07-09, verbatim section at the bottom is left
 unedited as received).
-Preferred LLM: Claude. Preferred coding agent: Claude Code. Log started 2026-07-09.
+Daniel's personal-use LLM preference (for his own work, not the site): Claude. Preferred
+coding agent: Claude Code. The site's own AI assistant runs on Gemini as primary — see AI
+assistant section below. Log started 2026-07-09.
 
 This file exists so work can resume in any tool (Claude Code, Cursor, Gemini CLI, a fresh
 session, whatever) without re-explaining the vision. Update it when scope changes. The raw
@@ -132,7 +134,8 @@ personal site that runs analytics + an AI chat that stores conversation/session 
 - Plays piano; favorite piece: Concierto de Aranjuez (Rodrigo).
 - Driving/cars: BMW F90 M5 Competition, Porsche 911 GT3 RS, Koenigsegg Gemera, Bentley Flying
   Spur, Aston Martin Vantage.
-- Preferred LLM: Claude. Preferred coding agent: Claude Code.
+- Personal-use LLM preference (hobby/own work, not the site's engine): Claude. Preferred
+  coding agent: Claude Code.
 
 ## Inspiration references (what to extract from each)
 
