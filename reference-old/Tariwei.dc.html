@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600&f[]=switzer@400,500,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+html{scroll-behavior:smooth}
+body{margin:0;background:#050506;color:#F4F3EF;font-family:'Switzer',ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none;transition:color .25s}
+a:hover{color:#FF5A2C}
+input,button,textarea{font-family:inherit}
+::selection{background:#FF4A1C;color:#0B0B0C}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#333338;border-radius:99px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+@keyframes lgIn{from{opacity:0;transform:translateY(36px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ldBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes blink{0%,55%{opacity:1}56%,100%{opacity:0}}
+@keyframes sheen{from{transform:translateX(-160%) skewX(-16deg)}to{transform:translateX(260%) skewX(-16deg)}}
+@keyframes holo{0%,100%{opacity:.22;transform:translateX(-34%) skewX(-14deg)}50%{opacity:.5;transform:translateX(34%) skewX(-14deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes demoScroll{0%,7%{transform:translateY(0)}47%,55%{transform:translateY(-56%)}93%,100%{transform:translateY(0)}}
+@keyframes flowDot{0%{left:2%;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:96%;opacity:0}}
+@keyframes barGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pulseRing{0%{transform:scale(.65);opacity:.8}80%,100%{transform:scale(1.9);opacity:0}}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes dashMove{to{stroke-dashoffset:-160}}
+@keyframes curtainUp{to{transform:translateY(-101%)}}
+@keyframes dotTy{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(1turn)}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fillIn{to{fill-opacity:1}}
+@keyframes sweepY{0%{transform:translateY(101%)}38%,55%{transform:translateY(0)}100%{transform:translateY(-101%)}}
+</style>
+</helmet>
+<div ref="{{ setRoot }}" style="min-height:100vh;background:var(--bg,#0B0B0C);color:var(--ink,#F4F3EF)">
+
+  <!-- ============ PHASE: PRELOADER ============ -->
+  <sc-if value="{{ isLoad }}" hint-placeholder-val="{{ true }}">
+    <div data-screen-label="Preloader" style="position:fixed;inset:0;z-index:500;background:#050506;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+      <svg width="918" height="98" viewBox="0 0 918 98" fill="#F4F3EF" xmlns="http://www.w3.org/2000/svg" style="width:min(680px,74vw);height:auto;overflow:visible;display:block">
+        <path pathLength="1" style="stroke:#F4F3EF;stroke-width:2;fill-opacity:0;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .55s cubic-bezier(.4,0,.3,1) 1.5s forwards,fillIn .45s ease 1.9s forwards" d="M777.536 20.4982C788.79 19.7151 831.492 19.3789 840.089 22.2445C846.034 24.2259 851.876 28.2255 854.558 34.0577C856.964 39.269 856.597 45.5911 854.496 50.841C852.286 56.3885 847.7 60.2399 842.226 62.4074C838.883 63.73 835.362 64.3668 831.804 64.6729C825.914 65.1873 786.206 65.5118 783.469 63.9137C782.048 63.0871 781.185 61.5625 780.818 60.0011C780.475 58.5377 780.842 56.8661 781.816 55.715C786.824 49.8001 823.93 54.3617 833.856 52.5799C837.358 51.9492 841.277 50.5716 843.248 47.3913C844.448 45.449 844.724 42.8327 844.118 40.6473C843.297 37.6771 840.958 35.2848 838.252 33.9194C831.853 30.6882 779.795 31.0899 772.331 33.8128C772.105 33.8942 771.884 33.9824 771.658 34.0675C767.929 36.4225 763.618 40.9939 763.349 45.6927C761.138 83.587 762.675 85.9505 799.64 85.8648L836.819 85.7608C841.467 85.7485 847.363 85.0933 851.863 86.1097C853.345 86.4465 854.674 87.7262 855.366 89.0366C856.186 90.5857 856.425 92.3736 855.697 94.0146C854.87 95.8576 853.155 96.574 851.319 97.0027C846.83 98.0619 782.765 98.0313 775.974 97.1496C771.376 96.5495 766.833 94.9392 762.994 92.3063C756.515 87.867 752.817 80.997 751.605 73.3309C749.78 61.7523 750.031 40.3742 757.201 31.1046C762.289 24.5223 769.564 21.5924 777.536 20.4982Z"></path>
+        <path pathLength="1" style="stroke:#F4F3EF;stroke-width:2;fill-opacity:0;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .6s cubic-bezier(.4,0,.3,1) 1.15s forwards,fillIn .45s ease 1.6s forwards" d="M503.835 20.2884C505.446 20.2633 508.826 20.4611 510.026 21.6104C522.67 35.2488 539.845 55.935 550.297 70.9242C577.826 110.412 579.063 58.2923 604.86 52.1264C625.568 47.1747 633.319 74.647 646.772 84.3704C655.283 90.524 663.586 76.7717 668.123 71.0711L692.762 40.1565C697.25 34.5729 701.549 28.86 706.655 23.7326C710.17 20.2112 717.836 17.2538 718.601 24.9872C718.846 27.5179 716.354 29.833 714.732 31.6736L682.99 71.2732C674.65 81.6885 664.455 98.882 649.503 97.8656C634.501 96.843 627.301 77.2738 618.692 68.9831C596.924 48.0142 592.687 98.6309 566.915 97.8716C560.866 97.6818 555.159 95.0306 551.118 90.5301C541.002 79.3188 531.928 65.7747 522.168 54.1225C514.906 45.4541 508.005 36.1801 500.982 27.314C500.18 26.3018 500.229 25.1648 500.29 23.9598C501.233 21.8541 501.95 21.5944 503.835 20.2884Z"></path>
+        <path pathLength="1" style="stroke:#F4F3EF;stroke-width:2;fill-opacity:0;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .55s cubic-bezier(.4,0,.3,1) .3s forwards,fillIn .45s ease .7s forwards" d="M181.293 20.4943C191.793 20.3817 202.295 20.3297 212.796 20.3401C227.807 20.3058 243.851 18.4799 253.596 32.8011C255.733 35.9655 257.209 39.5291 257.935 43.2782C259.736 52.5246 257.957 64.9238 258.575 74.6166C258.956 80.5988 260.292 93.849 254.897 97.4126C253.144 97.78 252.098 97.8719 250.374 97.0821C248.697 96.3105 247.573 94.6206 247.167 92.8755C246.432 89.7099 246.925 85.9748 246.949 82.7418C247.013 73.5818 248.633 49.0792 245.33 41.6703C243.555 37.6867 240.178 35.0709 236.144 33.5983C229.655 31.2287 189.37 31.277 180.978 32.4925C178.732 32.8176 176.866 33.5156 174.831 34.5045C174.605 34.6147 174.381 34.7298 174.156 34.8425C164.842 41.8087 166.783 49.4392 166.424 59.6947C166.204 66.0076 166.576 69.1303 168.049 75.2962C172.664 94.6267 216.606 81.2356 225.61 86.6484C227.011 87.4811 228.009 88.8588 228.368 90.4447C229.051 93.4511 227.078 96.8371 223.953 97.1065C211.886 97.7984 198.21 97.6025 186.193 97.5719C159.213 97.4984 154.158 79.3252 154.562 56.9944C154.93 36.6855 159.579 23.5479 181.293 20.4943Z"></path>
+        <path pathLength="1" style="stroke:#F4F3EF;stroke-width:2;fill-opacity:0;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .55s cubic-bezier(.4,0,.3,1) 0s forwards,fillIn .45s ease .4s forwards" d="M20.8104 0.040271C32.1699 -0.384668 29.2314 12.2013 29.1549 20.4435C37.4075 20.419 85.5059 18.9286 89.3401 21.6724C90.757 22.6863 91.8457 25.0027 91.7024 26.711C91.5738 28.24 90.7668 29.5901 89.6316 30.59C88.5938 31.5036 87.3195 31.7497 85.9927 31.9126C79.8304 32.67 73.0724 32.1103 66.8453 32.1005L29.2504 32.0381C28.782 88.4301 23.3392 86.036 79.6878 85.8217C85.5402 85.8401 102.62 84.591 107.882 86.9055C113.493 89.3731 111.912 97.3943 103.007 97.4555C88.6881 97.5535 73.8152 97.6024 59.4413 97.5167C47.491 97.4555 35.9637 98.7291 26.6536 89.6302C13.3972 76.6739 17.8811 50.2039 17.3766 32.054C11.6656 32.1501 1.67649 33.3215 0 26.0222C2.47555 19.2366 12.0361 20.2733 17.6766 20.4778C17.6105 13.6316 15.5832 4.9185 20.8104 0.040271Z"></path>
+        <path pathLength="1" style="stroke:#F4F3EF;stroke-width:2;fill-opacity:0;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .55s cubic-bezier(.4,0,.3,1) .6s forwards,fillIn .45s ease 1s forwards" d="M334.277 20.4819C353.35 20.1941 373.731 20.3276 392.872 20.5278C399.52 21.1567 400.201 30.8917 393.424 31.643C380.792 33.0433 367.145 31.5566 354.477 31.9663C340.203 32.4279 325.82 28.6072 319.604 45.1088C316.682 58.1086 321.521 79.5821 318.175 93.3039C316.32 100.903 307.245 97.3023 307.531 92.5018C308.372 78.3759 305.502 58.6229 307.831 45.0053C308.578 40.3652 310.393 35.9622 313.132 32.1426C318.517 24.7466 325.616 21.8363 334.277 20.4819Z"></path>
+        <path pathLength="1" style="stroke:#F4F3EF;stroke-width:2;fill-opacity:0;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .45s cubic-bezier(.4,0,.3,1) .85s forwards,fillIn .4s ease 1.15s forwards" d="M448.152 25.1973C452.439 25.19 455.855 26.1329 455.965 31.1807C456.406 51.3917 456.229 71.6835 456.082 91.9079C456.063 94.8898 454.618 95.7654 452.518 97.5656C450.014 97.7248 444.809 96.9227 444.699 93.7081C443.983 72.7489 444.356 51.6305 444.534 30.6542C444.558 27.8516 446.193 26.8787 448.152 25.1973Z"></path>
+        <path pathLength="1" style="stroke:#F4F3EF;stroke-width:2;fill-opacity:0;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .45s cubic-bezier(.4,0,.3,1) 1.75s forwards,fillIn .4s ease 2.05s forwards" d="M909.285 25.1479C913.718 25.2337 916.78 26.6763 916.792 31.6598C916.829 52.3655 917.264 73.2267 916.553 93.8981C916.504 95.3186 913.596 97.1066 912.494 97.8659C912.169 97.8353 911.839 97.8108 911.514 97.774C909.445 97.5475 907.522 96.9474 906.291 95.1472C904.338 92.2939 904.558 35.5063 905.336 30.2619C905.716 27.7055 907.381 26.6071 909.285 25.1479Z"></path>
+        <path pathLength="1" style="stroke:#F4F3EF;stroke-width:2;fill-opacity:0;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .3s cubic-bezier(.4,0,.3,1) 1.05s forwards,fillIn .35s ease 1.25s forwards" d="M448.189 0C458.531 0.331257 458.96 12.0348 452.304 17.0031C441.68 17.2033 441.729 4.81027 448.189 0Z"></path>
+        <path pathLength="1" style="stroke:#F4F3EF;stroke-width:2;fill-opacity:0;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .3s cubic-bezier(.4,0,.3,1) 1.95s forwards,fillIn .35s ease 2.15s forwards" d="M908.851 0.0851568C919.474 -0.0801654 919.597 12.1414 912.922 17.1164C902.801 17.1127 902.464 5.0534 908.851 0.0851568Z"></path>
+      </svg>
+      <div style="width:min(680px,74vw);margin-top:44px">
+        <div style="height:1px;background:rgba(244,243,239,.14);overflow:hidden">
+          <div style="height:1px;background:#FF4A1C;transform-origin:left;animation:ldBar 2.5s cubic-bezier(.3,.6,.2,1) .2s both"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;color:#8B8A84">
+          <span style="animation:fadeUp .7s ease .3s both">DANIEL TARIWEI BISINA — PORTFOLIO</span>
+          <span style="color:#F4F3EF"><span>{{ pctTxt }}</span>%</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ PHASE: THEME SELECT ============ -->
+  <sc-if value="{{ isTheme }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Theme select" style="position:fixed;inset:0;z-index:490;background:#050506;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow:hidden">
+      <div style="text-align:center;animation:fadeUp .8s cubic-bezier(.22,.7,.16,1) both">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:#FF5A2C">TARIWEI — READY</div>
+        <h1 style="margin:18px 0 10px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(34px,4.6vw,64px);letter-spacing:-.03em;color:#F4F3EF">Choose your reality.</h1>
+        <p style="margin:0;color:#8B8A84;font-size:15px">Two renders of the same site. Pick how it looks — flip it anytime later.</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(28px,5vw,72px);margin-top:64px;perspective:1800px">
+        <!-- LIGHT CARD -->
+        <div onClick="{{ pickLight }}" onMouseEnter="{{ crossIn }}" onMouseLeave="{{ crossOut }}" data-base="17" style="cursor:pointer;width:min(500px,88vw);transform:rotateY(17deg);box-shadow:0 30px 70px rgba(0,0,0,.35);transition:transform .6s cubic-bezier(.22,.7,.16,1),box-shadow .6s;animation:fadeUp .9s cubic-bezier(.22,.7,.16,1) .15s both">
+          <div style="position:relative;border-radius:14px;padding:1px;background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 40%,rgba(255,90,44,.35));box-shadow:0 40px 90px rgba(0,0,0,.6)">
+            <div style="position:relative;border-radius:13px;background:#F3F1EB;overflow:hidden;padding:30px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="font-family:'Clash Display',sans-serif;font-weight:600;font-size:15px;color:#131316;letter-spacing:-.02em">tariwei</div>
+                <div style="display:flex;gap:6px"><span style="width:22px;height:5px;border-radius:99px;background:rgba(19,19,22,.16)"></span><span style="width:22px;height:5px;border-radius:99px;background:rgba(19,19,22,.16)"></span><span style="width:22px;height:5px;border-radius:99px;background:#E8430F"></span></div>
+              </div>
+              <div style="margin-top:40px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:46px;line-height:1;letter-spacing:-.03em;color:#131316">From the metal<br>to the <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">pixel.</span></div>
+              <div style="margin-top:18px;display:flex;gap:8px">
+                <span style="height:8px;width:64%;border-radius:99px;background:rgba(19,19,22,.12)"></span>
+                <span style="height:8px;width:20%;border-radius:99px;background:rgba(19,19,22,.12)"></span>
+              </div>
+              <div style="margin-top:22px;display:grid;grid-template-columns:1.4fr 1fr;gap:10px">
+                <div style="height:128px;border-radius:8px;background:linear-gradient(135deg,#D8D2C4,#B9B2A2)"></div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <div style="flex:1;border-radius:8px;background:#FFFFFF;border:1px solid rgba(19,19,22,.1)"></div>
+                  <div style="flex:1;border-radius:8px;background:#E8430F"></div>
+                </div>
+              </div>
+              <div data-glare="1" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.3) 50%,transparent 64%);transform:translateX(-160%) skewX(-16deg)"></div>
+              <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.5) 48%,transparent 62%);animation:holo 4.5s ease-in-out infinite"></div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em">
+            <span style="color:#F4F3EF">LIGHT MODE</span><span style="color:#8B8A84">CLICK TO ENTER ↗</span>
+          </div>
+        </div>
+        <!-- DARK CARD -->
+        <div onClick="{{ pickDark }}" onMouseEnter="{{ crossIn }}" onMouseLeave="{{ crossOut }}" data-base="-17" style="cursor:pointer;width:min(500px,88vw);transform:rotateY(-17deg);box-shadow:0 30px 70px rgba(0,0,0,.35);transition:transform .6s cubic-bezier(.22,.7,.16,1),box-shadow .6s;animation:fadeUp .9s cubic-bezier(.22,.7,.16,1) .25s both">
+          <div style="position:relative;border-radius:14px;padding:1px;background:linear-gradient(225deg,rgba(255,255,255,.35),rgba(255,255,255,.05) 40%,rgba(255,90,44,.4));box-shadow:0 40px 90px rgba(0,0,0,.6)">
+            <div style="position:relative;border-radius:13px;background:#0E0E10;overflow:hidden;padding:30px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="font-family:'Clash Display',sans-serif;font-weight:600;font-size:15px;color:#F4F3EF;letter-spacing:-.02em">tariwei</div>
+                <div style="display:flex;gap:6px"><span style="width:22px;height:5px;border-radius:99px;background:rgba(244,243,239,.16)"></span><span style="width:22px;height:5px;border-radius:99px;background:rgba(244,243,239,.16)"></span><span style="width:22px;height:5px;border-radius:99px;background:#FF4A1C"></span></div>
+              </div>
+              <div style="margin-top:40px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:46px;line-height:1;letter-spacing:-.03em;color:#F4F3EF">From the metal<br>to the <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">pixel.</span></div>
+              <div style="margin-top:18px;display:flex;gap:8px">
+                <span style="height:8px;width:64%;border-radius:99px;background:rgba(244,243,239,.12)"></span>
+                <span style="height:8px;width:20%;border-radius:99px;background:rgba(244,243,239,.12)"></span>
+              </div>
+              <div style="margin-top:22px;display:grid;grid-template-columns:1.4fr 1fr;gap:10px">
+                <div style="height:128px;border-radius:8px;background:linear-gradient(135deg,#26262B,#151518)"></div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <div style="flex:1;border-radius:8px;background:#1A1A1E;border:1px solid rgba(244,243,239,.1)"></div>
+                  <div style="flex:1;border-radius:8px;background:#FF4A1C"></div>
+                </div>
+              </div>
+              <div data-glare="1" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.16) 50%,transparent 64%);transform:translateX(-160%) skewX(-16deg)"></div>
+              <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(120,180,255,.18) 48%,transparent 62%);animation:holo 4.5s ease-in-out infinite"></div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em">
+            <span style="color:#F4F3EF">DARK MODE</span><span style="color:#8B8A84">CLICK TO ENTER ↗</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:56px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:#55544F;animation:fadeUp 1s ease .5s both">HOVER TO INSPECT · POWERED BY DEUSX</div>
+    </div>
+  </sc-if>
+
+  <!-- ============ PHASE: WELCOME ============ -->
+  <sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Welcome" style="position:fixed;inset:0;z-index:480;background:var(--bg,#0B0B0C);display:flex;align-items:center;justify-content:center;text-align:center">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.24em;color:var(--acc,#FF5A2C);animation:fadeUp .6s ease .1s both"><span>{{ themeWord }}</span> MODE — INITIALIZED</div>
+        <div style="margin:22px 0 0;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(56px,9vw,140px);line-height:.96;letter-spacing:-.035em;color:var(--ink,#F4F3EF)">
+          <div style="overflow:hidden"><div style="animation:lgIn .9s cubic-bezier(.22,.7,.16,1) .25s both">Welcome</div></div>
+          <div style="overflow:hidden"><div style="animation:lgIn .9s cubic-bezier(.22,.7,.16,1) .4s both;font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">in.</div></div>
+        </div>
+        <div style="margin-top:26px;height:1px;width:min(360px,60vw);margin-left:auto;margin-right:auto;background:var(--ln,rgba(244,243,239,.13));overflow:hidden"><div style="height:1px;background:var(--acc,#FF5A2C);transform-origin:left;animation:ldBar 1.4s cubic-bezier(.3,.6,.2,1) .5s both"></div></div>
+        <div style="margin-top:18px;font-size:14px;color:var(--mut,#8B8A84);animation:fadeUp .8s ease .7s both">The engineering of Daniel Tariwei Bisina</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ REALM GATE FLASH ============ -->
+  <sc-if value="{{ gate }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:470;background:var(--ink,#F4F3EF);color:var(--bg,#0B0B0C);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;animation:fadeUp .3s ease both">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.3em">ENTERING</div>
+      <div style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(38px,6vw,84px);letter-spacing:-.03em">{{ gateLabel }}</div>
+      <div style="height:1px;width:min(300px,50vw);background:currentColor;opacity:.2;overflow:hidden"><div style="height:1px;background:var(--acc,#FF5A2C);transform-origin:left;animation:ldBar .9s cubic-bezier(.3,.6,.2,1) both"></div></div>
+    </div>
+  </sc-if>
+
+  <!-- ============ PHASE: SITE ============ -->
+  <sc-if value="{{ isSite }}" hint-placeholder-val="{{ true }}">
+
+    <!-- CURTAIN REVEAL -->
+    <sc-if value="{{ curtain }}" hint-placeholder-val="{{ false }}">
+      <div style="position:fixed;inset:0;z-index:460;pointer-events:none">
+        <div style="position:absolute;inset:0;background:var(--acc,#FF5A2C);animation:curtainUp .8s cubic-bezier(.7,0,.2,1) .5s both"></div>
+        <div style="position:absolute;inset:0;background:var(--bg,#0B0B0C);animation:curtainUp .8s cubic-bezier(.7,0,.2,1) .32s both"></div>
+      </div>
+    </sc-if>
+
+    <!-- ROUTE SWEEP -->
+    <sc-if value="{{ sweep }}" hint-placeholder-val="{{ false }}">
+      <div style="position:fixed;inset:0;z-index:465;pointer-events:none">
+        <div style="position:absolute;inset:0;background:var(--acc,#FF5A2C);transform:translateY(101%);animation:sweepY 1.05s cubic-bezier(.76,0,.24,1) .08s both"></div>
+        <div style="position:absolute;inset:0;background:var(--bg,#0B0B0C);transform:translateY(101%);animation:sweepY 1.05s cubic-bezier(.76,0,.24,1) both"></div>
+      </div>
+    </sc-if>
+
+    <!-- NAV -->
+    <nav style="position:fixed;top:0;left:0;right:0;z-index:400;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:var(--nav,rgba(11,11,12,.72));border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">
+      <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px);height:66px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+        <a href="#" onClick="{{ goHomeA }}" aria-label="tariwei home" style="display:flex;align-items:center;flex:none">
+          <svg viewBox="0 0 918 98" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="height:13px;width:auto;display:block;color:var(--ink,#F4F3EF)">
+            <path d="M777.536 20.4982C788.79 19.7151 831.492 19.3789 840.089 22.2445C846.034 24.2259 851.876 28.2255 854.558 34.0577C856.964 39.269 856.597 45.5911 854.496 50.841C852.286 56.3885 847.7 60.2399 842.226 62.4074C838.883 63.73 835.362 64.3668 831.804 64.6729C825.914 65.1873 786.206 65.5118 783.469 63.9137C782.048 63.0871 781.185 61.5625 780.818 60.0011C780.475 58.5377 780.842 56.8661 781.816 55.715C786.824 49.8001 823.93 54.3617 833.856 52.5799C837.358 51.9492 841.277 50.5716 843.248 47.3913C844.448 45.449 844.724 42.8327 844.118 40.6473C843.297 37.6771 840.958 35.2848 838.252 33.9194C831.853 30.6882 779.795 31.0899 772.331 33.8128C772.105 33.8942 771.884 33.9824 771.658 34.0675C767.929 36.4225 763.618 40.9939 763.349 45.6927C761.138 83.587 762.675 85.9505 799.64 85.8648L836.819 85.7608C841.467 85.7485 847.363 85.0933 851.863 86.1097C853.345 86.4465 854.674 87.7262 855.366 89.0366C856.186 90.5857 856.425 92.3736 855.697 94.0146C854.87 95.8576 853.155 96.574 851.319 97.0027C846.83 98.0619 782.765 98.0313 775.974 97.1496C771.376 96.5495 766.833 94.9392 762.994 92.3063C756.515 87.867 752.817 80.997 751.605 73.3309C749.78 61.7523 750.031 40.3742 757.201 31.1046C762.289 24.5223 769.564 21.5924 777.536 20.4982Z"></path>
+            <path d="M503.835 20.2884C505.446 20.2633 508.826 20.4611 510.026 21.6104C522.67 35.2488 539.845 55.935 550.297 70.9242C577.826 110.412 579.063 58.2923 604.86 52.1264C625.568 47.1747 633.319 74.647 646.772 84.3704C655.283 90.524 663.586 76.7717 668.123 71.0711L692.762 40.1565C697.25 34.5729 701.549 28.86 706.655 23.7326C710.17 20.2112 717.836 17.2538 718.601 24.9872C718.846 27.5179 716.354 29.833 714.732 31.6736L682.99 71.2732C674.65 81.6885 664.455 98.882 649.503 97.8656C634.501 96.843 627.301 77.2738 618.692 68.9831C596.924 48.0142 592.687 98.6309 566.915 97.8716C560.866 97.6818 555.159 95.0306 551.118 90.5301C541.002 79.3188 531.928 65.7747 522.168 54.1225C514.906 45.4541 508.005 36.1801 500.982 27.314C500.18 26.3018 500.229 25.1648 500.29 23.9598C501.233 21.8541 501.95 21.5944 503.835 20.2884Z"></path>
+            <path d="M181.293 20.4943C191.793 20.3817 202.295 20.3297 212.796 20.3401C227.807 20.3058 243.851 18.4799 253.596 32.8011C255.733 35.9655 257.209 39.5291 257.935 43.2782C259.736 52.5246 257.957 64.9238 258.575 74.6166C258.956 80.5988 260.292 93.849 254.897 97.4126C253.144 97.78 252.098 97.8719 250.374 97.0821C248.697 96.3105 247.573 94.6206 247.167 92.8755C246.432 89.7099 246.925 85.9748 246.949 82.7418C247.013 73.5818 248.633 49.0792 245.33 41.6703C243.555 37.6867 240.178 35.0709 236.144 33.5983C229.655 31.2287 189.37 31.277 180.978 32.4925C178.732 32.8176 176.866 33.5156 174.831 34.5045C174.605 34.6147 174.381 34.7298 174.156 34.8425C164.842 41.8087 166.783 49.4392 166.424 59.6947C166.204 66.0076 166.576 69.1303 168.049 75.2962C172.664 94.6267 216.606 81.2356 225.61 86.6484C227.011 87.4811 228.009 88.8588 228.368 90.4447C229.051 93.4511 227.078 96.8371 223.953 97.1065C211.886 97.7984 198.21 97.6025 186.193 97.5719C159.213 97.4984 154.158 79.3252 154.562 56.9944C154.93 36.6855 159.579 23.5479 181.293 20.4943Z"></path>
+            <path d="M20.8104 0.040271C32.1699 -0.384668 29.2314 12.2013 29.1549 20.4435C37.4075 20.419 85.5059 18.9286 89.3401 21.6724C90.757 22.6863 91.8457 25.0027 91.7024 26.711C91.5738 28.24 90.7668 29.5901 89.6316 30.59C88.5938 31.5036 87.3195 31.7497 85.9927 31.9126C79.8304 32.67 73.0724 32.1103 66.8453 32.1005L29.2504 32.0381C28.782 88.4301 23.3392 86.036 79.6878 85.8217C85.5402 85.8401 102.62 84.591 107.882 86.9055C113.493 89.3731 111.912 97.3943 103.007 97.4555C88.6881 97.5535 73.8152 97.6024 59.4413 97.5167C47.491 97.4555 35.9637 98.7291 26.6536 89.6302C13.3972 76.6739 17.8811 50.2039 17.3766 32.054C11.6656 32.1501 1.67649 33.3215 0 26.0222C2.47555 19.2366 12.0361 20.2733 17.6766 20.4778C17.6105 13.6316 15.5832 4.9185 20.8104 0.040271Z"></path>
+            <path d="M334.277 20.4819C353.35 20.1941 373.731 20.3276 392.872 20.5278C399.52 21.1567 400.201 30.8917 393.424 31.643C380.792 33.0433 367.145 31.5566 354.477 31.9663C340.203 32.4279 325.82 28.6072 319.604 45.1088C316.682 58.1086 321.521 79.5821 318.175 93.3039C316.32 100.903 307.245 97.3023 307.531 92.5018C308.372 78.3759 305.502 58.6229 307.831 45.0053C308.578 40.3652 310.393 35.9622 313.132 32.1426C318.517 24.7466 325.616 21.8363 334.277 20.4819Z"></path>
+            <path d="M448.152 25.1973C452.439 25.19 455.855 26.1329 455.965 31.1807C456.406 51.3917 456.229 71.6835 456.082 91.9079C456.063 94.8898 454.618 95.7654 452.518 97.5656C450.014 97.7248 444.809 96.9227 444.699 93.7081C443.983 72.7489 444.356 51.6305 444.534 30.6542C444.558 27.8516 446.193 26.8787 448.152 25.1973Z"></path>
+            <path d="M909.285 25.1479C913.718 25.2337 916.78 26.6763 916.792 31.6598C916.829 52.3655 917.264 73.2267 916.553 93.8981C916.504 95.3186 913.596 97.1066 912.494 97.8659C912.169 97.8353 911.839 97.8108 911.514 97.774C909.445 97.5475 907.522 96.9474 906.291 95.1472C904.338 92.2939 904.558 35.5063 905.336 30.2619C905.716 27.7055 907.381 26.6071 909.285 25.1479Z"></path>
+            <path d="M448.189 0C458.531 0.331257 458.96 12.0348 452.304 17.0031C441.68 17.2033 441.729 4.81027 448.189 0Z"></path>
+            <path d="M908.851 0.0851568C919.474 -0.0801654 919.597 12.1414 912.922 17.1164C902.801 17.1127 902.464 5.0534 908.851 0.0851568Z"></path>
+          </svg>
+        </a>
+        <div style="display:flex;align-items:center;gap:clamp(14px,2.2vw,30px);font-size:13.5px;font-weight:500">
+          <sc-for list="{{ navLinks }}" as="l" hint-placeholder-count="6">
+            <a href="#" data-nav="{{ l.r }}" onClick="{{ l.go }}" style="padding:4px 0;border-bottom:1px solid transparent;opacity:.62;transition:opacity .25s;white-space:nowrap">{{ l.l }}</a>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;flex:none">
+          <button onClick="{{ toggleTheme }}" title="Toggle theme" style="cursor:pointer;background:none;border:1px solid var(--ln,rgba(244,243,239,.13));color:var(--ink,#F4F3EF);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;transition:border-color .25s" style-hover="border-color:var(--acc,#FF5A2C)">◐</button>
+          <a href="#" onClick="{{ goQuoteA }}" style="background:var(--acc,#FF5A2C);color:#0B0B0C;font-weight:600;font-size:13px;padding:9px 18px;border-radius:99px;white-space:nowrap;transition:transform .25s" style-hover="transform:translateY(-1px);color:#0B0B0C">Get a quote</a>
+        </div>
+      </div>
+    </nav>
+
+    <main style="min-height:100vh">
+
+      <!-- ============ ROUTE: HOME ============ -->
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+        <div data-screen-label="Home">
+
+          <!-- HERO -->
+          <section style="position:relative;padding:clamp(150px,20vh,220px) 0 0;overflow:hidden">
+            <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px)">
+              <div data-rv="0" style="font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.22em;color:var(--acc,#FF5A2C)">DANIEL TARIWEI BISINA — POLYGLOT SOFTWARE &amp; AI SYSTEMS ENGINEER</div>
+              <h1 style="margin:26px 0 0;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(58px,10.6vw,164px);line-height:.94;letter-spacing:-.04em">
+                <div style="overflow:hidden;padding-bottom:.06em"><div data-rv="80">From the metal</div></div>
+                <div style="overflow:hidden;padding-bottom:.08em"><div data-rv="200">to the <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">pixel.</span></div></div>
+              </h1>
+              <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:28px;margin-top:44px;padding-bottom:64px">
+                <p data-rv="320" style="margin:0;max-width:520px;font-size:clamp(15px,1.3vw,18px);line-height:1.6;color:var(--mut,#8B8A84)">GPU kernels, AI-native operating systems, production web &amp; mobile platforms — one engineer, the entire stack. Founder of <span style="color:var(--ink,#F4F3EF);font-weight:500">DeusX Technologies</span>.</p>
+                <div data-rv="420" style="display:flex;gap:12px;flex-wrap:wrap">
+                  <a href="#crossroads" style="display:inline-flex;align-items:center;gap:10px;border:1px solid var(--ln,rgba(244,243,239,.13));padding:13px 24px;border-radius:99px;font-size:14px;font-weight:500;transition:border-color .3s,transform .3s" style-hover="border-color:var(--acc,#FF5A2C);transform:translateY(-2px)">For engineers <span style="color:var(--acc,#FF5A2C)">↘</span></a>
+                  <a href="#crossroads" style="display:inline-flex;align-items:center;gap:10px;border:1px solid var(--ln,rgba(244,243,239,.13));padding:13px 24px;border-radius:99px;font-size:14px;font-weight:500;transition:border-color .3s,transform .3s" style-hover="border-color:var(--acc,#FF5A2C);transform:translateY(-2px)">For business <span style="color:var(--acc,#FF5A2C)">↘</span></a>
+                </div>
+              </div>
+            </div>
+            <!-- STACK MARQUEE -->
+            <div style="border-top:1px solid var(--ln,rgba(244,243,239,.13));border-bottom:1px solid var(--ln,rgba(244,243,239,.13));overflow:hidden;padding:16px 0;white-space:nowrap">
+              <div style="display:inline-flex;gap:0;animation:mq 30s linear infinite">
+                <div style="display:inline-flex;align-items:center;gap:34px;padding-right:34px;font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.14em;color:var(--mut,#8B8A84)">
+                  <span>C / C++</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>CUDA</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>RUST</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>GO</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>PYTHON</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>FASTAPI / DJANGO</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>NODE / NEXT.JS</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>REACT NATIVE</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>KOTLIN</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>SWIFT</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>ROCM / OPENCL</span><span style="color:var(--acc,#FF5A2C)">✦</span>
+                </div>
+                <div style="display:inline-flex;align-items:center;gap:34px;padding-right:34px;font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:.14em;color:var(--mut,#8B8A84)">
+                  <span>C / C++</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>CUDA</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>RUST</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>GO</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>PYTHON</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>FASTAPI / DJANGO</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>NODE / NEXT.JS</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>REACT NATIVE</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>KOTLIN</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>SWIFT</span><span style="color:var(--acc,#FF5A2C)">✦</span><span>ROCM / OPENCL</span><span style="color:var(--acc,#FF5A2C)">✦</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ABOUT -->
+          <section style="padding:clamp(90px,12vh,150px) 0 0">
+            <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px)">
+              <div style="max-width:940px">
+                <div data-rv="0" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--acc,#FF5A2C)">ABOUT — THE SHORT VERSION</div>
+                <h2 data-rv="80" style="margin:20px 0 0;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(30px,3.4vw,48px);line-height:1.08;letter-spacing:-.03em">A multi-disciplinary engineer, from hardware acceleration to app stores.</h2>
+                <p data-rv="160" style="margin:24px 0 0;font-size:16px;line-height:1.7;color:var(--mut,#8B8A84);max-width:560px">Whether optimizing GPU kernels, designing AI-native operating systems, or launching production-ready applications, Daniel leverages an exhaustive technical stack to build fast, robust and intelligent systems — based in Nigeria, operating globally.</p>
+                <div data-rv="240" style="display:flex;gap:clamp(24px,4vw,56px);margin-top:36px;padding:24px 0;border-top:1px solid var(--ln,rgba(244,243,239,.13));border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">
+                  <div><div style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:34px;letter-spacing:-.02em">10+</div><div style="margin-top:4px;font-size:12.5px;color:var(--mut,#8B8A84)">languages, one engineer</div></div>
+                  <div><div style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:34px;letter-spacing:-.02em">09</div><div style="margin-top:4px;font-size:12.5px;color:var(--mut,#8B8A84)">products &amp; tools shipped</div></div>
+                  <div><div style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:34px;letter-spacing:-.02em">02</div><div style="margin-top:4px;font-size:12.5px;color:var(--mut,#8B8A84)">realms to explore below</div></div>
+                </div>
+                <div style="margin-top:8px">
+                  <sc-for list="{{ caps }}" as="c" hint-placeholder-count="4">
+                    <div data-rv="{{ c.d }}" style="display:flex;align-items:baseline;gap:18px;padding:18px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--acc,#FF5A2C)">{{ c.n }}</span>
+                      <div style="flex:1"><div style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:19px;letter-spacing:-.01em">{{ c.t }}</div><div style="margin-top:3px;font-size:13.5px;color:var(--mut,#8B8A84)">{{ c.s }}</div></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- CROSSROADS -->
+          <section id="crossroads" data-screen-label="Crossroads" style="padding:clamp(110px,15vh,180px) 0 clamp(90px,12vh,140px)">
+            <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px)">
+              <div style="text-align:center">
+                <div data-rv="0" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.24em;color:var(--acc,#FF5A2C)">THE CROSSROADS</div>
+                <h2 data-rv="80" style="margin:18px 0 12px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(38px,5.4vw,76px);letter-spacing:-.035em;line-height:1">Choose your <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">portal.</span></h2>
+                <p data-rv="160" style="margin:0 auto;max-width:460px;font-size:15px;line-height:1.6;color:var(--mut,#8B8A84)">Same engineer, two languages. Pick the one you speak — you can always cross over.</p>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:clamp(32px,6vw,96px);margin-top:72px;perspective:2200px">
+                <!-- PORTAL: ENGINEER -->
+                <div data-rv="120">
+                  <div onClick="{{ enterEng }}" onMouseEnter="{{ portalIn }}" onMouseLeave="{{ portalOut }}" data-base="8" style="cursor:pointer;position:relative;width:min(380px,80vw);transform:rotateY(8deg);transition:transform .7s cubic-bezier(.22,.7,.16,1)">
+                    <div style="position:relative;border-radius:999px 999px 22px 22px;padding:2px;overflow:hidden;background:var(--ln,rgba(244,243,239,.13))">
+                      <div data-rim="1" style="position:absolute;inset:-55%;background:conic-gradient(from 0deg,transparent 0deg,transparent 62deg,#FF5A2C 112deg,transparent 162deg,transparent 242deg,rgba(255,90,44,.45) 292deg,transparent 342deg);animation:spin 7s linear infinite"></div>
+                      <div style="position:relative;border-radius:999px 999px 20px 20px;overflow:hidden;background:#08080A">
+                        <div style="position:relative;aspect-ratio:0.6">
+                          <img data-pimg="1" src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop" alt="Circuitry" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5;filter:grayscale(.35) contrast(1.1);transform:scale(1);transition:transform 1.1s cubic-bezier(.22,.7,.16,1),opacity .6s">
+                          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,5,6,.45) 0%,rgba(5,5,6,.05) 40%,rgba(5,5,6,.9) 84%)"></div>
+                          <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;padding:46px 28px 36px;box-sizing:border-box">
+                            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.26em;color:rgba(244,243,239,.65)">DOOR 01</div>
+                            <div>
+                              <div style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(30px,3.4vw,42px);letter-spacing:-.03em;line-height:1.02;color:#F4F3EF">Enter as<br>an engineer</div>
+                              <p style="margin:14px auto 0;font-size:13.5px;line-height:1.6;color:rgba(244,243,239,.6);max-width:280px">Protocols, kernels, system design, live emulators. Proof of competence.</p>
+                              <div style="display:inline-flex;align-items:center;gap:9px;margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:#FF5A2C">STEP THROUGH <span>→</span></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="height:16px;margin:20px auto 0;width:70%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.45),transparent 68%);filter:blur(5px)"></div>
+                  <div style="text-align:center;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.22em;color:var(--mut,#8B8A84)">realm://engineering</div>
+                </div>
+                <!-- PORTAL: BUSINESS -->
+                <div data-rv="240">
+                  <div onClick="{{ enterBiz }}" onMouseEnter="{{ portalIn }}" onMouseLeave="{{ portalOut }}" data-base="-8" style="cursor:pointer;position:relative;width:min(380px,80vw);transform:rotateY(-8deg);transition:transform .7s cubic-bezier(.22,.7,.16,1)">
+                    <div style="position:relative;border-radius:999px 999px 22px 22px;padding:2px;overflow:hidden;background:var(--ln,rgba(244,243,239,.13))">
+                      <div data-rim="1" style="position:absolute;inset:-55%;background:conic-gradient(from 180deg,transparent 0deg,transparent 62deg,#FF5A2C 112deg,transparent 162deg,transparent 242deg,rgba(255,90,44,.45) 292deg,transparent 342deg);animation:spin 7s linear infinite"></div>
+                      <div style="position:relative;border-radius:999px 999px 20px 20px;overflow:hidden;background:#0B0A08">
+                        <div style="position:relative;aspect-ratio:0.6">
+                          <img data-pimg="1" src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop" alt="Modern office" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55;filter:contrast(1.05);transform:scale(1);transition:transform 1.1s cubic-bezier(.22,.7,.16,1),opacity .6s">
+                          <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,9,7,.5) 0%,rgba(10,9,7,.08) 40%,rgba(10,9,7,.9) 84%)"></div>
+                          <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;padding:46px 28px 36px;box-sizing:border-box">
+                            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.26em;color:rgba(244,243,239,.65)">DOOR 02</div>
+                            <div>
+                              <div style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(30px,3.4vw,42px);letter-spacing:-.03em;line-height:1.02;color:#F4F3EF">Enter as a<br>business owner</div>
+                              <p style="margin:14px auto 0;font-size:13.5px;line-height:1.6;color:rgba(244,243,239,.6);max-width:280px">Problems, solutions, live demos and the numbers that moved. Proof of impact.</p>
+                              <div style="display:inline-flex;align-items:center;gap:9px;margin-top:20px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:#FF5A2C">STEP THROUGH <span>→</span></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="height:16px;margin:20px auto 0;width:70%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(0,0,0,.45),transparent 68%);filter:blur(5px)"></div>
+                  <div style="text-align:center;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.22em;color:var(--mut,#8B8A84)">realm://business</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </sc-if>
+
+      <!-- ============ ROUTE: FOR ENGINEERS ============ -->
+      <sc-if value="{{ isEng }}" hint-placeholder-val="{{ false }}"><div data-screen-label="For Engineers" style="padding-top:66px">
+          <section style="padding:clamp(70px,10vh,120px) 0 0">
+            <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px)">
+              <div data-rv="0" style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--mut,#8B8A84)">
+                <span><span style="color:var(--acc,#FF5A2C)">DOOR 01</span> · realm://engineering</span>
+                <a href="#" onClick="{{ goBizA }}" style="color:var(--mut,#8B8A84)">SWITCH → BUSINESS REALM</a>
+              </div>
+              <h1 data-rv="80" style="margin:34px 0 0;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(44px,7.4vw,104px);line-height:.96;letter-spacing:-.04em">Built from<br>first <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">principles.</span></h1>
+              <p data-rv="160" style="margin:26px 0 0;max-width:600px;font-size:16px;line-height:1.65;color:var(--mut,#8B8A84)">Four systems builds with the schematics left open — what I built, what it's modeled after, the system design underneath, and live emulators running in-page. No black boxes.</p>
+            </div>
+          </section>
+
+          <!-- TECH MAP -->
+          <section style="margin-top:64px;border-top:1px solid var(--ln,rgba(244,243,239,.13))">
+            <div style="max-width:1380px;margin:0 auto;padding:44px clamp(20px,4vw,56px) 0">
+              <div data-rv="0" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--acc,#FF5A2C)">THE ARSENAL — LANGUAGES &amp; DOMAINS</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:clamp(20px,3vw,40px);margin-top:30px">
+                <div data-rv="40">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84);padding-bottom:10px;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">SYSTEMS &amp; ACCELERATION</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">C / C++</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">CUDA</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">ROCm / OpenCL</div>
+                  <div style="padding:9px 0;font-size:14px">Rust</div>
+                </div>
+                <div data-rv="100">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84);padding-bottom:10px;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">BACKENDS &amp; INFRA</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">Go</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">Python — FastAPI / Django</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">Node.js</div>
+                  <div style="padding:9px 0;font-size:14px">Postgres · Docker</div>
+                </div>
+                <div data-rv="160">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84);padding-bottom:10px;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">WEB</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">Next.js / React</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">TypeScript</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">GSAP · Lenis</div>
+                  <div style="padding:9px 0;font-size:14px">Edge / Vercel</div>
+                </div>
+                <div data-rv="220">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84);padding-bottom:10px;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">MOBILE</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">React Native</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">Kotlin</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">Swift</div>
+                  <div style="padding:9px 0;font-size:14px">Store-shipped, both stores</div>
+                </div>
+                <div data-rv="280">
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84);padding-bottom:10px;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">INTELLIGENCE</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">RAG architectures</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">Agent infrastructure</div>
+                  <div style="padding:9px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:14px">LLM pipelines</div>
+                  <div style="padding:9px 0;font-size:14px">AI-native operating systems</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- PROJECT ACCORDIONS -->
+          <section style="margin-top:90px">
+            <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px)">
+              <div data-rv="0" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--acc,#FF5A2C)">THE WORK — 04 SYSTEMS</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.16em;color:var(--mut,#8B8A84)">CLICK TO OPEN THE SCHEMATICS</div>
+              </div>
+              <div style="margin-top:24px;border-top:1px solid var(--ln,rgba(244,243,239,.13))">
+                <sc-for list="{{ engList }}" as="p" hint-placeholder-count="4">
+                  <div data-rv="0" style="border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">
+                    <div onClick="{{ p.toggle }}" style="cursor:pointer;display:grid;grid-template-columns:52px 1fr auto 44px;align-items:center;gap:18px;padding:26px 0">
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mut,#8B8A84)">{{ p.n }}</span>
+                      <div>
+                        <div style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(26px,3.4vw,44px);letter-spacing:-.03em;line-height:1.05">{{ p.name }}</div>
+                        <div style="margin-top:5px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.16em;color:var(--mut,#8B8A84)">{{ p.tag }}</div>
+                      </div>
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mut,#8B8A84);display:none"></span>
+                      <span style="width:40px;height:40px;border-radius:50%;border:1px solid var(--ln,rgba(244,243,239,.13));display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--acc,#FF5A2C)">{{ p.mark }}</span>
+                    </div>
+                    <sc-if value="{{ p.open }}" hint-placeholder-val="{{ false }}">
+                      <div style="padding:4px 0 52px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));gap:clamp(28px,4vw,56px);animation:fadeUp .5s cubic-bezier(.22,.7,.16,1) both">
+                        <div>
+                          <p style="margin:0;font-size:16.5px;line-height:1.65;color:var(--ink,#F4F3EF);max-width:560px">{{ p.sum }}</p>
+                          <div style="margin-top:28px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C)">WHAT I BUILT</div>
+                          <div style="margin-top:6px">
+                            <sc-for list="{{ p.built }}" as="b" hint-placeholder-count="4">
+                              <div style="display:flex;gap:14px;padding:11px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-size:13.8px;line-height:1.55;color:var(--mut,#8B8A84)"><span style="color:var(--acc,#FF5A2C);font-family:'JetBrains Mono',monospace;font-size:11px;padding-top:2px">▸</span><span>{{ b }}</span></div>
+                            </sc-for>
+                          </div>
+                          <div style="margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C)">INSPIRATION &amp; LINEAGE</div>
+                          <p style="margin:10px 0 0;font-size:13.8px;line-height:1.6;color:var(--mut,#8B8A84)">{{ p.inspo }}</p>
+                        </div>
+                        <div>
+                          <sc-if value="{{ p.isTerm }}" hint-placeholder-val="{{ false }}">
+                            <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(244,243,239,.14);background:#08080A">
+                              <div style="display:flex;align-items:center;gap:8px;padding:11px 14px;background:#101013;border-bottom:1px solid rgba(244,243,239,.08)">
+                                <span style="width:9px;height:9px;border-radius:50%;background:rgba(244,243,239,.22)"></span><span style="width:9px;height:9px;border-radius:50%;background:rgba(244,243,239,.22)"></span><span style="width:9px;height:9px;border-radius:50%;background:#FF5A2C"></span>
+                                <span style="margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;color:rgba(244,243,239,.55)">relay — live handoff</span>
+                              </div>
+                              <div style="padding:16px 18px;min-height:262px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7">
+                                <sc-for list="{{ relayLines }}" as="l" hint-placeholder-count="3">
+                                  <div style="color:{{ l.c }};white-space:pre-wrap">{{ l.t }}</div>
+                                </sc-for>
+                                <span style="color:#7BD88F;animation:blink 1.1s steps(1) infinite">▌</span>
+                              </div>
+                            </div>
+                            <div style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--mut,#8B8A84)">LIVE EMULATOR — LOOPS CONTINUOUSLY</div>
+                          </sc-if>
+                          <sc-if value="{{ p.isScan }}" hint-placeholder-val="{{ false }}">
+                            <div style="border-radius:10px;border:1px solid var(--ln,rgba(244,243,239,.13));background:var(--sf,#131316);padding:20px 22px">
+                              <div style="display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--mut,#8B8A84)"><span>aegis — six-axis scan</span><span style="display:flex;align-items:center;gap:6px;color:#7BD88F"><span style="width:6px;height:6px;border-radius:50%;background:#7BD88F;animation:dotTy 1.4s ease infinite"></span>LIVE</span></div>
+                              <div style="display:flex;align-items:center;gap:14px;margin-top:18px"><span style="width:96px;font-size:12.5px">Frontend</span><span style="flex:1;height:4px;border-radius:99px;background:var(--ln,rgba(244,243,239,.13));overflow:hidden;display:block"><span style="display:block;height:4px;width:94%;background:var(--acc,#FF5A2C);transform-origin:left;animation:barGrow 1.1s cubic-bezier(.22,.7,.16,1) .1s both"></span></span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;width:26px;text-align:right">94</span></div>
+                              <div style="display:flex;align-items:center;gap:14px;margin-top:12px"><span style="width:96px;font-size:12.5px">Backend</span><span style="flex:1;height:4px;border-radius:99px;background:var(--ln,rgba(244,243,239,.13));overflow:hidden;display:block"><span style="display:block;height:4px;width:91%;background:var(--acc,#FF5A2C);transform-origin:left;animation:barGrow 1.1s cubic-bezier(.22,.7,.16,1) .22s both"></span></span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;width:26px;text-align:right">91</span></div>
+                              <div style="display:flex;align-items:center;gap:14px;margin-top:12px"><span style="width:96px;font-size:12.5px">Security</span><span style="flex:1;height:4px;border-radius:99px;background:var(--ln,rgba(244,243,239,.13));overflow:hidden;display:block"><span style="display:block;height:4px;width:88%;background:var(--acc,#FF5A2C);transform-origin:left;animation:barGrow 1.1s cubic-bezier(.22,.7,.16,1) .34s both"></span></span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;width:26px;text-align:right">88</span></div>
+                              <div style="display:flex;align-items:center;gap:14px;margin-top:12px"><span style="width:96px;font-size:12.5px">Compliance</span><span style="flex:1;height:4px;border-radius:99px;background:var(--ln,rgba(244,243,239,.13));overflow:hidden;display:block"><span style="display:block;height:4px;width:96%;background:var(--acc,#FF5A2C);transform-origin:left;animation:barGrow 1.1s cubic-bezier(.22,.7,.16,1) .46s both"></span></span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;width:26px;text-align:right">96</span></div>
+                              <div style="display:flex;align-items:center;gap:14px;margin-top:12px"><span style="width:96px;font-size:12.5px">DevOps</span><span style="flex:1;height:4px;border-radius:99px;background:var(--ln,rgba(244,243,239,.13));overflow:hidden;display:block"><span style="display:block;height:4px;width:90%;background:var(--acc,#FF5A2C);transform-origin:left;animation:barGrow 1.1s cubic-bezier(.22,.7,.16,1) .58s both"></span></span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;width:26px;text-align:right">90</span></div>
+                              <div style="display:flex;align-items:center;gap:14px;margin-top:12px"><span style="width:96px;font-size:12.5px">Prompt layer</span><span style="flex:1;height:4px;border-radius:99px;background:var(--ln,rgba(244,243,239,.13));overflow:hidden;display:block"><span style="display:block;height:4px;width:85%;background:var(--acc,#FF5A2C);transform-origin:left;animation:barGrow 1.1s cubic-bezier(.22,.7,.16,1) .7s both"></span></span><span style="font-family:'JetBrains Mono',monospace;font-size:11px;width:26px;text-align:right">85</span></div>
+                              <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--ln,rgba(244,243,239,.13));font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;color:#7BD88F">✓ PASS — SHIP GATE OPEN · 2 WAIVERS ON RECORD</div>
+                            </div>
+                            <div style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--mut,#8B8A84)">LIVE EMULATOR — SCORING MATRIX</div>
+                          </sc-if>
+                          <sc-if value="{{ p.isPipe }}" hint-placeholder-val="{{ false }}">
+                            <div style="border-radius:10px;border:1px solid var(--ln,rgba(244,243,239,.13));background:var(--sf,#131316);padding:22px">
+                              <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--mut,#8B8A84)">etllm — pipeline monitor</div>
+                              <div style="display:flex;justify-content:space-between;gap:6px;margin-top:20px;flex-wrap:wrap">
+                                <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;padding:6px 10px;border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:99px">INGEST</span>
+                                <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;padding:6px 10px;border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:99px">PROFILE</span>
+                                <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;padding:6px 10px;border:1px solid var(--acc,#FF5A2C);border-radius:99px;color:var(--acc,#FF5A2C)">REASON</span>
+                                <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;padding:6px 10px;border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:99px">VALIDATE</span>
+                                <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;padding:6px 10px;border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:99px">LOAD</span>
+                              </div>
+                              <div style="position:relative;height:2px;background:var(--ln,rgba(244,243,239,.13));margin:22px 6px 6px">
+                                <span style="position:absolute;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--acc,#FF5A2C);animation:flowDot 3.4s linear infinite"></span>
+                              </div>
+                              <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:20px;padding-top:16px;border-top:1px solid var(--ln,rgba(244,243,239,.13));font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mut,#8B8A84)">
+                                <span><span style="color:var(--ink,#F4F3EF)">{{ etlRows }}</span> rows profiled</span>
+                                <span><span style="color:var(--acc,#FF5A2C)">{{ etlAnom }}</span> anomalies flagged</span>
+                                <span><span style="color:var(--ink,#F4F3EF)">0</span> rules hand-written</span>
+                              </div>
+                            </div>
+                            <div style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--mut,#8B8A84)">LIVE EMULATOR — STREAMING PROFILE</div>
+                          </sc-if>
+                          <sc-if value="{{ p.isGauge }}" hint-placeholder-val="{{ false }}">
+                            <div style="border-radius:10px;border:1px solid var(--ln,rgba(244,243,239,.13));background:var(--sf,#131316);padding:22px">
+                              <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--mut,#8B8A84)">airfree — reclaim report</div>
+                              <div style="display:flex;align-items:baseline;gap:10px;margin-top:16px">
+                                <span style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:52px;letter-spacing:-.02em;line-height:1">{{ airFreed }}</span>
+                                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--acc,#FF5A2C)">MB RECLAIMED</span>
+                              </div>
+                              <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--mut,#8B8A84)">
+                                <div style="display:flex;justify-content:space-between"><span>dead sockets closed</span><span style="color:var(--ink,#F4F3EF)">{{ airConns }}</span></div>
+                                <div style="display:flex;justify-content:space-between"><span>zombie routes cleared</span><span style="color:var(--ink,#F4F3EF)">12</span></div>
+                                <div style="display:flex;justify-content:space-between"><span>stale DNS pruned</span><span style="color:#7BD88F">✓</span></div>
+                                <div style="display:flex;justify-content:space-between"><span>rollback journal</span><span style="color:#7BD88F">armed</span></div>
+                              </div>
+                              <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--ln,rgba(244,243,239,.13));font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--mut,#8B8A84)">single static binary · 2.8 MB · zero daemons</div>
+                            </div>
+                            <div style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--mut,#8B8A84)">LIVE EMULATOR — DRY-RUN LOOP</div>
+                          </sc-if>
+                          <div style="margin-top:24px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C)">SYSTEM DESIGN NOTES</div>
+                          <div style="margin-top:6px">
+                            <sc-for list="{{ p.sys }}" as="sd" hint-placeholder-count="3">
+                              <div style="padding:10px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.55;color:var(--mut,#8B8A84)">{{ sd }}</div>
+                            </sc-for>
+                          </div>
+                          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:20px">
+                            <sc-for list="{{ p.stack }}" as="t" hint-placeholder-count="4">
+                              <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;padding:6px 12px;border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:99px;color:var(--ink,#F4F3EF)">{{ t }}</span>
+                            </sc-for>
+                          </div>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div data-rv="0" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:24px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--mut,#8B8A84)"><span style="color:var(--acc,#FF5A2C)">OFF THE CLOCK</span> — HACKATHONS &amp; 48H BUILDS, BEING CATALOGUED</span>
+                <button onClick="{{ askDeus }}" style="cursor:pointer;background:none;border:1px solid var(--ln,rgba(244,243,239,.13));color:var(--ink,#F4F3EF);font-size:12px;padding:8px 16px;border-radius:99px;transition:border-color .25s" style-hover="border-color:var(--acc,#FF5A2C)">Ask DEUS for the stories</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- CROSS OVER -->
+          <section style="margin-top:90px;border-top:1px solid var(--ln,rgba(244,243,239,.13))">
+            <div style="max-width:1380px;margin:0 auto;padding:70px clamp(20px,4vw,56px) 30px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:24px">
+              <div data-rv="0">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--acc,#FF5A2C)">CROSS OVER</div>
+                <div style="margin-top:12px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(26px,3.6vw,44px);letter-spacing:-.03em">Same work, spoken in <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">outcomes.</span></div>
+              </div>
+              <div data-rv="100" style="display:flex;gap:12px;flex-wrap:wrap">
+                <a href="#" onClick="{{ goBizA }}" style="background:var(--acc,#FF5A2C);color:#0B0B0C;font-weight:600;font-size:14px;padding:13px 24px;border-radius:99px" style-hover="color:#0B0B0C">Enter the business realm</a>
+                <a href="#" onClick="{{ goQuoteA }}" style="border:1px solid var(--ln,rgba(244,243,239,.13));font-weight:500;font-size:14px;padding:13px 24px;border-radius:99px;transition:border-color .3s" style-hover="border-color:var(--acc,#FF5A2C)">Get a quote</a>
+              </div>
+            </div>
+          </section>
+        </div></sc-if>
+
+      <!-- ============ ROUTE: FOR BUSINESS ============ -->
+      <sc-if value="{{ isBiz }}" hint-placeholder-val="{{ false }}"><div data-screen-label="For Business" style="padding-top:66px">
+          <section style="padding:clamp(70px,10vh,120px) 0 0">
+            <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px)">
+              <div data-rv="0" style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--mut,#8B8A84)">
+                <span><span style="color:var(--acc,#FF5A2C)">DOOR 02</span> · DeusX Technologies</span>
+                <a href="#" onClick="{{ goEngA }}" style="color:var(--mut,#8B8A84)">SWITCH → ENGINEERING REALM</a>
+              </div>
+              <h1 data-rv="80" style="margin:34px 0 0;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(44px,7.4vw,104px);line-height:.96;letter-spacing:-.04em">We ship<br><span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">outcomes.</span></h1>
+              <p data-rv="160" style="margin:26px 0 0;max-width:600px;font-size:16px;line-height:1.65;color:var(--mut,#8B8A84)">Client work, presented the way you decide: the problem we walked into, what we built, and the numbers that moved. <span style="color:var(--ink,#F4F3EF)">Hover any card for a live demo</span> — click for the full case.</p>
+            </div>
+          </section>
+
+          <!-- SOLUTION CARDS -->
+          <section style="margin-top:64px">
+            <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:28px">
+              <sc-for list="{{ bizList }}" as="p" hint-placeholder-count="4">
+                <div data-rv="0" onClick="{{ p.open }}" onMouseEnter="{{ p.hovIn }}" onMouseLeave="{{ p.hovOut }}" style="cursor:pointer;background:var(--card,#101013);border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:14px;overflow:hidden;transition:transform .5s cubic-bezier(.22,.7,.16,1),box-shadow .5s">
+                  <div style="position:relative;height:270px;overflow:hidden;background:#0A0A0C">
+                    <img data-cimg="1" src="{{ p.img }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.22,.7,.16,1)">
+                    <div data-demo="1" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(6,6,8,.62);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);opacity:0;transform:translateY(12px);transition:opacity .45s ease,transform .45s cubic-bezier(.22,.7,.16,1)">
+                      <sc-if value="{{ p.isSite }}" hint-placeholder-val="{{ false }}">
+                        <div style="width:min(360px,86%);border-radius:10px;overflow:hidden;border:1px solid rgba(244,243,239,.16);background:#0E0E10;box-shadow:0 30px 60px rgba(0,0,0,.5)">
+                          <div style="display:flex;align-items:center;gap:7px;padding:8px 12px;background:#141417">
+                            <span style="width:8px;height:8px;border-radius:50%;background:rgba(244,243,239,.2)"></span><span style="width:8px;height:8px;border-radius:50%;background:rgba(244,243,239,.2)"></span><span style="width:8px;height:8px;border-radius:50%;background:rgba(244,243,239,.2)"></span>
+                            <span style="flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:rgba(244,243,239,.6);background:#0A0A0C;border-radius:5px;padding:3px 8px">{{ p.miniUrl }}</span>
+                          </div>
+                          <div style="height:196px;overflow:hidden;position:relative">
+                            <div style="animation:demoScroll 13s ease-in-out infinite">
+                              <img src="{{ p.img }}" alt="" style="width:100%;height:118px;object-fit:cover;display:block">
+                              <div style="padding:14px">
+                                <div style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:17px;letter-spacing:-.02em;color:#F4F3EF">{{ p.miniTitle }}</div>
+                                <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px"><span style="height:6px;width:82%;border-radius:99px;background:rgba(244,243,239,.14)"></span><span style="height:6px;width:56%;border-radius:99px;background:rgba(244,243,239,.14)"></span></div>
+                                <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch">
+                                  <img src="{{ p.img2 }}" alt="" style="width:100%;height:64px;object-fit:cover;border-radius:6px;display:block">
+                                  <span style="display:flex;align-items:center;justify-content:center;border-radius:6px;background:#FF5A2C;color:#0B0B0C;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-align:center;padding:4px">{{ p.miniCta }}</span>
+                                </div>
+                                <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px"><span style="height:6px;width:74%;border-radius:99px;background:rgba(244,243,239,.14)"></span><span style="height:6px;width:64%;border-radius:99px;background:rgba(244,243,239,.14)"></span><span style="height:6px;width:44%;border-radius:99px;background:rgba(244,243,239,.14)"></span></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ p.isPhone }}" hint-placeholder-val="{{ false }}">
+                        <div style="width:168px;border-radius:28px;border:1px solid rgba(244,243,239,.2);background:#0A0A0C;padding:7px;box-shadow:0 30px 60px rgba(0,0,0,.5)">
+                          <div style="position:relative;height:236px;border-radius:22px;overflow:hidden;background:linear-gradient(165deg,#122E33 0%,#0B1416 55%,#0A0A0C 100%)">
+                            <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:52px;height:13px;background:#0A0A0C;border-radius:0 0 9px 9px;z-index:2"></div>
+                            <svg viewBox="0 0 150 236" style="position:absolute;inset:0;width:100%;height:100%">
+                              <path d="M22 208 C 58 168, 36 128, 84 100 S 128 52, 118 24" fill="none" stroke="#FF5A2C" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="7 9" style="animation:dashMove 3.2s linear infinite"></path>
+                              <circle cx="22" cy="208" r="4" fill="#F4F3EF"></circle>
+                              <circle cx="118" cy="24" r="4" fill="#FF5A2C"></circle>
+                            </svg>
+                            <div style="position:absolute;left:0;right:0;bottom:0;background:rgba(8,8,10,.85);backdrop-filter:blur(4px);padding:10px 12px">
+                              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                                <span style="font-family:'JetBrains Mono',monospace;font-size:19px;color:#F4F3EF">{{ waySpeed }}<span style="font-size:9px;color:#8B8A84"> KM/H</span></span>
+                                <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#FF5A2C">{{ wayDist }} KM</span>
+                              </div>
+                              <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.06em;color:#8B8A84">
+                                <span>01 · KAYRA — 2,412 KM</span>
+                                <span style="color:#F4F3EF">02 · YOU — 2,391 KM ▲</span>
+                                <span>03 · M0SES — 2,208 KM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ p.isRag }}" hint-placeholder-val="{{ false }}">
+                        <div style="width:min(330px,86%);border-radius:12px;border:1px solid rgba(244,243,239,.16);background:#0E0E10;padding:14px;display:flex;flex-direction:column;gap:9px;box-shadow:0 30px 60px rgba(0,0,0,.5)">
+                          <div style="align-self:flex-end;max-width:86%;background:#F4F3EF;color:#0B0B0C;font-size:11.5px;line-height:1.45;padding:8px 11px;border-radius:11px 11px 3px 11px">Explain glycolysis — exam is in 40 minutes.</div>
+                          <sc-if value="{{ r1 }}" hint-placeholder-val="{{ false }}">
+                            <div style="display:flex;gap:6px;flex-wrap:wrap">
+                              <span style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.06em;padding:4px 8px;border:1px solid rgba(244,243,239,.18);border-radius:99px;color:#8B8A84">BIO-201.pdf §4.2</span>
+                              <span style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.06em;padding:4px 8px;border:1px solid rgba(244,243,239,.18);border-radius:99px;color:#8B8A84">Lecture 9 notes</span>
+                            </div>
+                          </sc-if>
+                          <sc-if value="{{ r2 }}" hint-placeholder-val="{{ false }}">
+                            <div style="align-self:flex-start;max-width:92%;background:#1A1A1E;color:#F4F3EF;font-size:11.5px;line-height:1.5;padding:8px 11px;border-radius:11px 11px 11px 3px">Glucose → pyruvate in 10 steps, 2 ATP net. Your exam loves steps 1, 3 and 10 — here's the 30-second mnemonic…</div>
+                          </sc-if>
+                          <sc-if value="{{ r3 }}" hint-placeholder-val="{{ false }}">
+                            <div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.08em;color:#7BD88F">CITED: PP. 212–214 · CONFIDENCE 0.96</div>
+                          </sc-if>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </div>
+                  <div style="padding:22px 24px 24px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84);text-transform:uppercase">{{ p.kind }}</span>
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;color:var(--acc,#FF5A2C);white-space:nowrap">{{ p.chip }}</span>
+                    </div>
+                    <div style="margin-top:10px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:27px;letter-spacing:-.02em">{{ p.name }}</div>
+                    <p style="margin:10px 0 0;font-size:13.8px;line-height:1.6;color:var(--mut,#8B8A84)">{{ p.problem }}</p>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--ln,rgba(244,243,239,.13))">
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;color:var(--mut,#8B8A84)">HOVER — LIVE DEMO · CLICK — FULL CASE</span>
+                      <span style="color:var(--acc,#FF5A2C);font-size:16px">↗</span>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <!-- DEUSX BAND -->
+          <section style="margin-top:80px">
+            <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px)">
+              <div data-rv="0" style="border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:16px;background:var(--sf,#131316);padding:clamp(28px,4vw,52px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:clamp(28px,4vw,56px)">
+                <div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--acc,#FF5A2C)">DEUSX TECHNOLOGIES</div>
+                  <div style="margin-top:14px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(26px,3.2vw,40px);letter-spacing:-.03em;line-height:1.05">The studio behind the work.</div>
+                  <p style="margin:16px 0 0;font-size:14.5px;line-height:1.65;color:var(--mut,#8B8A84)">A multi-disciplinary technology venture — end-to-end full-stack development, IT solutions and custom, production-ready AI products for global markets. One senior mind on your problem, from first call to launch.</p>
+                  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px">
+                    <a href="#" onClick="{{ goQuoteA }}" style="background:var(--acc,#FF5A2C);color:#0B0B0C;font-weight:600;font-size:13.5px;padding:12px 22px;border-radius:99px" style-hover="color:#0B0B0C">Get a quote</a>
+                    <a href="#" onClick="{{ goContactA }}" style="border:1px solid var(--ln,rgba(244,243,239,.13));font-weight:500;font-size:13.5px;padding:12px 22px;border-radius:99px;transition:border-color .3s" style-hover="border-color:var(--acc,#FF5A2C)">Talk to us</a>
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--acc,#FF5A2C)">01</span><div><div style="font-weight:500;font-size:16px">Full-stack product development</div><div style="margin-top:3px;font-size:13px;color:var(--mut,#8B8A84)">Web platforms, mobile apps, storefronts — designed, built, launched</div></div></div>
+                  <div style="display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--acc,#FF5A2C)">02</span><div><div style="font-weight:500;font-size:16px">IT solutions &amp; infrastructure</div><div style="margin-top:3px;font-size:13px;color:var(--mut,#8B8A84)">Systems that stay up, scale and stop leaking money</div></div></div>
+                  <div style="display:flex;gap:16px;padding:16px 0"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--acc,#FF5A2C)">03</span><div><div style="font-weight:500;font-size:16px">Custom AI products</div><div style="margin-top:3px;font-size:13px;color:var(--mut,#8B8A84)">RAG platforms, agent systems, AI-native tools — production-grade, not demos</div></div></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- PROCESS -->
+          <section style="margin-top:80px;border-top:1px solid var(--ln,rgba(244,243,239,.13))">
+            <div style="max-width:1380px;margin:0 auto;padding:54px clamp(20px,4vw,56px) 20px">
+              <div data-rv="0" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--acc,#FF5A2C)">HOW WE WORK</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:clamp(18px,2.5vw,32px);margin-top:28px">
+                <div data-rv="40"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mut,#8B8A84)">01</div><div style="margin-top:8px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:19px">Discover</div><div style="margin-top:5px;font-size:12.8px;line-height:1.55;color:var(--mut,#8B8A84)">We map the problem and the numbers that matter to you.</div></div>
+                <div data-rv="90"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mut,#8B8A84)">02</div><div style="margin-top:8px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:19px">Architect</div><div style="margin-top:5px;font-size:12.8px;line-height:1.55;color:var(--mut,#8B8A84)">System design before pixels — so it never needs a rewrite.</div></div>
+                <div data-rv="140"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mut,#8B8A84)">03</div><div style="margin-top:8px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:19px">Build</div><div style="margin-top:5px;font-size:12.8px;line-height:1.55;color:var(--mut,#8B8A84)">Weekly demos you can click. No black box, ever.</div></div>
+                <div data-rv="190"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mut,#8B8A84)">04</div><div style="margin-top:8px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:19px">Launch</div><div style="margin-top:5px;font-size:12.8px;line-height:1.55;color:var(--mut,#8B8A84)">Performance-tuned, monitored, handed over clean.</div></div>
+                <div data-rv="240"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mut,#8B8A84)">05</div><div style="margin-top:8px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:19px">Support</div><div style="margin-top:5px;font-size:12.8px;line-height:1.55;color:var(--mut,#8B8A84)">We stay on the metrics after the confetti.</div></div>
+              </div>
+            </div>
+          </section>
+        </div></sc-if>
+
+      <!-- ============ ROUTE: CATALOGUE ============ -->
+      <sc-if value="{{ isCat }}" hint-placeholder-val="{{ false }}"><div data-screen-label="Catalogue" style="padding-top:66px">
+          <section style="padding:clamp(70px,10vh,120px) 0 0">
+            <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px)">
+              <div data-rv="0" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--mut,#8B8A84)"><span style="color:var(--acc,#FF5A2C)">CATALOGUE</span> · 08 ENTRIES · 02 REALMS</div>
+              <h1 data-rv="80" style="margin:34px 0 0;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(44px,7.4vw,104px);line-height:.96;letter-spacing:-.04em">Everything, <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">indexed.</span></h1>
+              <p data-rv="160" style="margin:24px 0 0;max-width:520px;font-size:15.5px;line-height:1.6;color:var(--mut,#8B8A84)">Hover a row to preview. Click to open it inside its realm.</p>
+              <div data-rv="200" style="margin-top:54px;border-top:1px solid var(--ln,rgba(244,243,239,.13))">
+                <sc-for list="{{ catList }}" as="c" hint-placeholder-count="8">
+                  <div onClick="{{ c.go }}" onMouseEnter="{{ catEnter }}" onMouseMove="{{ catMove }}" onMouseLeave="{{ catLeave }}" data-img="{{ c.img }}" style="cursor:pointer;display:grid;grid-template-columns:44px 1.3fr 1fr 1fr auto 28px;align-items:center;gap:clamp(10px,2vw,22px);padding:22px 10px;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));transition:background .3s" style-hover="background:var(--sf,#131316)">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mut,#8B8A84)">{{ c.idx }}</span>
+                    <span style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(19px,2.2vw,27px);letter-spacing:-.02em">{{ c.name }}</span>
+                    <span style="font-size:12.8px;color:var(--mut,#8B8A84)">{{ c.kind }}</span>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--mut,#8B8A84)">{{ c.stackTop }}</span>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;padding:5px 11px;border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:99px;color:var(--acc,#FF5A2C);white-space:nowrap">{{ c.realm }}</span>
+                    <span style="color:var(--acc,#FF5A2C);font-size:15px">↗</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </section>
+          <img id="catPrev" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" style="position:fixed;z-index:420;width:250px;height:170px;object-fit:cover;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .3s ease;box-shadow:0 30px 70px rgba(0,0,0,.45);border:1px solid var(--ln,rgba(244,243,239,.13))">
+        </div></sc-if>
+
+      <!-- ============ ROUTE: QUOTE ============ -->
+      <sc-if value="{{ isQuote }}" hint-placeholder-val="{{ false }}"><div data-screen-label="Quote" style="padding-top:66px">
+          <section style="padding:clamp(70px,10vh,120px) 0 0">
+            <div style="max-width:1000px;margin:0 auto;padding:0 clamp(20px,4vw,56px)">
+              <div data-rv="0" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--mut,#8B8A84)"><span style="color:var(--acc,#FF5A2C)">QUOTE</span> · ESTIMATED BY DEUS</div>
+              <h1 data-rv="80" style="margin:34px 0 0;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(40px,6.4vw,88px);line-height:.98;letter-spacing:-.04em">Scope it in <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">sixty seconds.</span></h1>
+              <p data-rv="160" style="margin:24px 0 0;max-width:560px;font-size:15.5px;line-height:1.65;color:var(--mut,#8B8A84)">Pick the shape of your build and state your budget. DEUS benchmarks it against market rates and drafts the honest plan — what it costs, what agencies charge, and what your budget actually gets.</p>
+
+              <div data-rv="220" style="margin-top:56px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C)">01 — WHAT ARE WE BUILDING?</div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px">
+                  <sc-for list="{{ qTypes }}" as="t" hint-placeholder-count="5">
+                    <button onClick="{{ t.pick }}" style="cursor:pointer;font-size:13.5px;font-weight:500;padding:11px 20px;border-radius:99px;border:1px solid var(--ln,rgba(244,243,239,.13));background:{{ t.onBg }};color:{{ t.onC }};transition:background .3s,color .3s,border-color .3s" style-hover="border-color:var(--acc,#FF5A2C)">{{ t.l }}</button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div data-rv="0" style="margin-top:44px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C)">02 — WHAT GOES IN IT?</div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px">
+                  <sc-for list="{{ qFeatsL }}" as="f" hint-placeholder-count="8">
+                    <button onClick="{{ f.tog }}" style="cursor:pointer;font-size:13px;font-weight:500;padding:10px 18px;border-radius:99px;border:1px solid {{ f.onBd }};background:{{ f.onBg }};color:{{ f.onC }};transition:background .3s,color .3s,border-color .3s">{{ f.l }}</button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div data-rv="0" style="margin-top:44px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:clamp(24px,4vw,56px)">
+                <div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C)">03 — TIMELINE</div>
+                  <input type="range" min="2" max="24" step="1" value="{{ qWeeks }}" onInput="{{ setWeeks }}" style="width:100%;margin-top:22px;accent-color:var(--acc,#FF5A2C);cursor:pointer">
+                  <div style="display:flex;justify-content:space-between;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mut,#8B8A84)">
+                    <span>2 WKS</span><span style="color:var(--ink,#F4F3EF);font-size:13px">{{ qWeeksTxt }}</span><span>24 WKS</span>
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C)">04 — YOUR BUDGET</div>
+                    <div style="display:flex;border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:99px;overflow:hidden">
+                      <button onClick="{{ curUSD }}" style="cursor:pointer;border:none;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 14px;background:{{ usdBg }};color:{{ usdC }};transition:background .3s">USD $</button>
+                      <button onClick="{{ curNGN }}" style="cursor:pointer;border:none;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 14px;background:{{ ngnBg }};color:{{ ngnC }};transition:background .3s">NGN ₦</button>
+                    </div>
+                  </div>
+                  <input id="qBudgetIn" type="text" inputMode="numeric" placeholder="e.g. 12,000 — or leave blank" style="width:100%;box-sizing:border-box;margin-top:16px;background:var(--sf,#131316);border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:10px;padding:15px 18px;font-family:'JetBrains Mono',monospace;font-size:17px;color:var(--ink,#F4F3EF);outline:none" style-focus="border-color:var(--acc,#FF5A2C)">
+                </div>
+              </div>
+
+              <div data-rv="0" style="margin-top:48px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+                <button onClick="{{ genQuote }}" style="cursor:pointer;border:none;background:var(--acc,#FF5A2C);color:#0B0B0C;font-weight:600;font-size:15px;padding:16px 32px;border-radius:99px;transition:transform .3s" style-hover="transform:translateY(-2px)">Run the numbers →</button>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;color:var(--mut,#8B8A84)">NO EMAIL REQUIRED · 60 SECONDS</span>
+              </div>
+
+              <sc-if value="{{ qBusy }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:36px;border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:12px;padding:22px 26px;background:var(--sf,#131316)">
+                  <sc-for list="{{ qSteps }}" as="st" hint-placeholder-count="4">
+                    <sc-if value="{{ st.on }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;align-items:center;gap:10px;padding:5px 0;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--mut,#8B8A84);animation:fadeUp .4s ease both"><span style="color:#7BD88F">✓</span>{{ st.t }}</div>
+                    </sc-if>
+                  </sc-for>
+                  <div style="display:flex;align-items:center;gap:8px;padding:8px 0 2px">
+                    <span style="width:5px;height:5px;border-radius:50%;background:var(--acc,#FF5A2C);animation:dotTy 1s ease infinite"></span>
+                    <span style="width:5px;height:5px;border-radius:50%;background:var(--acc,#FF5A2C);animation:dotTy 1s ease .15s infinite"></span>
+                    <span style="width:5px;height:5px;border-radius:50%;background:var(--acc,#FF5A2C);animation:dotTy 1s ease .3s infinite"></span>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--acc,#FF5A2C);margin-left:6px">DEUS IS PRICING</span>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ hasQ }}" hint-placeholder-val="{{ false }}">
+                <div id="qResult" style="margin-top:44px;margin-bottom:20px;border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:16px;overflow:hidden;animation:fadeUp .6s cubic-bezier(.22,.7,.16,1) both">
+                  <div style="padding:26px 30px;background:var(--sf,#131316)">
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--mut,#8B8A84)">DEUS VERDICT</div>
+                    <div style="margin-top:10px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(22px,3vw,30px);letter-spacing:-.02em;color:{{ qoTone }}">{{ qoHead }}</div>
+                    <p style="margin:10px 0 0;font-size:14px;line-height:1.65;color:var(--mut,#8B8A84);max-width:640px">{{ qoBody }}</p>
+                  </div>
+                  <sc-for list="{{ qoItems }}" as="it" hint-placeholder-count="3">
+                    <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 30px;border-top:1px solid var(--ln,rgba(244,243,239,.13));font-size:13.8px"><span style="color:var(--mut,#8B8A84)">{{ it.l }}</span><span style="font-family:'JetBrains Mono',monospace;font-size:13px">{{ it.vTxt }}</span></div>
+                  </sc-for>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;padding:26px 30px;border-top:1px solid var(--ln,rgba(244,243,239,.13))">
+                    <div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--mut,#8B8A84)">DEUSX PRICE</div><div style="margin-top:8px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(26px,3vw,38px);letter-spacing:-.02em;color:var(--acc,#FF5A2C)">{{ qoTotal }}</div></div>
+                    <div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--mut,#8B8A84)">AGENCIES BENCHMARK</div><div style="margin-top:8px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(18px,2vw,24px);letter-spacing:-.02em;color:var(--mut,#8B8A84)">{{ qoMkt }}</div></div>
+                    <div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--mut,#8B8A84)">YOUR BUDGET</div><div style="margin-top:8px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(18px,2vw,24px);letter-spacing:-.02em">{{ qoBudget }}</div></div>
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:24px 30px;border-top:1px solid var(--ln,rgba(244,243,239,.13))">
+                    <a href="{{ quoteMailto }}" style="background:var(--acc,#FF5A2C);color:#0B0B0C;font-weight:600;font-size:13.5px;padding:12px 22px;border-radius:99px" style-hover="color:#0B0B0C">Send this scope to Daniel</a>
+                    <a href="https://wa.me/2347077213386" target="_blank" rel="noreferrer" style="border:1px solid var(--ln,rgba(244,243,239,.13));font-weight:500;font-size:13.5px;padding:12px 22px;border-radius:99px;transition:border-color .3s" style-hover="border-color:var(--acc,#FF5A2C)">WhatsApp it</a>
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;color:var(--mut,#8B8A84)">ESTIMATE — FINAL QUOTE AFTER A 20-MIN SCOPING CALL</span>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </section>
+        </div></sc-if>
+
+      <!-- ============ ROUTE: CONTACT ============ -->
+      <sc-if value="{{ isContact }}" hint-placeholder-val="{{ false }}"><div data-screen-label="Contact" style="padding-top:66px">
+          <section style="padding:clamp(80px,12vh,140px) 0 20px">
+            <div style="max-width:1380px;margin:0 auto;padding:0 clamp(20px,4vw,56px)">
+              <div data-rv="0" style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--mut,#8B8A84)"><span style="color:var(--acc,#FF5A2C)">CONTACT</span> · OPEN TO PROJECTS &amp; ROLES</div>
+              <h1 data-rv="80" style="margin:34px 0 0;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(44px,7.4vw,104px);line-height:.96;letter-spacing:-.04em">Let's build the<br>next <span style="font-family:'Instrument Serif',serif;font-style:italic;font-weight:400">thing.</span></h1>
+              <div data-rv="160" style="margin-top:44px">
+                <a href="mailto:danbis664@gmail.com" style="font-family:'Clash Display',sans-serif;font-weight:400;font-size:clamp(22px,4.4vw,58px);letter-spacing:-.02em;border-bottom:1px solid var(--ln,rgba(244,243,239,.13));padding-bottom:6px;transition:border-color .3s,color .3s" style-hover="border-color:var(--acc,#FF5A2C);color:var(--acc,#FF5A2C)">danbis664@gmail.com</a>
+              </div>
+              <div data-rv="220" style="margin-top:64px;border-top:1px solid var(--ln,rgba(244,243,239,.13))">
+                <a href="https://wa.me/2347077213386" target="_blank" rel="noreferrer" style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:19px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84)">WHATSAPP</span><span style="font-size:15.5px">+234 707 721 3386 <span style="color:var(--acc,#FF5A2C)">↗</span></span></a>
+                <a href="tel:+2347077213386" style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:19px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84)">PHONE</span><span style="font-size:15.5px">+234 707 721 3386</span></a>
+                <a href="https://github.com/dbisina" target="_blank" rel="noreferrer" style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:19px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84)">GITHUB</span><span style="font-size:15.5px">github.com/dbisina <span style="color:var(--acc,#FF5A2C)">↗</span></span></a>
+                <a href="https://linkedin.com/in/danielbisina" target="_blank" rel="noreferrer" style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:19px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84)">LINKEDIN</span><span style="font-size:15.5px">/in/danielbisina <span style="color:var(--acc,#FF5A2C)">↗</span></span></a>
+                <a href="https://x.com/danielbisina" target="_blank" rel="noreferrer" style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:19px 0;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84)">X</span><span style="font-size:15.5px">@danielbisina <span style="color:var(--acc,#FF5A2C)">↗</span></span></a>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:19px 0"><span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--mut,#8B8A84)">BASE</span><span style="font-size:15.5px">Nigeria — operating globally</span></div>
+              </div>
+            </div>
+          </section>
+        </div></sc-if>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="border-top:1px solid var(--ln,rgba(244,243,239,.13));margin-top:40px">
+      <div style="max-width:1380px;margin:0 auto;padding:70px clamp(20px,4vw,56px) 0">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:28px">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--acc,#FF5A2C)">NEXT MOVE</div>
+            <div style="margin-top:14px;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(30px,4vw,56px);letter-spacing:-.03em;line-height:1.02">Have something<br>worth building?</div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <a href="#" onClick="{{ goQuoteA }}" style="background:var(--acc,#FF5A2C);color:#0B0B0C;font-weight:600;font-size:14px;padding:14px 26px;border-radius:99px;transition:transform .3s" style-hover="transform:translateY(-2px);color:#0B0B0C">Get a quote</a>
+            <a href="mailto:danbis664@gmail.com" style="border:1px solid var(--ln,rgba(244,243,239,.13));font-weight:500;font-size:14px;padding:14px 26px;border-radius:99px;transition:border-color .3s" style-hover="border-color:var(--acc,#FF5A2C)">danbis664@gmail.com</a>
+          </div>
+        </div>
+        <svg viewBox="0 0 918 98" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;margin-top:64px;color:var(--ink,#F4F3EF);opacity:.07">
+          <path d="M777.536 20.4982C788.79 19.7151 831.492 19.3789 840.089 22.2445C846.034 24.2259 851.876 28.2255 854.558 34.0577C856.964 39.269 856.597 45.5911 854.496 50.841C852.286 56.3885 847.7 60.2399 842.226 62.4074C838.883 63.73 835.362 64.3668 831.804 64.6729C825.914 65.1873 786.206 65.5118 783.469 63.9137C782.048 63.0871 781.185 61.5625 780.818 60.0011C780.475 58.5377 780.842 56.8661 781.816 55.715C786.824 49.8001 823.93 54.3617 833.856 52.5799C837.358 51.9492 841.277 50.5716 843.248 47.3913C844.448 45.449 844.724 42.8327 844.118 40.6473C843.297 37.6771 840.958 35.2848 838.252 33.9194C831.853 30.6882 779.795 31.0899 772.331 33.8128C772.105 33.8942 771.884 33.9824 771.658 34.0675C767.929 36.4225 763.618 40.9939 763.349 45.6927C761.138 83.587 762.675 85.9505 799.64 85.8648L836.819 85.7608C841.467 85.7485 847.363 85.0933 851.863 86.1097C853.345 86.4465 854.674 87.7262 855.366 89.0366C856.186 90.5857 856.425 92.3736 855.697 94.0146C854.87 95.8576 853.155 96.574 851.319 97.0027C846.83 98.0619 782.765 98.0313 775.974 97.1496C771.376 96.5495 766.833 94.9392 762.994 92.3063C756.515 87.867 752.817 80.997 751.605 73.3309C749.78 61.7523 750.031 40.3742 757.201 31.1046C762.289 24.5223 769.564 21.5924 777.536 20.4982Z"></path>
+          <path d="M503.835 20.2884C505.446 20.2633 508.826 20.4611 510.026 21.6104C522.67 35.2488 539.845 55.935 550.297 70.9242C577.826 110.412 579.063 58.2923 604.86 52.1264C625.568 47.1747 633.319 74.647 646.772 84.3704C655.283 90.524 663.586 76.7717 668.123 71.0711L692.762 40.1565C697.25 34.5729 701.549 28.86 706.655 23.7326C710.17 20.2112 717.836 17.2538 718.601 24.9872C718.846 27.5179 716.354 29.833 714.732 31.6736L682.99 71.2732C674.65 81.6885 664.455 98.882 649.503 97.8656C634.501 96.843 627.301 77.2738 618.692 68.9831C596.924 48.0142 592.687 98.6309 566.915 97.8716C560.866 97.6818 555.159 95.0306 551.118 90.5301C541.002 79.3188 531.928 65.7747 522.168 54.1225C514.906 45.4541 508.005 36.1801 500.982 27.314C500.18 26.3018 500.229 25.1648 500.29 23.9598C501.233 21.8541 501.95 21.5944 503.835 20.2884Z"></path>
+          <path d="M181.293 20.4943C191.793 20.3817 202.295 20.3297 212.796 20.3401C227.807 20.3058 243.851 18.4799 253.596 32.8011C255.733 35.9655 257.209 39.5291 257.935 43.2782C259.736 52.5246 257.957 64.9238 258.575 74.6166C258.956 80.5988 260.292 93.849 254.897 97.4126C253.144 97.78 252.098 97.8719 250.374 97.0821C248.697 96.3105 247.573 94.6206 247.167 92.8755C246.432 89.7099 246.925 85.9748 246.949 82.7418C247.013 73.5818 248.633 49.0792 245.33 41.6703C243.555 37.6867 240.178 35.0709 236.144 33.5983C229.655 31.2287 189.37 31.277 180.978 32.4925C178.732 32.8176 176.866 33.5156 174.831 34.5045C174.605 34.6147 174.381 34.7298 174.156 34.8425C164.842 41.8087 166.783 49.4392 166.424 59.6947C166.204 66.0076 166.576 69.1303 168.049 75.2962C172.664 94.6267 216.606 81.2356 225.61 86.6484C227.011 87.4811 228.009 88.8588 228.368 90.4447C229.051 93.4511 227.078 96.8371 223.953 97.1065C211.886 97.7984 198.21 97.6025 186.193 97.5719C159.213 97.4984 154.158 79.3252 154.562 56.9944C154.93 36.6855 159.579 23.5479 181.293 20.4943Z"></path>
+          <path d="M20.8104 0.040271C32.1699 -0.384668 29.2314 12.2013 29.1549 20.4435C37.4075 20.419 85.5059 18.9286 89.3401 21.6724C90.757 22.6863 91.8457 25.0027 91.7024 26.711C91.5738 28.24 90.7668 29.5901 89.6316 30.59C88.5938 31.5036 87.3195 31.7497 85.9927 31.9126C79.8304 32.67 73.0724 32.1103 66.8453 32.1005L29.2504 32.0381C28.782 88.4301 23.3392 86.036 79.6878 85.8217C85.5402 85.8401 102.62 84.591 107.882 86.9055C113.493 89.3731 111.912 97.3943 103.007 97.4555C88.6881 97.5535 73.8152 97.6024 59.4413 97.5167C47.491 97.4555 35.9637 98.7291 26.6536 89.6302C13.3972 76.6739 17.8811 50.2039 17.3766 32.054C11.6656 32.1501 1.67649 33.3215 0 26.0222C2.47555 19.2366 12.0361 20.2733 17.6766 20.4778C17.6105 13.6316 15.5832 4.9185 20.8104 0.040271Z"></path>
+          <path d="M334.277 20.4819C353.35 20.1941 373.731 20.3276 392.872 20.5278C399.52 21.1567 400.201 30.8917 393.424 31.643C380.792 33.0433 367.145 31.5566 354.477 31.9663C340.203 32.4279 325.82 28.6072 319.604 45.1088C316.682 58.1086 321.521 79.5821 318.175 93.3039C316.32 100.903 307.245 97.3023 307.531 92.5018C308.372 78.3759 305.502 58.6229 307.831 45.0053C308.578 40.3652 310.393 35.9622 313.132 32.1426C318.517 24.7466 325.616 21.8363 334.277 20.4819Z"></path>
+          <path d="M448.152 25.1973C452.439 25.19 455.855 26.1329 455.965 31.1807C456.406 51.3917 456.229 71.6835 456.082 91.9079C456.063 94.8898 454.618 95.7654 452.518 97.5656C450.014 97.7248 444.809 96.9227 444.699 93.7081C443.983 72.7489 444.356 51.6305 444.534 30.6542C444.558 27.8516 446.193 26.8787 448.152 25.1973Z"></path>
+          <path d="M909.285 25.1479C913.718 25.2337 916.78 26.6763 916.792 31.6598C916.829 52.3655 917.264 73.2267 916.553 93.8981C916.504 95.3186 913.596 97.1066 912.494 97.8659C912.169 97.8353 911.839 97.8108 911.514 97.774C909.445 97.5475 907.522 96.9474 906.291 95.1472C904.338 92.2939 904.558 35.5063 905.336 30.2619C905.716 27.7055 907.381 26.6071 909.285 25.1479Z"></path>
+          <path d="M448.189 0C458.531 0.331257 458.96 12.0348 452.304 17.0031C441.68 17.2033 441.729 4.81027 448.189 0Z"></path>
+          <path d="M908.851 0.0851568C919.474 -0.0801654 919.597 12.1414 912.922 17.1164C902.801 17.1127 902.464 5.0534 908.851 0.0851568Z"></path>
+        </svg>
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;padding:22px 0 26px;border-top:1px solid var(--ln,rgba(244,243,239,.13));font-size:12.5px;color:var(--mut,#8B8A84)">
+          <span>© 2026 DeusX Technologies — built by Daniel Tariwei Bisina</span>
+          <div style="display:flex;gap:20px">
+            <a href="https://github.com/dbisina" target="_blank" rel="noreferrer">GitHub</a>
+            <a href="https://linkedin.com/in/danielbisina" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a href="https://x.com/danielbisina" target="_blank" rel="noreferrer">X</a>
+            <a href="https://wa.me/2347077213386" target="_blank" rel="noreferrer">WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- CASE STUDY MODAL -->
+    <sc-if value="{{ caseObj }}" hint-placeholder-val="{{ false }}"><div data-screen-label="Case study" style="position:fixed;inset:0;z-index:440">
+        <div onClick="{{ caseObj.close }}" style="position:absolute;inset:0;background:rgba(5,5,6,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)"></div>
+        <div style="position:absolute;left:50%;transform:translateX(-50%);top:4vh;width:min(960px,94vw);max-height:92vh;overflow-y:auto;background:var(--bg,#0B0B0C);border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:18px;animation:fadeUp .5s cubic-bezier(.22,.7,.16,1) both">
+          <div style="padding:26px clamp(20px,4vw,44px) 44px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C);text-transform:uppercase">{{ caseObj.kind }} — CASE STUDY</span>
+              <button onClick="{{ caseObj.close }}" style="cursor:pointer;flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--ln,rgba(244,243,239,.13));background:none;color:var(--ink,#F4F3EF);font-size:15px;transition:border-color .25s" style-hover="border-color:var(--acc,#FF5A2C)">✕</button>
+            </div>
+            <h2 style="margin:18px 0 0;font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(34px,5vw,62px);letter-spacing:-.035em;line-height:1">{{ caseObj.name }}</h2>
+            <img src="{{ caseObj.img }}" alt="{{ caseObj.name }}" style="width:100%;height:clamp(190px,30vh,310px);object-fit:cover;border-radius:12px;margin-top:22px">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:clamp(20px,3vw,36px);margin-top:34px">
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C)">THE PROBLEM</div><p style="margin:12px 0 0;font-size:14.2px;line-height:1.65;color:var(--mut,#8B8A84)">{{ caseObj.problem }}</p></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C)">WHAT WE BUILT</div><p style="margin:12px 0 0;font-size:14.2px;line-height:1.65;color:var(--mut,#8B8A84)">{{ caseObj.solution }}</p></div>
+              <div><div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--acc,#FF5A2C)">THE IMPACT</div><p style="margin:12px 0 0;font-size:14.2px;line-height:1.65;color:var(--ink,#F4F3EF)">{{ caseObj.impact }}</p></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:20px;margin-top:36px;padding:26px 0;border-top:1px solid var(--ln,rgba(244,243,239,.13));border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">
+              <sc-for list="{{ caseObj.metricsM }}" as="m" hint-placeholder-count="3">
+                <div>
+                  <div style="display:flex;align-items:baseline;gap:2px">
+                    <span data-cnt="{{ m.v }}" data-dec="{{ m.dec }}" style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(38px,4.6vw,56px);letter-spacing:-.02em;line-height:1">0</span>
+                    <span style="font-family:'Clash Display',sans-serif;font-weight:500;font-size:clamp(20px,2.4vw,28px);color:var(--acc,#FF5A2C)">{{ m.s }}</span>
+                  </div>
+                  <div style="margin-top:6px;font-size:12.8px;color:var(--mut,#8B8A84)">{{ m.l }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:24px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--mut,#8B8A84);margin-right:8px">STACK</span>
+              <sc-for list="{{ caseObj.stack }}" as="t" hint-placeholder-count="4">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;padding:6px 12px;border:1px solid var(--ln,rgba(244,243,239,.13));border-radius:99px">{{ t }}</span>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:32px">
+              <a href="{{ caseObj.link }}" target="_blank" rel="noreferrer" style="background:var(--acc,#FF5A2C);color:#0B0B0C;font-weight:600;font-size:13.5px;padding:13px 24px;border-radius:99px" style-hover="color:#0B0B0C">View the solution ↗</a>
+              <button onClick="{{ caseObj.toQuote }}" style="cursor:pointer;background:none;border:1px solid var(--ln,rgba(244,243,239,.13));color:var(--ink,#F4F3EF);font-weight:500;font-size:13.5px;padding:13px 24px;border-radius:99px;transition:border-color .3s" style-hover="border-color:var(--acc,#FF5A2C)">Scope something similar</button>
+            </div>
+          </div>
+        </div>
+      </div></sc-if>
+
+    <!-- DEUS — FLOATING ASSISTANT -->
+    <sc-if value="{{ aiOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="{{ aiPanelPos }}">
+        <div data-screen-label="DEUS assistant" style="width:min(378px,92vw);border-radius:16px;background:var(--sf,#131316);border:1px solid var(--ln,rgba(244,243,239,.13));box-shadow:var(--sh,0 30px 80px rgba(0,0,0,.5));overflow:hidden;animation:fadeUp .35s cubic-bezier(.22,.7,.16,1) both">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--ln,rgba(244,243,239,.13))">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="position:relative;width:8px;height:8px;border-radius:50%;background:var(--acc,#FF5A2C);display:inline-block"><span style="position:absolute;inset:0;border-radius:50%;background:var(--acc,#FF5A2C);animation:pulseRing 2s ease-out infinite"></span></span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.2em">DEUS</span>
+              <span style="font-size:11.5px;color:var(--mut,#8B8A84)">site guide</span>
+            </div>
+            <button onClick="{{ closeAi }}" style="cursor:pointer;background:none;border:none;color:var(--mut,#8B8A84);font-size:16px;line-height:1;padding:4px" style-hover="color:var(--ink,#F4F3EF)">✕</button>
+          </div>
+          <div id="aiScroll" style="max-height:min(46vh,380px);overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ aiMsgs }}" as="m" hint-placeholder-count="1">
+              <sc-if value="{{ m.u }}" hint-placeholder-val="{{ false }}">
+                <div style="align-self:flex-end;max-width:82%;background:var(--acc,#FF5A2C);color:#0B0B0C;font-size:13.5px;line-height:1.5;padding:9px 14px;border-radius:14px 14px 4px 14px">{{ m.u }}</div>
+              </sc-if>
+              <sc-if value="{{ m.a }}" hint-placeholder-val="{{ false }}">
+                <div style="align-self:flex-start;max-width:88%">
+                  <div style="background:var(--sf2,#1A1A1E);font-size:13.5px;line-height:1.55;padding:10px 14px;border-radius:14px 14px 14px 4px;color:var(--ink,#F4F3EF)">{{ m.a }}</div>
+                  <sc-if value="{{ m.hasChips }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+                      <sc-for list="{{ m.chips }}" as="ch" hint-placeholder-count="2">
+                        <button onClick="{{ ch.go }}" style="cursor:pointer;background:none;border:1px solid var(--ln,rgba(244,243,239,.13));color:var(--ink,#F4F3EF);font-size:12px;padding:6px 12px;border-radius:99px;transition:border-color .25s" style-hover="border-color:var(--acc,#FF5A2C)">{{ ch.l }}</button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </sc-for>
+            <sc-if value="{{ aiBusy }}" hint-placeholder-val="{{ false }}">
+              <div style="align-self:flex-start;background:var(--sf2,#1A1A1E);padding:12px 16px;border-radius:14px 14px 14px 4px;display:flex;gap:5px">
+                <span style="width:5px;height:5px;border-radius:50%;background:var(--mut,#8B8A84);animation:dotTy 1s ease infinite"></span>
+                <span style="width:5px;height:5px;border-radius:50%;background:var(--mut,#8B8A84);animation:dotTy 1s ease .15s infinite"></span>
+                <span style="width:5px;height:5px;border-radius:50%;background:var(--mut,#8B8A84);animation:dotTy 1s ease .3s infinite"></span>
+              </div>
+            </sc-if>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:12px;border-top:1px solid var(--ln,rgba(244,243,239,.13))">
+            <input id="aiIn" onKeyDown="{{ aiKey }}" placeholder="Ask about projects, themes, quotes…" style="flex:1;background:var(--sf2,#1A1A1E);border:1px solid transparent;border-radius:99px;padding:10px 16px;font-size:13.5px;color:var(--ink,#F4F3EF);outline:none" style-focus="border-color:var(--acc,#FF5A2C)">
+            <button onClick="{{ mic }}" title="Voice" style="{{ micStyle }}">●</button>
+            <button onClick="{{ aiSend }}" style="cursor:pointer;flex:none;width:38px;height:38px;border-radius:50%;background:var(--acc,#FF5A2C);border:none;color:#0B0B0C;font-size:15px;font-weight:700" style-hover="transform:scale(1.06)">↑</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    <button onPointerDown="{{ orbDown }}" title="DEUS — ask me anything" style="position:fixed;right:26px;bottom:26px;z-index:450;width:60px;height:60px;border-radius:50%;cursor:grab;background:var(--sf,#131316);border:1px solid var(--ln,rgba(244,243,239,.13));box-shadow:var(--sh,0 30px 80px rgba(0,0,0,.5));display:flex;align-items:center;justify-content:center;touch-action:none;animation:floatY 5s ease-in-out infinite" style-hover="border-color:var(--acc,#FF5A2C)">
+      <span style="position:relative;display:flex;align-items:center;justify-content:center">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--ink,#F4F3EF)">DEUS</span>
+        <span style="position:absolute;top:-9px;right:-11px;width:7px;height:7px;border-radius:50%;background:var(--acc,#FF5A2C)"><span style="position:absolute;inset:0;border-radius:50%;background:var(--acc,#FF5A2C);animation:pulseRing 2.2s ease-out infinite"></span></span>
+      </span>
+    </button>
+
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#FF5A2C&quot;,&quot;options&quot;:[&quot;#FF5A2C&quot;,&quot;#3D6BFF&quot;,&quot;#B8E62D&quot;,&quot;#E4B84C&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Look&quot;},&quot;skipIntro&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behavior&quot;},&quot;fxRate&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:1500,&quot;min&quot;:800,&quot;max&quot;:3000,&quot;step&quot;:50,&quot;unit&quot;:&quot;₦/$&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Quote&quot;}}">
+class Component extends DCLogic {
+  THEMES = {
+    dark:  { bg:'#0B0B0C', sf:'#131316', sf2:'#1A1A1E', card:'#101013', ink:'#F4F3EF', mut:'#8B8A84', ln:'rgba(244,243,239,.13)', nav:'rgba(11,11,12,.72)', acc:'#FF5A2C', sh:'0 30px 80px rgba(0,0,0,.5)' },
+    light: { bg:'#F3F1EB', sf:'#FFFFFF', sf2:'#ECE9E1', card:'#FFFFFF', ink:'#131316', mut:'#6E6B63', ln:'rgba(19,19,22,.14)', nav:'rgba(243,241,235,.78)', acc:'#E8430F', sh:'0 30px 80px rgba(30,25,15,.16)' }
+  };
+
+  ENG = [
+    { id:'relay', n:'01', name:'Relay', tag:'Protocol · Agent Infrastructure', stack:['Go','Rust','gRPC','Protobuf'],
+      sum:'A high-performance session-handoff protocol that lets autonomous coding agents pass live sessions — intent, memory, approach and full context — the moment one hits its token or capability ceiling.',
+      built:['Wire protocol with resumable context frames — intent, memory and approach serialized as portable state','Agent-to-agent handshake that negotiates capability before transfer','Context-diff compression so handoffs move deltas, not dumps','CRC-checked frame log for lossless replay and audit'],
+      inspo:'Modeled after TCP connection handoff and VM live-migration semantics — treat an agent session like a process you can freeze, ship and thaw.',
+      sys:['Session state machine: ACTIVE → DRAIN → FREEZE → SHIP → THAW','Token-budget scheduler triggers handoff before quality degrades','Zero-copy frame buffers in Rust; Go control plane'],
+      demo:'term' },
+    { id:'aegis', n:'02', name:'Aegis Matrix', tag:'Evaluation Suite · DevSecOps', stack:['Go','Rust','Docker','OPA'],
+      sum:'An end-to-end evaluation suite for vibe-coded software — scoring applications across frontend, backend, security, compliance, DevOps and prompt engineering before they ship.',
+      built:['Policy engine that compiles org rules into executable checks','Six-axis scoring matrix with weighted gates per release stage','Headless probes for UI, API surface, authz and secret hygiene','Prompt-layer audits: injection surface, tool scope, jailbreak drift'],
+      inspo:'Modeled after aviation pre-flight checklists and CI quality gates — nothing flies until every axis is green or consciously waived.',
+      sys:['Probe workers fan out in parallel; results reduce into a signed report','Rust probes for speed, Go orchestrator for fleet control','Exit codes wired for CI — fail the pipe, not the postmortem'],
+      demo:'scan' },
+    { id:'etllm', n:'03', name:'ETLLM', tag:'Data Pipeline · Applied AI', stack:['Python','FastAPI','Polars','LLM'],
+      sum:'An intelligent ETL tool that puts language models inside the pipeline — profiling datasets dynamically and flagging schema anomalies without hand-written rules.',
+      built:['LLM profiler nodes that read samples and emit typed schema hypotheses','Autonomous anomaly detection: drift, nulls, unit mismatches, rogue enums','Confidence-scored fixes proposed as reviewable patches','Streaming design — profiling rides along the transform, no second pass'],
+      inspo:'Modeled after classic ETL DAGs — with a reasoning layer at every edge instead of brittle regex validators.',
+      sys:['Ingest → Profile → Reason → Validate → Load, each stage observable','Cold-start heuristics from column stats before the model is consulted','Deterministic-rule fallback when confidence drops'],
+      demo:'pipe' },
+    { id:'airfree', n:'04', name:'Airfree', tag:'Open Source · System Utility', stack:['Rust','C','procfs','netlink'],
+      sum:'An open-source utility for system efficiency — clean network and resource management pipelines that reclaim what background bloat quietly eats.',
+      built:['Resource auditor that maps every daemon to its real cost','Network pipeline cleaner: dead sockets, zombie routes, stale DNS','One-command reclaim with a dry-run diff you can actually read','Zero-daemon design — runs, reports, exits'],
+      inspo:'Modeled after the Unix philosophy — one sharp tool, text interfaces, no resident agents.',
+      sys:['Snapshot → diff → reclaim loop with a rollback journal','Direct procfs/netlink reads; no shelling out','Single static binary under 3 MB'],
+      demo:'gauge' }
+  ];
+
+  BIZ = [
+    { id:'hebron', name:'Hebron Hotels', kind:'Hospitality · Website', demo:'site', link:'#',
+      img:'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1600&auto=format&fit=crop',
+      img2:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800&auto=format&fit=crop',
+      miniUrl:'hebronhotels.com', miniTitle:'Where stillness is five-star.', miniCta:'Book your stay',
+      problem:'A premium property stuck behind a dated website. The brand read three-star online, and bookings leaked to commission-heavy OTAs.',
+      solution:'A ground-up redesign in Next.js with GSAP and Lenis — cinematic room reveals, a booking-first flow, and performance tuned until the site feels like the lobby.',
+      impact:'The digital brand finally matches the property, and direct bookings climbed within the first quarter.',
+      metrics:[{v:'38',s:'%',l:'more direct bookings'},{v:'2.3',s:'×',l:'longer sessions'},{v:'0.9',s:'s',l:'first paint'}],
+      stack:['Next.js','GSAP','Lenis','Vercel'] },
+    { id:'wayfarian', name:'Wayfarian', kind:'Travel · Mobile App', demo:'phone', link:'#',
+      img:'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=1600&auto=format&fit=crop',
+      img2:'https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=800&auto=format&fit=crop',
+      miniUrl:'wayfarian.app', miniTitle:'Every mile, on the record.', miniCta:'Start tracking',
+      problem:'Travelers log trips across scattered apps — no single record of the journey, nothing social, nothing competitive.',
+      solution:'A native tracking app that logs speed, distance and time, ranks travelers on global leaderboards, and live-shares journey memories with friends.',
+      impact:'Trips became a game worth keeping score of — and a feed worth returning to.',
+      metrics:[{v:'12',s:'k+',l:'trips logged'},{v:'64',s:'%',l:'weekly retention'},{v:'4.8',s:'★',l:'store rating'}],
+      stack:['React Native','Kotlin','Swift','Postgres'] },
+    { id:'studyrag', name:'StudyRAG', kind:'EdTech · Applied AI', demo:'rag', link:'#',
+      img:'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1600&auto=format&fit=crop',
+      img2:'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=800&auto=format&fit=crop',
+      miniUrl:'studyrag.io', miniTitle:'Your syllabus, now answering back.', miniCta:'Upload materials',
+      problem:'Institutional study material sits in static PDFs — students grind through pages that can\u2019t answer a single question back.',
+      solution:'An adaptive learning platform on a Retrieval-Augmented Generation architecture: materials become an interactive tutor that cites its sources and adapts to each student.',
+      impact:'Static handouts became living, institutional study tools.',
+      metrics:[{v:'41',s:'%',l:'faster to mastery'},{v:'3.1',s:'×',l:'more practice sessions'},{v:'92',s:'%',l:'citation accuracy'}],
+      stack:['Python','FastAPI','RAG','Next.js'] },
+    { id:'unclestans', name:'Uncle Stan\u2019s', kind:'Food · Web Platform', demo:'site', link:'#',
+      img:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1600&auto=format&fit=crop',
+      img2:'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?q=80&w=800&auto=format&fit=crop',
+      miniUrl:'unclestans.shop', miniTitle:'Order in. Devour out.', miniCta:'Browse the menu',
+      problem:'A specialized food vendor ran orders through DMs and phone calls — menus outdated, logistics manual, checkout chaos.',
+      solution:'A full-stack ordering platform: live menus, local delivery logistics and checkout automation that runs the counter while the kitchen cooks.',
+      impact:'Order handling stopped being a second job.',
+      metrics:[{v:'3',s:'×',l:'order throughput'},{v:'85',s:'%',l:'less manual processing'},{v:'24',s:'/7',l:'storefront uptime'}],
+      stack:['Next.js','Node.js','Postgres','Paystack'] }
+  ];
+
+  RELAY_SCRIPT = [
+    { c:'#7BD88F', t:'$ relay handoff --from agent-a --to agent-b' },
+    { c:'', t:'freezing session 0x3F2A ................. ok (41ms)' },
+    { c:'', t:'serializing intent + memory + approach ... 2.1 MB' },
+    { c:'', t:'context-diff compression ....... 2.1 MB \u2192 312 KB' },
+    { c:'', t:'handshake agent-b .......... capabilities verified' },
+    { c:'', t:'shipping frames [\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588] 100%' },
+    { c:'', t:'thaw + replay ............. state verified (CRC ok)' },
+    { c:'#7BD88F', t:'\u2713 handoff complete \u2014 138ms, 98.7% context kept' },
+    { c:'#77766F', t:'agent-b resumed at step 47/112 \u2014 no re-prompting' }
+  ];
+
+  AEGIS_ROWS = [
+    { l:'Frontend', s:94 }, { l:'Backend', s:91 }, { l:'Security', s:88 },
+    { l:'Compliance', s:96 }, { l:'DevOps', s:90 }, { l:'Prompt layer', s:85 }
+  ];
+
+  QT = [
+    { id:'site',   l:'Marketing website',        lo:2500,  hi:6000,  wk:4 },
+    { id:'saas',   l:'Web platform / SaaS',      lo:8000,  hi:25000, wk:10 },
+    { id:'mobile', l:'Mobile app — iOS + Android', lo:10000, hi:30000, wk:12 },
+    { id:'ai',     l:'AI / RAG system',          lo:7000,  hi:22000, wk:9 },
+    { id:'sys',    l:'Systems & performance',    lo:12000, hi:40000, wk:12 }
+  ];
+  QF = [
+    { id:'auth', l:'Accounts & auth', p:900 }, { id:'pay', l:'Payments', p:1400 },
+    { id:'admin', l:'Admin dashboard', p:1600 }, { id:'aif', l:'AI features', p:2600 },
+    { id:'rt', l:'Realtime / live data', p:1900 }, { id:'cms', l:'Self-serve content', p:900 },
+    { id:'an', l:'Analytics', p:700 }, { id:'api', l:'Public API', p:1200 }
+  ];
+
+  state = {
+    phase:'load', pct:0, theme:'dark', route:'home', curtain:false, gate:null,
+    engOpen:'relay', caseOpen:null, tick:0, sweep:false,
+    aiOpen:false, aiMsgs:[], aiBusy:false, aiListen:false, orbX:null, orbY:null,
+    qType:'saas', qFeats:['auth'], qWeeks:8, qCur:'USD', qBusy:false, qStep:0, qOut:null
+  };
+
+  componentDidMount() {
+    this._root = this._rootEl || null;
+    this._io = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target, d = +(el.getAttribute('data-rv') || 0);
+        el.style.transition = 'opacity .9s cubic-bezier(.22,.65,.2,1) ' + d + 'ms, transform .9s cubic-bezier(.22,.65,.2,1) ' + d + 'ms';
+        el.style.opacity = '1'; el.style.transform = 'none';
+        this._io.unobserve(el);
+      });
+    }, { threshold: 0.12 });
+    this._ioC = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target; this._ioC.unobserve(el);
+        const target = parseFloat(el.getAttribute('data-cnt')), dec = +(el.getAttribute('data-dec') || 0);
+        const t0 = performance.now(), dur = 1150;
+        const step = (t) => {
+          const p = Math.min(1, (t - t0) / dur), e2 = 1 - Math.pow(1 - p, 3);
+          el.textContent = (target * e2).toFixed(dec);
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+    }, { threshold: 0.5 });
+
+    this._key = (e) => {
+      if (e.key === 'Escape') {
+        if (this.state.caseOpen) this.setState({ caseOpen:null });
+        else if (this.state.aiOpen) this.setState({ aiOpen:false });
+      }
+    };
+    window.addEventListener('keydown', this._key);
+
+    this._tk = setInterval(() => { if (this.state.phase === 'site') this.setState(s => ({ tick: s.tick + 1 })); }, 800);
+
+    if (this.props.skipIntro) {
+      this.setState({ phase:'site' }, () => { this.applyTheme(); this.initFx(); });
+    } else {
+      this._ld = setInterval(() => {
+        const p = Math.min(100, this.state.pct + (this.state.pct < 70 ? 1.1 + Math.random() * 1.6 : 0.5 + Math.random() * 1.0));
+        this.setState({ pct: p });
+        if (p >= 100) {
+          clearInterval(this._ld);
+          setTimeout(() => { if (this.state.phase === 'load') this.setState({ phase:'theme' }); }, 560);
+        }
+      }, 34);
+      this.applyTheme();
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this._tk); clearInterval(this._ld);
+    if (this._io) this._io.disconnect(); if (this._ioC) this._ioC.disconnect();
+    window.removeEventListener('keydown', this._key);
+    document.body.style.overflow = '';
+  }
+
+  componentDidUpdate(pp, ps) {
+    if (ps.theme !== this.state.theme || (pp && pp.accent !== this.props.accent)) this.applyTheme();
+    if (ps.phase !== this.state.phase || ps.route !== this.state.route || ps.engOpen !== this.state.engOpen || ps.caseOpen !== this.state.caseOpen || ps.qOut !== this.state.qOut) {
+      requestAnimationFrame(() => { this.initFx(); this.syncNav(); });
+    }
+    if (ps.aiMsgs !== this.state.aiMsgs || ps.aiBusy !== this.state.aiBusy) {
+      requestAnimationFrame(() => { const el = document.getElementById('aiScroll'); if (el) el.scrollTop = el.scrollHeight; });
+    }
+    document.body.style.overflow = this.state.caseOpen ? 'hidden' : '';
+  }
+
+  setRootEl(el) { this._rootEl = el; this._root = el; if (el) this.applyTheme(); }
+
+  applyTheme() {
+    const t = this.THEMES[this.state.theme] || this.THEMES.dark;
+    const acc = this.props.accent || t.acc;
+    const el = this._root; if (!el) return;
+    const m = { '--bg':t.bg, '--sf':t.sf, '--sf2':t.sf2, '--card':t.card, '--ink':t.ink, '--mut':t.mut, '--ln':t.ln, '--nav':t.nav, '--acc':acc, '--sh':t.sh };
+    for (const k in m) el.style.setProperty(k, m[k]);
+    if (this.state.phase === 'site' || this.state.phase === 'welcome') {
+      document.body.style.background = t.bg; document.body.style.color = t.ink;
+    }
+  }
+
+  initFx() {
+    const R = this._root || document;
+    R.querySelectorAll('[data-rv]').forEach(el => {
+      if (el.__rv) return; el.__rv = 1;
+      el.style.opacity = '0'; el.style.transform = 'translateY(26px)';
+      this._io.observe(el);
+    });
+    R.querySelectorAll('[data-cnt]').forEach(el => {
+      if (el.__c) return; el.__c = 1; this._ioC.observe(el);
+    });
+  }
+
+  syncNav() {
+    const r = this.state.route;
+    document.querySelectorAll('[data-nav]').forEach(el => {
+      const on = el.getAttribute('data-nav') === r;
+      el.style.opacity = on ? '1' : '.62';
+      el.style.borderBottom = on ? '1px solid var(--acc,#FF5A2C)' : '1px solid transparent';
+    });
+  }
+
+  pickTheme(t) {
+    this.setState({ theme:t, phase:'welcome' }, () => {
+      this.applyTheme();
+      setTimeout(() => {
+        this.setState({ phase:'site', curtain:true });
+        window.scrollTo(0, 0);
+        this.applyTheme();
+        setTimeout(() => this.setState({ curtain:false }), 1500);
+      }, 2100);
+    });
+  }
+
+  nav(r) {
+    if (this.state.route === r && this.state.phase === 'site') { window.scrollTo({ top:0, behavior:'smooth' }); return; }
+    if (this.state.gate || this._navT) {
+      this.setState({ route:r, caseOpen:null });
+      window.scrollTo(0, 0);
+      return;
+    }
+    this.setState({ sweep:true });
+    this._navT = setTimeout(() => {
+      this.setState({ route:r, caseOpen:null });
+      window.scrollTo(0, 0);
+    }, 480);
+    setTimeout(() => { this.setState({ sweep:false }); this._navT = null; }, 1200);
+  }
+
+  enterRealm(r) {
+    this.setState({ gate:r });
+    setTimeout(() => { this.nav(r); }, 700);
+    setTimeout(() => { this.setState({ gate:null }); }, 1350);
+  }
+
+  brain(qq) {
+    const q = qq.toLowerCase();
+    const C = (l, go) => ({ l, go });
+    const goEng = () => this.enterRealm('eng'), goBiz = () => this.enterRealm('biz');
+    if (/(dark|light).*(mode|theme)|theme|switch.*(dark|light)|(dark|light) mode/.test(q) || q === 'dark' || q === 'light') {
+      const to = q.includes('light') ? 'light' : q.includes('dark') ? 'dark' : (this.state.theme === 'dark' ? 'light' : 'dark');
+      return { t:'Done — ' + to + ' mode is live. Anything else?', chips:[C('Flip it back', () => this.setState({ theme: to === 'dark' ? 'light' : 'dark' }))], act:() => this.setState({ theme:to }) };
+    }
+    if (/quote|cost|price|estimate|budget|how much/.test(q)) return { t:'I price builds against market benchmarks. Head to the quote page, set the type, features and your budget — I\u2019ll draft the breakdown in seconds.', chips:[C('Open the quote page', () => this.nav('quote'))] };
+    if (/contact|hire|email|whatsapp|reach|phone|call/.test(q)) return { t:'Fastest: danbis664@gmail.com or WhatsApp +234 707 721 3386. He replies quickly across timezones.', chips:[C('Contact page', () => this.nav('contact'))] };
+    if (/stack|tech|language|tool|cuda|rust|golang/.test(q)) return { t:'C, C++, CUDA, Rust, Go, Python, Node/Next.js, React Native, Kotlin and Swift — GPU kernels to App Store. The full map lives in the engineering realm.', chips:[C('See technologies', goEng)] };
+    if (/hackathon/.test(q)) return { t:'The hackathon shelf is being restocked. Meanwhile — Relay and Aegis Matrix are the weekend-build energy you\u2019re looking for.', chips:[C('Engineering realm', goEng)] };
+    if (/relay/.test(q)) return { t:'Relay is a session-handoff protocol for autonomous coding agents — Go + Rust, sub-150ms transfers, ~98.7% context preserved. There\u2019s a live terminal demo.', chips:[C('Watch it run', () => { this.setState({ engOpen:'relay' }); this.nav('eng'); })] };
+    if (/aegis/.test(q)) return { t:'Aegis Matrix scores vibe-coded software across six axes — frontend, backend, security, compliance, DevOps and prompt layer — before it ships.', chips:[C('See the matrix', () => { this.setState({ engOpen:'aegis' }); this.nav('eng'); })] };
+    if (/etllm|etl|pipeline/.test(q)) return { t:'ETLLM puts language models inside the ETL pipe — dynamic dataset profiling and autonomous schema-anomaly detection.', chips:[C('View the pipeline', () => { this.setState({ engOpen:'etllm' }); this.nav('eng'); })] };
+    if (/airfree/.test(q)) return { t:'Airfree is an open-source utility that reclaims what background bloat eats — clean network and resource pipelines, one static binary.', chips:[C('Open Airfree', () => { this.setState({ engOpen:'airfree' }); this.nav('eng'); })] };
+    if (/hebron|hotel/.test(q)) return { t:'Hebron Hotels: a five-star redesign in Next.js + GSAP + Lenis that lifted direct bookings 38% in a quarter. Hover the card for the live demo.', chips:[C('Open the case', () => { this.nav('biz'); setTimeout(() => this.setState({ caseOpen:'hebron' }), 150); })] };
+    if (/wayfarian|travel/.test(q)) return { t:'Wayfarian is a native travel tracker — speed, distance, time, global leaderboards, live-shared memories. 4.8★ and holding.', chips:[C('Open the case', () => { this.nav('biz'); setTimeout(() => this.setState({ caseOpen:'wayfarian' }), 150); })] };
+    if (/study|rag|learn/.test(q)) return { t:'StudyRAG turns static course material into an interactive tutor — RAG architecture, cited answers, adaptive practice.', chips:[C('Open the case', () => { this.nav('biz'); setTimeout(() => this.setState({ caseOpen:'studyrag' }), 150); })] };
+    if (/stan|food|order/.test(q)) return { t:'Uncle Stan\u2019s: a full-stack food-ordering platform — live menus, local logistics, automated checkout. 3× order throughput.', chips:[C('Open the case', () => { this.nav('biz'); setTimeout(() => this.setState({ caseOpen:'unclestans' }), 150); })] };
+    if (/deusx|company|studio|venture/.test(q)) return { t:'DeusX Technologies is Daniel\u2019s venture — end-to-end development, IT solutions and production-ready AI products for global markets.', chips:[C('Business realm', goBiz), C('Get a quote', () => this.nav('quote'))] };
+    if (/business|client|owner|impact/.test(q)) return { t:'The business realm shows client work as problem \u2192 solution \u2192 impact, with live demos on hover and the numbers that moved.', chips:[C('Enter business realm', goBiz)] };
+    if (/engineer|developer|system|code|technical/.test(q)) return { t:'The engineering realm: four systems builds with architecture notes, inspirations and live emulators running in-page.', chips:[C('Enter engineering realm', goEng)] };
+    if (/project|built|work|portfolio|done|show/.test(q)) return { t:'Nine shipped: four systems builds (Relay, Aegis Matrix, ETLLM, Airfree) and five client products (Hebron Hotels, Wayfarian, StudyRAG, Uncle Stan\u2019s — plus DeusX itself). Which lens?', chips:[C('Engineering view', goEng), C('Business view', goBiz), C('Catalogue', () => this.nav('cat'))] };
+    if (/home|start|beginning/.test(q)) return { t:'Taking you home.', act:() => this.nav('home') };
+    if (/catalogue|catalog|index|everything|all/.test(q)) return { t:'The catalogue indexes everything — filter by realm, hover for previews.', act:() => this.nav('cat'), chips:[] };
+    if (/who|about|daniel|bisina|tariwei/.test(q)) return { t:'Daniel Tariwei Bisina — polyglot software & AI systems engineer, founder of DeusX Technologies. From GPU kernels and AI-native operating systems to production web and mobile. Based in Nigeria, operating globally.', chips:[C('About section', () => this.nav('home'))] };
+    return { t:'Try me on: \u201cwhat has he built\u201d, \u201cswitch to light mode\u201d, \u201ctake me to the quote page\u201d or \u201chow do I hire him\u201d.', chips:[C('Projects', () => this.nav('cat')), C('Get a quote', () => this.nav('quote'))] };
+  }
+
+  send(txt) {
+    const inp = document.getElementById('aiIn');
+    const q = (txt != null ? txt : (inp ? inp.value : '')).trim();
+    if (!q) return;
+    if (inp) inp.value = '';
+    this.setState(s => ({ aiMsgs:[...s.aiMsgs, { u:q }], aiBusy:true }));
+    setTimeout(() => {
+      const r = this.brain(q);
+      if (r.act) r.act();
+      this.setState(s => ({ aiMsgs:[...s.aiMsgs, { a:r.t, chips:r.chips || [] }], aiBusy:false }));
+    }, 700);
+  }
+
+  openAi() {
+    const first = this.state.aiMsgs.length === 0;
+    this.setState(s => ({ aiOpen:!s.aiOpen }), () => {
+      if (first && this.state.aiOpen) {
+        this.setState({ aiBusy:true });
+        setTimeout(() => {
+          const C = (l, go) => ({ l, go });
+          this.setState({ aiBusy:false, aiMsgs:[{ a:'I\u2019m DEUS — this site\u2019s guide. I can navigate you anywhere, switch the theme, brief you on any project, or price your build. What do you need?', chips:[C('Show me the projects', () => this.nav('cat')), C('Switch theme', () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }))), C('Price my idea', () => this.nav('quote'))] }] });
+        }, 650);
+      }
+    });
+  }
+
+  mic() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { this.setState(s => ({ aiMsgs:[...s.aiMsgs, { a:'Voice input needs a Chromium-based browser — type it instead.', chips:[] }] })); return; }
+    if (this._rec) { try { this._rec.stop(); } catch (e) {} this._rec = null; this.setState({ aiListen:false }); return; }
+    const r = new SR(); r.lang = 'en-US';
+    r.onresult = (ev) => { const t = ev.results[0][0].transcript; this._rec = null; this.setState({ aiListen:false }); this.send(t); };
+    r.onerror = () => { this._rec = null; this.setState({ aiListen:false }); };
+    r.onend = () => { this.setState({ aiListen:false }); };
+    this._rec = r; this.setState({ aiListen:true }); r.start();
+  }
+
+  orbDown(e) {
+    const el = e.currentTarget;
+    const sx = e.clientX, sy = e.clientY, r0 = el.getBoundingClientRect();
+    let moved = false;
+    const mv = (ev) => {
+      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (Math.abs(dx) + Math.abs(dy) > 7) moved = true;
+      if (moved) {
+        const L = Math.min(window.innerWidth - 68, Math.max(8, r0.left + dx));
+        const T = Math.min(window.innerHeight - 68, Math.max(8, r0.top + dy));
+        el.style.left = L + 'px'; el.style.top = T + 'px';
+        el.style.right = 'auto'; el.style.bottom = 'auto';
+        el.style.animation = 'none'; el.style.cursor = 'grabbing';
+      }
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up);
+      el.style.cursor = 'grab';
+      if (!moved) this.openAi();
+      else { const r = el.getBoundingClientRect(); this.setState({ orbX:r.left, orbY:r.top }); }
+    };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  }
+
+  fmt(n) {
+    const fx = this.props.fxRate || 1500;
+    return this.state.qCur === 'NGN' ? '\u20a6' + Math.round(n * fx).toLocaleString('en-US') : '$' + Math.round(n).toLocaleString('en-US');
+  }
+
+  genQuote() {
+    if (this.state.qBusy) return;
+    this.setState({ qBusy:true, qStep:0, qOut:null });
+    [420, 980, 1560, 2140].forEach((t, i) => setTimeout(() => this.setState({ qStep:i + 1 }), t));
+    setTimeout(() => {
+      const T = this.QT.find(t => t.id === this.state.qType);
+      const base = (T.lo + T.hi) / 2;
+      const feats = this.QF.filter(f => this.state.qFeats.includes(f.id));
+      const fSum = feats.reduce((a, f) => a + f.p, 0);
+      const typical = T.wk + feats.length;
+      const rush = this.state.qWeeks < typical * 0.65 ? Math.round((base + fSum) * 0.22) : 0;
+      const total = Math.round(base + fSum + rush);
+      const mLo = Math.round(total * 1.7 / 500) * 500, mHi = Math.round(total * 2.3 / 500) * 500;
+      const bEl = document.getElementById('qBudgetIn');
+      const fx = this.props.fxRate || 1500;
+      let bRaw = bEl ? parseFloat((bEl.value || '').replace(/[^0-9.]/g, '')) : NaN;
+      let budget = isNaN(bRaw) ? 0 : (this.state.qCur === 'NGN' ? bRaw / fx : bRaw);
+      const items = [{ l:'Base build — ' + T.l, v:Math.round(base) }, ...feats.map(f => ({ l:f.l, v:f.p }))];
+      if (rush) items.push({ l:'Compressed timeline (' + this.state.qWeeks + ' wks vs ~' + typical + ' typical)', v:rush });
+      let tone, head, body;
+      if (!budget) { tone = 'var(--acc,#FF5A2C)'; head = 'Here\u2019s the honest range.'; body = 'No budget given — the figures above are what this scope costs done right. Agencies quote the market range; DeusX builds at the engineer\u2019s price.'; }
+      else if (budget >= total) { tone = '#7BD88F'; head = 'Full scope fits your budget.'; body = 'Your budget covers the complete build' + (budget > total * 1.15 ? ' with headroom — consider adding a feature or extending support.' : '.') + ' DeusX delivers at roughly half of what agencies benchmark.'; }
+      else if (budget >= total * 0.7) { tone = '#E8B94A'; head = 'Close — phase it.'; body = 'Your budget lands within ~30% of full scope. Recommended: ship the core now, defer ' + (feats.length ? '\u201c' + feats[feats.length - 1].l + '\u201d' : 'one feature') + ' to phase two once it\u2019s earning.'; }
+      else { tone = 'var(--acc,#FF5A2C)'; head = 'Budget is below build cost — start smaller.'; body = 'For ' + this.fmt(budget) + ', the honest play is a starter build: core flow only, production-grade, architected so every later feature bolts on without a rewrite.'; }
+      this.setState({ qBusy:false, qOut:{ total, mLo, mHi, budget, items, tone, head, body } });
+      requestAnimationFrame(() => { const el = document.getElementById('qResult'); if (el) { const y = el.getBoundingClientRect().top + window.scrollY - 84; window.scrollTo({ top:y, behavior:'smooth' }); } });
+    }, 2600);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const tilt = (e) => {
+      const el = e.currentTarget, r = el.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5;
+      const base = +(el.getAttribute('data-base') || 0);
+      el.style.transform = 'perspective(1400px) rotateY(' + (base + px * 9) + 'deg) rotateX(' + (-py * 7) + 'deg) translateY(-6px)';
+    };
+    const untilt = (e) => {
+      const el = e.currentTarget;
+      el.style.transform = 'perspective(1400px) rotateY(' + (el.getAttribute('data-base') || 0) + 'deg)';
+    };
+    const crossIn = (e) => {
+      const el = e.currentTarget;
+      el.style.transform = 'rotateY(0deg) translateY(-8px)';
+      el.style.boxShadow = '0 50px 100px rgba(0,0,0,.5)';
+      const g = el.querySelector('[data-glare]'); if (g) { g.style.animation = 'none'; void g.offsetWidth; g.style.animation = 'sheen 1s cubic-bezier(.4,0,.2,1) both'; }
+    };
+    const crossOut = (e) => {
+      const el = e.currentTarget;
+      el.style.transform = 'rotateY(' + (el.getAttribute('data-base') || 0) + 'deg)';
+      el.style.boxShadow = '0 30px 70px rgba(0,0,0,.35)';
+    };
+    const portalIn = (e) => {
+      const el = e.currentTarget;
+      el.style.transform = 'rotateY(0deg) translateY(-10px)';
+      const rim = el.querySelector('[data-rim]'); if (rim) rim.style.animationDuration = '1.7s';
+      const im = el.querySelector('[data-pimg]'); if (im) { im.style.transform = 'scale(1.09)'; im.style.opacity = '.75'; }
+    };
+    const portalOut = (e) => {
+      const el = e.currentTarget;
+      el.style.transform = 'rotateY(' + (el.getAttribute('data-base') || 0) + 'deg)';
+      const rim = el.querySelector('[data-rim]'); if (rim) rim.style.animationDuration = '7s';
+      const im = el.querySelector('[data-pimg]'); if (im) { im.style.transform = 'scale(1)'; im.style.opacity = ''; }
+    };
+    const navLinks = [
+      { l:'Home', r:'home' }, { l:'For Engineers', r:'eng' }, { l:'For Business', r:'biz' },
+      { l:'Catalogue', r:'cat' }, { l:'Quote', r:'quote' }, { l:'Contact', r:'contact' }
+    ].map(x => ({ ...x, go:(e) => { e.preventDefault(); this.nav(x.r); } }));
+
+    const relayLen = this.RELAY_SCRIPT.length;
+    const relayN = s.tick % (relayLen + 6);
+    const relayLines = this.RELAY_SCRIPT.slice(0, relayN).map((x, i) => ({ ...x, c: x.c || 'var(--mut,#8B8A84)', k:i }));
+
+    const engList = this.ENG.map(p => ({
+      ...p, open: s.engOpen === p.id, mark: s.engOpen === p.id ? '−' : '+',
+      isTerm: p.demo === 'term', isScan: p.demo === 'scan', isPipe: p.demo === 'pipe', isGauge: p.demo === 'gauge',
+      toggle:() => this.setState(st => ({ engOpen: st.engOpen === p.id ? null : p.id }))
+    }));
+
+    const bizList = this.BIZ.map(p => ({
+      ...p,
+      isSite: p.demo === 'site', isPhone: p.demo === 'phone', isRag: p.demo === 'rag',
+      chip: p.metrics[0].v + p.metrics[0].s + ' ' + p.metrics[0].l,
+      open:() => this.setState({ caseOpen:p.id }),
+      hovIn:(e) => { const c = e.currentTarget; c.style.transform = 'translateY(-10px)'; c.style.boxShadow = 'var(--sh,0 30px 80px rgba(0,0,0,.5))'; const d = c.querySelector('[data-demo]'); if (d) { d.style.opacity = '1'; d.style.transform = 'none'; } const im = c.querySelector('[data-cimg]'); if (im) im.style.transform = 'scale(1.05)'; },
+      hovOut:(e) => { const c = e.currentTarget; c.style.transform = 'none'; c.style.boxShadow = 'none'; const d = c.querySelector('[data-demo]'); if (d) { d.style.opacity = '0'; d.style.transform = 'translateY(12px)'; } const im = c.querySelector('[data-cimg]'); if (im) im.style.transform = 'scale(1)'; }
+    }));
+
+    const co = this.BIZ.find(p => p.id === s.caseOpen);
+    const caseObj = co ? { ...co, metricsM: co.metrics.map(m => ({ ...m, dec: m.v.indexOf('.') >= 0 ? '1' : '0' })), close:() => this.setState({ caseOpen:null }), toQuote:() => { this.setState({ caseOpen:null }); this.nav('quote'); } } : null;
+
+    const catImgs = { relay:'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=900&auto=format&fit=crop', aegis:'https://images.unsplash.com/photo-1555949963-aa79dcee981c?q=80&w=900&auto=format&fit=crop', etllm:'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=900&auto=format&fit=crop', airfree:'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=900&auto=format&fit=crop' };
+    const catList = [
+      ...this.ENG.map((p, i) => ({ id:p.id, idx:String(i + 1).padStart(2, '0'), name:p.name, kind:p.tag, realm:'Engineering', stackTop:p.stack.slice(0, 3).join(' · '), img:catImgs[p.id], go:() => { this.setState({ engOpen:p.id }); this.nav('eng'); } })),
+      ...this.BIZ.map((p, i) => ({ id:p.id, idx:String(i + 5).padStart(2, '0'), name:p.name, kind:p.kind, realm:'Business', stackTop:p.stack.slice(0, 3).join(' · '), img:p.img, go:() => { this.nav('biz'); setTimeout(() => this.setState({ caseOpen:p.id }), 150); } }))
+    ];
+    const catEnter = (e) => { const el = document.getElementById('catPrev'); if (!el) return; el.src = e.currentTarget.getAttribute('data-img'); el.style.opacity = '1'; };
+    const catLeave = () => { const el = document.getElementById('catPrev'); if (el) el.style.opacity = '0'; };
+    const catMove = (e) => { const el = document.getElementById('catPrev'); if (el) { el.style.left = (e.clientX + 24) + 'px'; el.style.top = (e.clientY - 90) + 'px'; } };
+
+    const qTypes = this.QT.map(t => ({ ...t, on: s.qType === t.id, onBg: s.qType === t.id ? 'var(--ink,#F4F3EF)' : 'transparent', onC: s.qType === t.id ? 'var(--bg,#0B0B0C)' : 'var(--ink,#F4F3EF)', pick:() => this.setState({ qType:t.id, qOut:null }) }));
+    const qFeatsL = this.QF.map(f => ({ ...f, on: s.qFeats.includes(f.id), onBg: s.qFeats.includes(f.id) ? 'var(--acc,#FF5A2C)' : 'transparent', onC: s.qFeats.includes(f.id) ? '#0B0B0C' : 'var(--ink,#F4F3EF)', onBd: s.qFeats.includes(f.id) ? 'var(--acc,#FF5A2C)' : 'var(--ln,rgba(244,243,239,.13))', tog:() => this.setState(st => ({ qFeats: st.qFeats.includes(f.id) ? st.qFeats.filter(x => x !== f.id) : [...st.qFeats, f.id], qOut:null })) }));
+    const qStepsTxt = ['Parsing scope\u2026', 'Benchmarking 214 comparable builds\u2026', 'Pricing features & timeline\u2026', 'Drafting your plan\u2026'];
+    const qSteps = qStepsTxt.map((t, i) => ({ t, on: s.qStep > i, k:i }));
+    const q = s.qOut;
+
+    const step = s.tick % 9;
+    return {
+      setRoot:(el) => this.setRootEl(el),
+      isLoad: s.phase === 'load', isTheme: s.phase === 'theme', isWelcome: s.phase === 'welcome', isSite: s.phase === 'site',
+      isHome: s.route === 'home', isEng: s.route === 'eng', isBiz: s.route === 'biz', isCat: s.route === 'cat', isQuote: s.route === 'quote', isContact: s.route === 'contact',
+      pctTxt: String(Math.floor(s.pct)).padStart(2, '0'),
+      themeWord: s.theme.toUpperCase(),
+      curtain: s.curtain, gate: !!s.gate, sweep: s.sweep, gateLabel: s.gate === 'eng' ? 'The Engineering Realm' : 'The Business Realm',
+      pickLight:() => this.pickTheme('light'), pickDark:() => this.pickTheme('dark'),
+      tiltMove: tilt, tiltLeave: untilt, crossIn, crossOut, portalIn, portalOut,
+      enterEng:() => this.enterRealm('eng'), enterBiz:() => this.enterRealm('biz'),
+      navLinks,
+      goHomeA:(e) => { e.preventDefault(); this.nav('home'); },
+      goQuoteA:(e) => { e.preventDefault(); this.nav('quote'); },
+      goEngA:(e) => { e.preventDefault(); this.enterRealm('eng'); },
+      goBizA:(e) => { e.preventDefault(); this.enterRealm('biz'); },
+      goCatA:(e) => { e.preventDefault(); this.nav('cat'); },
+      goContactA:(e) => { e.preventDefault(); this.nav('contact'); },
+      toggleTheme:() => this.setState(st => ({ theme: st.theme === 'dark' ? 'light' : 'dark' })),
+      caps:[
+        { n:'01', d:'0', t:'Systems & Acceleration', s:'C/C++, CUDA, ROCm/OpenCL, Rust — GPU kernels and heterogeneous compute' },
+        { n:'02', d:'60', t:'Platforms & Web', s:'Go, Python, Node — FastAPI, Django, Next.js at production scale' },
+        { n:'03', d:'120', t:'Native Mobile', s:'React Native, Kotlin, Swift — shipped to both stores' },
+        { n:'04', d:'180', t:'Applied AI', s:'RAG architectures, agent infrastructure, AI-native operating systems' }
+      ],
+      engList, relayLines, aegisRows:this.AEGIS_ROWS.map((r, i) => ({ ...r, d:(i * 130) + 'ms', w:r.s + '%' })),
+      etlRows:(12400 + (s.tick * 231) % 9000).toLocaleString('en-US'), etlAnom: 3 + (s.tick % 4),
+      airFreed: 412 + (s.tick * 13) % 680, airConns: 34 + (s.tick % 9),
+      bizList, caseObj,
+      waySpeed: Math.round(64 + Math.sin(s.tick * .6) * 21), wayDist: ((s.tick % 240) * .42 + 3.2).toFixed(1),
+      r1: step >= 1, r2: step >= 3, r3: step >= 5,
+      catList, catEnter, catLeave, catMove,
+      qTypes, qFeatsL, qWeeks: s.qWeeks, qWeeksTxt: s.qWeeks + ' weeks',
+      setWeeks:(e) => this.setState({ qWeeks:+e.target.value, qOut:null }),
+      isUSD: s.qCur === 'USD', isNGN: s.qCur === 'NGN',
+      curUSD:() => this.setState({ qCur:'USD' }), curNGN:() => this.setState({ qCur:'NGN' }),
+      usdBg: s.qCur === 'USD' ? 'var(--ink,#F4F3EF)' : 'transparent', usdC: s.qCur === 'USD' ? 'var(--bg,#0B0B0C)' : 'var(--mut,#8B8A84)',
+      ngnBg: s.qCur === 'NGN' ? 'var(--ink,#F4F3EF)' : 'transparent', ngnC: s.qCur === 'NGN' ? 'var(--bg,#0B0B0C)' : 'var(--mut,#8B8A84)',
+      genQuote:() => this.genQuote(), qBusy: s.qBusy, qSteps, hasQ: !!q,
+      qoItems: q ? q.items.map((it, i) => ({ ...it, vTxt:this.fmt(it.v), k:i })) : [],
+      qoTotal: q ? this.fmt(q.total) : '', qoMkt: q ? this.fmt(q.mLo) + ' – ' + this.fmt(q.mHi) : '',
+      qoBudget: q ? (q.budget ? this.fmt(q.budget) : '—') : '', qoTone: q ? q.tone : 'var(--acc,#FF5A2C)',
+      qoHead: q ? q.head : '', qoBody: q ? q.body : '',
+      quoteMailto:'mailto:danbis664@gmail.com?subject=Project%20quote%20request&body=Hi%20Daniel%2C%20I%20just%20scoped%20a%20project%20on%20tariwei...',
+      aiOpen: s.aiOpen, closeAi:() => this.setState({ aiOpen:false }),
+      aiMsgs: s.aiMsgs.map((m, i) => ({ ...m, hasChips: !!(m.chips && m.chips.length), k:i })),
+      aiBusy: s.aiBusy, aiListen: s.aiListen,
+      aiKey:(e) => { if (e.key === 'Enter') this.send(); },
+      aiSend:() => this.send(),
+      mic:() => this.mic(),
+      micStyle:{ cursor:'pointer', flex:'none', width:'38px', height:'38px', borderRadius:'50%', background: s.aiListen ? 'var(--acc,#FF5A2C)' : 'var(--sf2,#1A1A1E)', border:'1px solid var(--ln,rgba(244,243,239,.13))', color: s.aiListen ? '#0B0B0C' : 'var(--mut,#8B8A84)', fontSize:'11px', transition:'background .3s', animation: s.aiListen ? 'floatY 1s ease-in-out infinite' : 'none' },
+      orbDown:(e) => this.orbDown(e),
+      askDeus:() => { if (!this.state.aiOpen) this.openAi(); },
+      aiPanelPos: (s.orbX == null) ? { position:'fixed', right:'26px', bottom:'104px', zIndex:455 } : {
+        position:'fixed', zIndex:455,
+        ...(s.orbX < window.innerWidth / 2 ? { left:Math.min(s.orbX, window.innerWidth - 400) + 'px' } : { right:Math.max(10, window.innerWidth - s.orbX - 62) + 'px' }),
+        ...(s.orbY > window.innerHeight / 2 ? { bottom:(window.innerHeight - s.orbY + 16) + 'px' } : { top:(s.orbY + 76) + 'px' })
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
