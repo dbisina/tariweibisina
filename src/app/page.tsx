@@ -5,6 +5,7 @@ import { Preloader } from "@/components/preloader";
 import { RealmSelect } from "@/components/realm-select";
 import { AboutHero } from "@/components/about-hero";
 import { FeaturedProjects } from "@/components/featured-projects";
+import { PathSelect } from "@/components/path-select";
 import { useSiteStore } from "@/lib/store";
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
         <main>
           <AboutHero />
           <FeaturedProjects />
+          <PathSelect />
         </main>
       )}
     </div>
