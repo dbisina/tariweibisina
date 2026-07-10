@@ -34,7 +34,7 @@ const GROUPS = [
     ],
     blurb: "Problems, solutions and the numbers that moved. Proof of impact.",
     sub: [
-      { label: "Catalog", href: "/business/catalog", hint: "Every project, in 3D" },
+      { label: "Projects", href: "/business/projects", hint: "Full case presentations" },
       { label: "Pitch Decks", href: "/business/pitch-decks", hint: "For investors" },
       { label: "Hire Me", href: "/business/hire-me", hint: "Scope a project with the AI" },
     ],
@@ -72,6 +72,13 @@ export function SiteNav() {
               </span>
             </Link>
           ))}
+          <Link
+            href="/catalog"
+            onMouseEnter={() => setOpen(null)}
+            className="opacity-75 transition-opacity hover:opacity-100"
+          >
+            Catalog
+          </Link>
           <Link
             href="/contact"
             onMouseEnter={() => setOpen(null)}

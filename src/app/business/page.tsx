@@ -11,10 +11,10 @@ const STATS = [
 
 const ENTRIES = [
   {
-    href: "/business/catalog",
+    href: "/business/projects",
     index: "01",
-    title: "Catalog",
-    copy: "Every project in one 3D space — spin the rings, open any case study.",
+    title: "Projects",
+    copy: "Full case presentations — the problem, the build, a link to the live thing.",
     image: "https://picsum.photos/seed/tariwei-hebron-hotels/900/600",
   },
   {

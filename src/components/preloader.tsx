@@ -26,8 +26,8 @@ export function Preloader({ onDone }: { onDone: () => void }) {
       setPct(100);
       setLifting(true);
     }, MIN_DURATION_MS);
-    // slower curtain: black ~1.15s, orange band trails to ~1.65s
-    const done = window.setTimeout(onDone, MIN_DURATION_MS + 1650);
+    // slower single curtain (black + attached orange tail), ~1.35s
+    const done = window.setTimeout(onDone, MIN_DURATION_MS + 1500);
 
     return () => {
       window.clearInterval(interval);
@@ -38,29 +38,26 @@ export function Preloader({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[500] overflow-hidden">
-      {/* orange band — bottom third, sweeps up behind the black, delayed */}
+      {/* one column: black viewport panel with an orange tail attached
+          directly below it. Lifting the whole column keeps the orange
+          touching the black's bottom edge as it sweeps up — no gap. */}
       <div
-        className="absolute inset-x-0 bottom-0 bg-acc"
+        className="absolute inset-x-0 top-0 flex flex-col"
         style={{
-          height: "30vh",
-          transform: lifting ? "translateY(-135vh)" : "translateY(0)",
-          transition: "transform 1.35s cubic-bezier(0.7, 0, 0.2, 1) 0.28s",
-        }}
-      />
-      {/* black curtain with the signature */}
-      <div
-        className="absolute inset-0 flex items-center justify-center bg-bg"
-        style={{
-          transform: lifting ? "translateY(-100%)" : "translateY(0)",
-          transition: "transform 1.15s cubic-bezier(0.7, 0, 0.2, 1)",
+          height: "130vh",
+          transform: lifting ? "translateY(-130vh)" : "translateY(0)",
+          transition: "transform 1.35s cubic-bezier(0.7, 0, 0.2, 1)",
         }}
       >
-        <div className="relative flex items-start gap-3">
-          <Logo variant="draw" drawDelay={0.15} className="w-[min(680px,74vw)] h-auto text-ink" />
-          <span className="mt-1 font-mono text-[11px] tabular-nums tracking-[0.12em] text-mut">
-            {String(pct).padStart(3, "0")}%
-          </span>
+        <div className="relative flex h-screen items-center justify-center bg-bg">
+          <div className="relative flex items-start gap-3">
+            <Logo variant="draw" drawDelay={0.15} className="w-[min(680px,74vw)] h-auto text-ink" />
+            <span className="mt-1 font-mono text-[11px] tabular-nums tracking-[0.12em] text-mut">
+              {String(pct).padStart(3, "0")}%
+            </span>
+          </div>
         </div>
+        <div className="bg-acc" style={{ height: "30vh" }} />
       </div>
     </div>
   );

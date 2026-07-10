@@ -137,7 +137,7 @@ export function FeaturedProjects() {
             SELECTED WORK
           </span>
           <Link
-            href="/business/catalog"
+            href="/catalog"
             className="font-mono text-[10px] tracking-[0.22em] text-[#f4f3ef] transition-colors hover:text-acc"
           >
             FULL CATALOG →

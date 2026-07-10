@@ -141,17 +141,16 @@
   }
 }
 
-/* angled inward toward the center seam (facing each other / open-book),
-   not splayed outward */
+/* angled inward toward the center (facing each other / open-book), not
+   splayed outward. Pivot stays at center so the rotated hit-geometry keeps
+   lining up with the button — an off-center origin broke click hit-testing. */
 .light {
-  transform: rotateY(-24deg);
-  transform-origin: right center;
+  transform: perspective(1600px) rotateY(-22deg);
   animation: holoShift 7s linear infinite, floatA 6s ease-in-out infinite;
 }
 
 .dark {
-  transform: rotateY(24deg);
-  transform-origin: left center;
+  transform: perspective(1600px) rotateY(22deg);
   animation: holoShift 7s linear infinite reverse, floatB 7s ease-in-out infinite;
 }
 
