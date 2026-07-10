@@ -110,7 +110,7 @@
 /* ---------- holographic card ---------- */
 .card {
   position: relative;
-  width: min(440px, 86vw);
+  width: min(560px, 92vw);
   border-radius: 18px;
   padding: 2px; /* holo border thickness */
   cursor: pointer;
@@ -142,12 +142,12 @@
 }
 
 .light {
-  transform: rotateY(17deg);
+  transform: rotateY(24deg);
   animation: holoShift 7s linear infinite, floatA 6s ease-in-out infinite;
 }
 
 .dark {
-  transform: rotateY(-17deg);
+  transform: rotateY(-24deg);
   animation: holoShift 7s linear infinite reverse, floatB 7s ease-in-out infinite;
 }
 
@@ -550,10 +550,10 @@
   background: var(--acc, #ff5a2c) !important;
 }
 .mockHead {
-  margin-top: 30px;
+  margin-top: 34px;
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(26px, 4.2vw, 40px);
+  font-size: clamp(30px, 4.8vw, 50px);
   line-height: 1;
   letter-spacing: -0.03em;
 }
@@ -582,7 +582,7 @@
   gap: 10px;
 }
 .mockImg {
-  height: 104px;
+  height: 150px;
   border-radius: 8px;
   background: linear-gradient(135deg, #d8d2c4, #b9b2a2);
 }

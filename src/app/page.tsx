@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Preloader } from "@/components/preloader";
 import { RealmSelect } from "@/components/realm-select";
 import { Welcome } from "@/components/welcome";
@@ -9,6 +8,7 @@ import { AboutHero } from "@/components/about-hero";
 import { FeaturedProjects } from "@/components/featured-projects";
 import { PathSelect } from "@/components/path-select";
 import { SiteNav } from "@/components/site-nav";
+import { SiteFooter } from "@/components/site-footer";
 import { useSiteStore } from "@/lib/store";
 
 export default function Home() {
@@ -33,14 +33,7 @@ export default function Home() {
           <AboutHero />
           <FeaturedProjects />
           <PathSelect />
-          <footer className="border-t border-ln py-8">
-            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 font-mono text-[10.5px] tracking-[0.14em] text-mut md:px-10">
-              <span>© 2026 DEUSX TECHNOLOGIES — BUILT BY DANIEL TARIWEI BISINA</span>
-              <Link href="/contact" className="text-ink hover:text-acc">
-                OPEN TO PROJECTS &amp; ROLES ↗
-              </Link>
-            </div>
-          </footer>
+          <SiteFooter />
         </main>
       )}
     </div>
