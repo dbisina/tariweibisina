@@ -2,13 +2,6 @@ import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { getCasePresentation, PITCH_DECKS } from "@/lib/case-studies";
 
-const LINKS = [
-  { label: "Catalog", href: "/business/catalog" },
-  { label: "Pitch Decks", href: "/business/pitch-decks" },
-  { label: "Hire Me", href: "/business/hire-me" },
-  { label: "Contact", href: "/contact" },
-];
-
 export default function PitchDecksPage() {
   const decks = PITCH_DECKS.map((slug) => getCasePresentation(slug)).filter(
     (d): d is NonNullable<typeof d> => d !== null
@@ -16,7 +9,7 @@ export default function PitchDecksPage() {
 
   return (
     <div className="min-h-screen">
-      <SiteNav links={LINKS} />
+      <SiteNav />
       <main className="mx-auto max-w-5xl px-6 pt-40 pb-32 md:px-10">
         <p className="font-mono text-[10px] tracking-[0.24em] text-acc">FOR INVESTORS</p>
         <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,5.5rem)] leading-[0.95] tracking-tight text-ink">

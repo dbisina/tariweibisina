@@ -110,7 +110,7 @@
 /* ---------- holographic card ---------- */
 .card {
   position: relative;
-  width: min(340px, 40vw);
+  width: min(440px, 86vw);
   border-radius: 18px;
   padding: 2px; /* holo border thickness */
   cursor: pointer;
@@ -142,12 +142,12 @@
 }
 
 .light {
-  transform: rotateY(22deg);
+  transform: rotateY(17deg);
   animation: holoShift 7s linear infinite, floatA 6s ease-in-out infinite;
 }
 
 .dark {
-  transform: rotateY(-22deg);
+  transform: rotateY(-17deg);
   animation: holoShift 7s linear infinite reverse, floatB 7s ease-in-out infinite;
 }
 
@@ -513,4 +513,112 @@
   .prompt {
     animation: none !important;
   }
+}
+
+
+/* ---------- reference mini-site mockup (ported from Tariwei.dc.html) ---------- */
+.cardCol {
+  display: flex;
+  flex-direction: column;
+}
+.mockTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mockBrand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
+}
+.mockPills {
+  display: flex;
+  gap: 6px;
+}
+.mockPill {
+  width: 22px;
+  height: 5px;
+  border-radius: 99px;
+  background: rgba(19, 19, 22, 0.16);
+}
+.dark .mockPill {
+  background: rgba(244, 243, 239, 0.16);
+}
+.mockPillAcc {
+  background: var(--acc, #ff5a2c) !important;
+}
+.mockHead {
+  margin-top: 30px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(26px, 4.2vw, 40px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.mockSerif {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 400;
+}
+.mockSkels {
+  margin-top: 15px;
+  display: flex;
+  gap: 8px;
+}
+.mockSkel {
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(19, 19, 22, 0.12);
+}
+.dark .mockSkel {
+  background: rgba(244, 243, 239, 0.12);
+}
+.mockGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 10px;
+}
+.mockImg {
+  height: 104px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #d8d2c4, #b9b2a2);
+}
+.dark .mockImg {
+  background: linear-gradient(135deg, #26262b, #151518);
+}
+.mockCol {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mockCell {
+  flex: 1;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(19, 19, 22, 0.1);
+}
+.dark .mockCell {
+  background: #1a1a1e;
+  border: 1px solid rgba(244, 243, 239, 0.1);
+}
+.mockCellAcc {
+  flex: 1;
+  border-radius: 8px;
+  background: var(--acc, #ff5a2c);
+  border: none;
+}
+.refLabel {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: #f4f3ef;
+}
+.refLabel span:last-child {
+  color: rgba(244, 243, 239, 0.55);
 }

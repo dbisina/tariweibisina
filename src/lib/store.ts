@@ -34,11 +34,18 @@ export const useSiteStore = create<SiteState>()(
     }),
     {
       name: "tariwei-site-state",
+      // Daniel: realm and audio must be chosen fresh every visit — only
+      // remember THAT someone has been here (for the "welcome back" line).
       partialize: (state) => ({
-        realm: state.realm,
-        audioMode: state.audioMode,
-        path: state.path,
         hasEnteredBefore: state.hasEnteredBefore,
+      }),
+      // v1 drops realm/audioMode that older visits persisted; without the
+      // bump zustand merges the stale values back in on rehydrate
+      version: 1,
+      migrate: (persisted) => ({
+        hasEnteredBefore: Boolean(
+          (persisted as { hasEnteredBefore?: boolean } | undefined)?.hasEnteredBefore
+        ),
       }),
     }
   )

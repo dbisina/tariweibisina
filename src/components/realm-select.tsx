@@ -147,22 +147,34 @@ void main(){
 }
 `;
 
-function CardPreview() {
+/** Mini live preview of the site in that realm — ported from the reference
+ * prototype's theme-select cards (Tariwei.dc.html). */
+function CardMock() {
   return (
-    <div className={styles.preview} aria-hidden="true">
-      <div className={styles.pRow}>
-        <span className={styles.pDot} />
-        <span className={styles.pDot} />
-        <span className={styles.pDot} />
+    <div aria-hidden="true">
+      <div className={styles.mockTop}>
+        <span className={styles.mockBrand}>tariwei</span>
+        <span className={styles.mockPills}>
+          <span className={styles.mockPill} />
+          <span className={styles.mockPill} />
+          <span className={`${styles.mockPill} ${styles.mockPillAcc}`} />
+        </span>
       </div>
-      <div className={styles.pBlock} />
-      <div className={styles.pRow}>
-        <div className={styles.pBarAccent} />
-        <div className={styles.pBar} />
+      <div className={styles.mockHead}>
+        From the metal
+        <br />
+        to the <span className={styles.mockSerif}>pixel.</span>
       </div>
-      <div className={styles.pRow}>
-        <div className={styles.pBar} />
-        <div className={styles.pBar} />
+      <div className={styles.mockSkels}>
+        <span className={styles.mockSkel} style={{ width: "64%" }} />
+        <span className={styles.mockSkel} style={{ width: "20%" }} />
+      </div>
+      <div className={styles.mockGrid}>
+        <div className={styles.mockImg} />
+        <div className={styles.mockCol}>
+          <div className={styles.mockCell} />
+          <div className={styles.mockCellAcc} />
+        </div>
       </div>
     </div>
   );
@@ -328,39 +340,39 @@ export function RealmSelect() {
 
       <main className={styles.stage} inert={picked !== null}>
         <div className={styles.cards} ref={cardsRef}>
-          <button
-            type="button"
-            className={`${styles.card} ${styles.light}`}
-            onClick={() => choose("light")}
-          >
-            <div className={styles.cardInner}>
-              <div className={styles.eyebrow}>Realm 01</div>
-              <h2>Light</h2>
-              <CardPreview />
-              <p className={styles.desc}>
-                A bright, paper-clean reading surface. High contrast type on warm white.
-                Built for daylight and long sessions.
-              </p>
-              <span className={styles.enter}>Enter light realm</span>
+          <div className={styles.cardCol}>
+            <button
+              type="button"
+              className={`${styles.card} ${styles.light}`}
+              onClick={() => choose("light")}
+              aria-label="Enter light realm"
+            >
+              <div className={styles.cardInner}>
+                <CardMock />
+              </div>
+            </button>
+            <div className={styles.refLabel}>
+              <span>LIGHT MODE</span>
+              <span>CLICK TO ENTER ↗</span>
             </div>
-          </button>
+          </div>
 
-          <button
-            type="button"
-            className={`${styles.card} ${styles.dark}`}
-            onClick={() => choose("dark")}
-          >
-            <div className={styles.cardInner}>
-              <div className={styles.eyebrow}>Realm 02</div>
-              <h2>Dark</h2>
-              <CardPreview />
-              <p className={styles.desc}>
-                Deep-space black with soft glow accents. Low-light comfort, OLED-friendly,
-                zero glare after midnight.
-              </p>
-              <span className={styles.enter}>Enter dark realm</span>
+          <div className={styles.cardCol}>
+            <button
+              type="button"
+              className={`${styles.card} ${styles.dark}`}
+              onClick={() => choose("dark")}
+              aria-label="Enter dark realm"
+            >
+              <div className={styles.cardInner}>
+                <CardMock />
+              </div>
+            </button>
+            <div className={styles.refLabel}>
+              <span>DARK MODE</span>
+              <span>CLICK TO ENTER ↗</span>
             </div>
-          </button>
+          </div>
         </div>
       </main>
 

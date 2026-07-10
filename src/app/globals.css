@@ -8,8 +8,8 @@
   --acc: #ff5a2c;
   --acc-2: #ff4a1c;
 
-  --font-display: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-gabarito), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --font-accent: var(--font-instrument-serif), serif;
 }
@@ -93,4 +93,13 @@ a {
 }
 .anim-fade-up {
   animation: fade-up 0.9s cubic-bezier(0.22, 0.7, 0.16, 1) both;
+}
+
+@keyframes mq {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }

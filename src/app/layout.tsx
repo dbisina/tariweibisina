@@ -1,7 +1,23 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Instrument_Serif, Space_Grotesk, Unbounded } from "next/font/google";
+import { Gabarito, Figtree, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { RealmSync } from "@/components/realm-sync";
 import "./globals.css";
+
+// Rounded-modern pair (Daniel rejected Clash/Switzer, Cabinet/General Sans,
+// and Unbounded/Space Grotesk): Gabarito = geometric rounded display,
+// Figtree = clean slightly-rounded body. Both load via next/font so a later
+// CMS font swap is a one-file change.
+const gabarito = Gabarito({
+  variable: "--font-gabarito",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
+
+const figtree = Figtree({
+  variable: "--font-figtree",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -14,18 +30,6 @@ const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: ["400"],
   style: ["normal", "italic"],
-});
-
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-grotesk",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
-
-const unbounded = Unbounded({
-  variable: "--font-unbounded",
-  subsets: ["latin"],
-  weight: ["300", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -42,7 +46,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${jetbrainsMono.variable} ${instrumentSerif.variable} ${spaceGrotesk.variable} ${unbounded.variable} h-full antialiased`}
+      className={`${gabarito.variable} ${figtree.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>

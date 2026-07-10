@@ -3,13 +3,6 @@ import { SiteNav } from "@/components/site-nav";
 import { CasePresentationView } from "@/components/case-presentation";
 import { getCasePresentation, PITCH_DECKS } from "@/lib/case-studies";
 
-const LINKS = [
-  { label: "Catalog", href: "/business/catalog" },
-  { label: "Pitch Decks", href: "/business/pitch-decks" },
-  { label: "Hire Me", href: "/business/hire-me" },
-  { label: "Contact", href: "/contact" },
-];
-
 export function generateStaticParams() {
   return PITCH_DECKS.map((slug) => ({ slug }));
 }
@@ -26,7 +19,7 @@ export default async function PitchDeckPage({
 
   return (
     <div className="min-h-screen">
-      <SiteNav links={LINKS} />
+      <SiteNav />
       <CasePresentationView data={data} />
     </div>
   );
