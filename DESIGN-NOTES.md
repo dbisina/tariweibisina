@@ -112,3 +112,26 @@ These override any earlier text-only research guesses. Extract the *style*, neve
    theme hex, live clock, corner brackets, scramble-in labels.
 6. Scroll grammar: statements huge with whitespace, media enters offset-small then grows,
    word-by-word paragraph reveals, occasional bg inversion; text can bend on entry.
+
+## k95 catalog — decoded from their shipped bundle (reference-bundles/k95/__nuxt_BPcg-sbR.js)
+
+Component is literally named ThreeCylinderScene with a `spiral: Boolean` prop (blend factor
+J tweens 0..1). Camera sits OUTSIDE the cylinder looking at it (not inside as guessed):
+desktop fov 50, cameraZ 13, radius 7.8, panels 1.54x2.09 world units, rowSpacing 7.
+Mobile (<500px): fov 70, cameraZ 7.5, radius 4.5. 12 panels per row x 5 rows, textures
+repeat when fewer projects. Per-row half-step angle offset: angle = (i + row*0.5)/12 * 2pi.
+Spiral y-shift per panel: (i/12 - 0.5) * rowSpacing blended in by J.
+
+Cards are shader panels (PlaneGeometry 12x8 segments), NOT bent geometry. Vertex shader:
+parabolic arch pos.z -= (1-xn^2)*uBendH + (1-yn^2)*uBendV where uBendH/V are driven by spin
+and scroll VELOCITY (bend factors 0.008/0.007) — cards flex while moving, flatten at rest.
+Idle wave: pos.z += sin(uv.y*6.283 + t*0.55 + phase) * sin(uv.x*3.14 + t*0.35 + phase*1.3)
+* 0.016, phase random per panel. Fragment: 9-tap box blur for entrance (uBlur 0.15->0),
+depth tint: t = smoothstep(cameraZ*0.58, cameraZ*1.85, viewZ); desaturate 12% toward luma
+then mix toward bg color by t*strength; opacity fade separate.
+
+Input: wheel rotation target -= deltaY*0.005; velocity kick L += deltaY*0.004 clamped [-2,2]
+decaying after 200ms idle -> drives the bend uniforms. Rings<->spiral morph: eased lerp of
+position+quaternion+scale over 1.2s (to spiral) / 0.85s (back), plus z-arc toward camera
+sin(j*pi*0.9)*0.22 mid-morph. Focus scales ~1.26, dim 0.88, base 0.72 (constants Yo/Xo/qo).
+Raycast click only when focused. Smooth scroll is Lenis (exp damp class in CKNV_Ulo.js).
