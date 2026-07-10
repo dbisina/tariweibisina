@@ -141,13 +141,17 @@
   }
 }
 
+/* angled inward toward the center seam (facing each other / open-book),
+   not splayed outward */
 .light {
-  transform: rotateY(24deg);
+  transform: rotateY(-24deg);
+  transform-origin: right center;
   animation: holoShift 7s linear infinite, floatA 6s ease-in-out infinite;
 }
 
 .dark {
-  transform: rotateY(-24deg);
+  transform: rotateY(24deg);
+  transform-origin: left center;
   animation: holoShift 7s linear infinite reverse, floatB 7s ease-in-out infinite;
 }
 
