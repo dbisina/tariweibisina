@@ -29,40 +29,29 @@ export function AboutHero() {
           </p>
         </div>
 
-        {/* full name, juba-style rhythm: outline / accent solid / outline —
-            TARIWEI. stays the dominant line, DANIEL and BISINA frame it */}
+        {/* hierarchy per Daniel: both given names outlined on one line up
+            top, the brand name TARIWEI. huge and solid beneath them */}
         <h1 className="mt-10 select-none font-display uppercase leading-[0.92]">
           <span
             className="anim-fade-up block font-light text-transparent"
             style={{
-              fontSize: "clamp(2.9rem, 9.5vw, 8.5rem)",
+              fontSize: "clamp(2.1rem, 6.5vw, 5.8rem)",
               WebkitTextStroke: "1.5px var(--ink)",
-              letterSpacing: "0.01em",
+              letterSpacing: "0.02em",
               animationDelay: "0.12s",
             }}
           >
-            DANIEL
+            DANIEL&nbsp;&nbsp;BISINA
           </span>
           <span
             className="anim-fade-up block font-bold text-acc"
             style={{
-              fontSize: "clamp(3.6rem, 12.5vw, 11.5rem)",
+              fontSize: "clamp(4rem, 14.5vw, 13rem)",
               letterSpacing: "-0.01em",
-              animationDelay: "0.26s",
+              animationDelay: "0.28s",
             }}
           >
             TARIWEI.
-          </span>
-          <span
-            className="anim-fade-up block font-light text-transparent"
-            style={{
-              fontSize: "clamp(2.9rem, 9.5vw, 8.5rem)",
-              WebkitTextStroke: "1.5px var(--ink)",
-              letterSpacing: "0.01em",
-              animationDelay: "0.4s",
-            }}
-          >
-            BISINA
           </span>
         </h1>
 
