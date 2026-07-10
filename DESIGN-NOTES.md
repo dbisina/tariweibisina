@@ -135,3 +135,17 @@ decaying after 200ms idle -> drives the bend uniforms. Rings<->spiral morph: eas
 position+quaternion+scale over 1.2s (to spiral) / 0.85s (back), plus z-arc toward camera
 sin(j*pi*0.9)*0.22 mid-morph. Focus scales ~1.26, dim 0.88, base 0.72 (constants Yo/Xo/qo).
 Raycast click only when focused. Smooth scroll is Lenis (exp damp class in CKNV_Ulo.js).
+
+## k95 scroll loop — exact decode (their render loop @18128)
+
+Wheel does NOT rotate the cylinder. The loop is:
+  De += (Re - De) * 0.1            // eased vertical offset (Re -= deltaY*0.005)
+  a = De - fe; fe = De             // per-frame travel delta
+  L *= 0.92^frames                 // scroll energy decay (L += deltaY*0.004, clamp +-2)
+  Te += (0.08 + L) * dt            // rotation = constant 0.08 rad/s idle spin + energy
+  Be -> clamp(L*0.1, +-0.25) @8%   // kick bend -> uBendH
+  Ge -> clamp(a*8, +-0.15) @12%    // travel bend -> uBendV
+  rows: position.y -= a, wrap over rows*rowSpacing; rotation.y = Te
+Hover: global timeScale eases to 0.3 (slow-mo dwell), panel scale 1.08 w/ ease 1-exp(-8t);
+raycast every frame from pointer; W back to 1 on unhover. Touch: same with factors
+0.008/0.007, release adds x3.5 fling.

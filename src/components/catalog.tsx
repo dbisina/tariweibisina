@@ -154,10 +154,18 @@ function makeTexture(p: FeaturedProject): THREE.CanvasTexture {
 }
 
 interface SharedState {
-  rot: number; // current rotation (rad)
-  rotTarget: number;
-  kick: number; // scroll velocity energy, decays
-  spiral: number; // 0 rings .. 1 spiral (blend J)
+  /** k95 model (decoded from their loop): wheel moves rows VERTICALLY via a
+   * lerped offset; Y-rotation is a constant idle spin plus a decaying
+   * scroll-energy kick; hovering slow-mos the whole scene. */
+  yTarget: number; // Re — wheel writes here
+  y: number; // De — eased actual
+  yPrev: number; // fe — for per-frame delta a
+  kick: number; // L — scroll energy, decays x0.92/frame
+  spin: number; // Te — accumulated idle+kick rotation
+  bendH: number; // Be — eased kick bend
+  bendV: number; // Ge — eased row-travel bend
+  timeScale: number; // re — eases toward 0.3 on hover, 1 otherwise
+  spiral: number; // J blend 0..1
   spiralTarget: number;
   hoveredIdx: number;
 }
@@ -236,30 +244,43 @@ function Panels({
     if (born.current === null) born.current = clock.elapsedTime;
     const age = clock.elapsedTime - born.current;
 
-    s.rot = THREE.MathUtils.damp(s.rot, s.rotTarget, 2.4, delta);
-    s.kick = THREE.MathUtils.damp(s.kick, 0, 3, delta);
+    // hover slow-mo: scene time eases toward 30% while a panel is hovered
+    s.timeScale += ((s.hoveredIdx >= 0 ? 0.3 : 1) - s.timeScale) * 0.1;
+    const n = delta * s.timeScale;
+
+    // k95 loop, fps-normalized: De += (Re-De)*0.1/frame; L *= 0.92^frames;
+    // Te += (0.08 + L) * dt; bends ease toward clamped targets
+    const lerpK = 1 - Math.exp(-6.3 * n);
+    s.y += (s.yTarget - s.y) * lerpK;
+    const a = s.y - s.yPrev;
+    s.yPrev = s.y;
+    s.kick *= Math.pow(0.92, n * 60);
+    s.spin += (0.08 + s.kick) * n;
+    s.bendH += (THREE.MathUtils.clamp(s.kick * 0.1, -0.25, 0.25) - s.bendH) * 0.08;
+    s.bendV += (THREE.MathUtils.clamp(a * 8, -0.15, 0.15) - s.bendV) * 0.12;
     s.spiral = THREE.MathUtils.damp(s.spiral, s.spiralTarget, 4 / MORPH_S, delta);
 
-    const spinVel = Math.abs(s.rotTarget - s.rot);
+    // rows travel vertically with scroll and wrap (their span: rows*spacing)
+    const rowGap = t.rowSpacing * (1 - s.spiral * 0.45);
+    const span = ROWS * rowGap;
 
     panels.forEach((p, k) => {
       const mesh = meshRefs.current[k];
       if (!mesh) return;
-      const angle = p.baseAngle + s.rot;
-      const y =
-        THREE.MathUtils.lerp(p.ringY, p.ringY * 0.4 + p.spiralShift, s.spiral) -
-        s.rot * 0.35 * s.spiral;
-      // wrap spiral vertically so it rolls forever
-      const span = t.rowSpacing * 1.6;
-      const wrappedY = s.spiral > 0.01 ? ((((y + span / 2) % span) + span) % span) - span / 2 : y;
+      const angle = p.baseAngle + s.spin;
+      const baseY =
+        (p.row - (ROWS - 1) / 2) * rowGap + p.spiralShift * s.spiral + s.y;
+      let y = baseY;
+      if (y > span / 2 + rowGap) y -= span + rowGap * 2;
+      if (y < -span / 2 - rowGap) y += span + rowGap * 2;
 
-      mesh.position.set(Math.sin(angle) * t.radius, wrappedY, Math.cos(angle) * t.radius);
+      mesh.position.set(Math.sin(angle) * t.radius, y, Math.cos(angle) * t.radius);
       mesh.rotation.set(0, angle, 0);
 
       const mat = materials[k];
       mat.uniforms.uTime.value = clock.elapsedTime;
-      mat.uniforms.uBendH.value = Math.min(0.6, spinVel * BEND_H_FACTOR);
-      mat.uniforms.uBendV.value = Math.min(0.5, Math.abs(s.kick) * BEND_V_FACTOR);
+      mat.uniforms.uBendH.value = s.bendH;
+      mat.uniforms.uBendV.value = s.bendV;
       // entrance: fade in + unblur over first 1.2s, staggered by panel
       const enter = THREE.MathUtils.clamp(age * 1.4 - k * 0.02, 0, 1);
       mat.uniforms.uBlur.value = 0.15 * (1 - enter);
@@ -268,8 +289,9 @@ function Panels({
       // rear-facing panels ghost out hard (k95 read; also hides the
       // mirrored back-face text DoubleSide would otherwise show)
       mat.uniforms.uOpacity.value = enter * (0.3 + 0.7 * front);
-      const scale = hovered ? 1.26 : 1 + front * 0.12;
-      mesh.scale.setScalar(THREE.MathUtils.damp(mesh.scale.x, scale, 6, delta));
+      const scale = hovered ? 1.08 : 1;
+      const easeK = 1 - Math.exp(-8 * delta);
+      mesh.scale.setScalar(mesh.scale.x + (scale - mesh.scale.x) * easeK);
     });
 
     // keep camera fixed, look at cylinder center
@@ -366,9 +388,14 @@ export function Catalog() {
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const shared = useRef<SharedState>({
-    rot: 0,
-    rotTarget: 0,
+    yTarget: 0,
+    y: 0,
+    yPrev: 0,
     kick: 0,
+    spin: 0,
+    bendH: 0,
+    bendV: 0,
+    timeScale: 1,
     spiral: 0,
     spiralTarget: 0,
     hoveredIdx: -1,
@@ -380,7 +407,7 @@ export function Catalog() {
     const el = containerRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
-      shared.current.rotTarget -= e.deltaY * WHEEL_ROT;
+      shared.current.yTarget -= e.deltaY * WHEEL_ROT;
       shared.current.kick = THREE.MathUtils.clamp(
         shared.current.kick + e.deltaY * WHEEL_KICK,
         -2,
@@ -394,8 +421,8 @@ export function Catalog() {
     const onTouchMove = (e: TouchEvent) => {
       const dy = touchY - e.touches[0].clientY;
       touchY = e.touches[0].clientY;
-      shared.current.rotTarget -= dy * WHEEL_ROT * 2;
-      shared.current.kick = THREE.MathUtils.clamp(shared.current.kick + dy * WHEEL_KICK * 2, -2, 2);
+      shared.current.yTarget -= dy * WHEEL_ROT * 1.6;
+      shared.current.kick = THREE.MathUtils.clamp(shared.current.kick + dy * WHEEL_KICK * 1.75, -2, 2);
     };
     el.addEventListener("wheel", onWheel, { passive: true });
     el.addEventListener("touchstart", onTouchStart, { passive: true });

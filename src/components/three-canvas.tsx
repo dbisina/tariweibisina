@@ -6,7 +6,8 @@ import { createRoot, events, extend, type ReconcilerRoot } from "@react-three/fi
 
 // Stock <Canvas> registers the THREE namespace with the reconciler on mount;
 // a manual createRoot must do it explicitly or every <mesh>/<group> throws.
-extend(THREE);
+// (Runtime accepts the namespace object — the public typings don't.)
+extend(THREE as unknown as Parameters<typeof extend>[0]);
 
 /**
  * Drop-in replacement for @react-three/fiber's <Canvas>.
