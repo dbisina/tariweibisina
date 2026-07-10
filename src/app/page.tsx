@@ -25,8 +25,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
+      {/* realm-select is mounted BEHIND the preloader so the rising curtain
+          reveals it instead of black. The preloader (z-500) blocks clicks
+          until its curtain fully clears and it unmounts. */}
+      {!realm && <RealmSelect />}
       {!preloadDone && <Preloader onDone={() => setPreloadDone(true)} />}
-      {preloadDone && !realm && <RealmSelect />}
       {preloadDone && realm && !welcomed && <Welcome onDone={() => setWelcomed(true)} />}
       {preloadDone && realm && (
         <main style={{ visibility: welcomed ? "visible" : "hidden" }}>

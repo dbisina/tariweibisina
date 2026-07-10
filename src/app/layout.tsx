@@ -25,7 +25,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "tariwei — Daniel Tariwei Bisina",
+  title: "Daniel Tariwei Bisina",
   description:
     "Portfolio of Daniel Tariwei Bisina, polyglot software & AI systems engineer.",
 };

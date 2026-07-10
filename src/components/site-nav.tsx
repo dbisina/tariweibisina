@@ -54,14 +54,14 @@ export function SiteNav() {
         <Link href="/" aria-label="tariwei home" className="flex items-center" onMouseEnter={() => setOpen(null)}>
           <Logo variant="shimmer" className="h-3.5 w-auto text-ink" />
         </Link>
-        <div className="flex items-center gap-5 md:gap-8 font-mono text-[12px] tracking-[0.06em]">
+        <div className="flex items-center gap-6 md:gap-9 font-display text-[14px] font-medium tracking-[0.005em]">
           {GROUPS.map((g, i) => (
             <Link
               key={g.href}
               href={g.href}
               onMouseEnter={() => setOpen(i)}
               className="flex items-center gap-1.5 py-5 transition-opacity"
-              style={{ opacity: open === null || open === i ? (open === i ? 1 : 0.7) : 0.35 }}
+              style={{ opacity: open === null || open === i ? (open === i ? 1 : 0.75) : 0.4 }}
             >
               {g.label}
               <span
@@ -75,7 +75,7 @@ export function SiteNav() {
           <Link
             href="/contact"
             onMouseEnter={() => setOpen(null)}
-            className="opacity-70 transition-opacity hover:opacity-100"
+            className="opacity-75 transition-opacity hover:opacity-100"
           >
             Contact
           </Link>
