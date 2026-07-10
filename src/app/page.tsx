@@ -6,6 +6,7 @@ import { RealmSelect } from "@/components/realm-select";
 import { Welcome } from "@/components/welcome";
 import { AboutHero } from "@/components/about-hero";
 import { FeaturedProjects } from "@/components/featured-projects";
+import { AdSpot } from "@/components/ad-spot";
 import { PathSelect } from "@/components/path-select";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -32,6 +33,7 @@ export default function Home() {
           <SiteNav />
           <AboutHero />
           <FeaturedProjects />
+          <AdSpot />
           <PathSelect />
           <SiteFooter />
         </main>

@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { useSiteStore } from "@/lib/store";
 
 /**
- * Welcome moment copied from noth.in's post-preloader beat: the wordmark
- * holds white-on-dark, then text and background swap to their inverses in
- * one clean flip. We end on the visitor's chosen realm palette, then hand
- * off to the homepage.
+ * Welcome moment (noth.in's post-preloader beat): the word WELCOME (or
+ * WELCOME BACK for returning visitors) holds, then text and background swap
+ * to their inverses in one clean flip. Ends on the chosen realm palette,
+ * then hands off to the homepage.
  */
 export function Welcome({ onDone }: { onDone: () => void }) {
   const realm = useSiteStore((s) => s.realm) ?? "dark";
@@ -15,8 +15,8 @@ export function Welcome({ onDone }: { onDone: () => void }) {
   const [flipped, setFlipped] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
-  // start dark; flip to the inverse; if the chosen realm is dark, the flip
-  // target is light-on-dark inverted once more so the exit lands on-realm
+  // start on the inverse of the chosen realm; flip TO the realm palette so
+  // the handoff to the site is seamless
   const startBg = realm === "light" ? "#0b0b0c" : "#f3f1eb";
   const startInk = realm === "light" ? "#f4f3ef" : "#131316";
   const endBg = realm === "light" ? "#f3f1eb" : "#0b0b0c";
@@ -39,20 +39,18 @@ export function Welcome({ onDone }: { onDone: () => void }) {
       style={{
         background: flipped ? endBg : startBg,
         color: flipped ? endInk : startInk,
-        transition: "background 0.55s cubic-bezier(0.7,0,0.2,1), color 0.55s cubic-bezier(0.7,0,0.2,1), opacity 0.7s ease",
+        transition:
+          "background 0.55s cubic-bezier(0.7,0,0.2,1), color 0.55s cubic-bezier(0.7,0,0.2,1), opacity 0.7s ease",
         opacity: leaving ? 0 : 1,
         pointerEvents: leaving ? "none" : "auto",
       }}
     >
       <h1
-        className="select-none text-center font-display font-bold lowercase leading-none"
-        style={{ fontSize: "clamp(4rem, 17vw, 16rem)", letterSpacing: "-0.02em" }}
+        className="select-none px-6 text-center font-display font-bold uppercase leading-none"
+        style={{ fontSize: "clamp(3rem, 13vw, 13rem)", letterSpacing: "-0.02em" }}
       >
-        tariwei
+        {returning ? "Welcome back" : "Welcome"}
       </h1>
-      <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.3em] opacity-60">
-        {returning ? "welcome back" : "welcome in"}
-      </p>
     </div>
   );
 }

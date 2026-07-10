@@ -1,6 +1,7 @@
 "use client";
 
 import { Logo } from "./logo";
+import { VisitorTag } from "./visitor-tag";
 
 /**
  * Home hero/about, mauriciojuba.com language (DESIGN-NOTES.md): role
@@ -19,6 +20,7 @@ const CHIPS = [
 export function AboutHero() {
   return (
     <section className="relative min-h-screen w-full overflow-hidden px-6 pt-32 md:px-10 md:pt-40">
+      <VisitorTag className="anim-fade-up absolute right-6 top-24 hidden text-right md:block md:right-10 md:top-28" />
       <div className="mx-auto max-w-6xl">
         <div className="anim-fade-up">
           <p className="font-sans text-[15px] font-medium tracking-[0.04em] text-ink">
@@ -41,7 +43,7 @@ export function AboutHero() {
               animationDelay: "0.12s",
             }}
           >
-            DANIEL&nbsp;&nbsp;BISINA
+DANIEL BISINA
           </span>
           <span
             className="anim-fade-up block font-bold text-acc"

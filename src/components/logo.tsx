@@ -62,11 +62,16 @@ export function Logo({
           </linearGradient>
         </defs>
       )}
-      <g fill="currentColor" opacity={variant === "shimmer" ? 0.86 : undefined}>
-        {PATHS.map((d, i) => (
-          <path key={i} d={d} />
-        ))}
-      </g>
+      {/* solid base — only for the non-draw variants; drawing this for the
+          preloader would show the finished wordmark instantly and hide the
+          whole handwriting reveal */}
+      {variant !== "draw" && (
+        <g fill="currentColor" opacity={variant === "shimmer" ? 0.86 : undefined}>
+          {PATHS.map((d, i) => (
+            <path key={i} d={d} />
+          ))}
+        </g>
+      )}
       {variant === "shimmer" && (
         <g fill={`url(#${gradientId})`}>
           {PATHS.map((d, i) => (
@@ -74,16 +79,21 @@ export function Logo({
           ))}
         </g>
       )}
+      {/* handwriting: each glyph starts empty, its outline traces left→right
+          (logo-draw: dashoffset 1→0), then the letter fills solid
+          (logo-fill: fill-opacity 0→1) — exactly the reference prototype */}
       {variant === "draw" && (
-        <g fill="none" stroke="currentColor" strokeWidth={2}>
+        <g stroke="currentColor" strokeWidth={2}>
           {PATHS.map((d, i) => (
             <path
               key={i}
               d={d}
+              fill="currentColor"
               pathLength={1}
               strokeDasharray={1}
               strokeDashoffset={1}
               style={{
+                fillOpacity: 0,
                 animation: `logo-draw ${WRITE_DUR[i]}s cubic-bezier(.4,0,.3,1) ${drawDelay + WRITE_DELAY[i]}s forwards, logo-fill .4s ease ${drawDelay + WRITE_DELAY[i] + WRITE_DUR[i] * 0.75}s forwards`,
               }}
             />
