@@ -75,27 +75,48 @@ function useBentGeometry() {
   }, []);
 }
 
-/** Placeholder texture per project until the CMS supplies real imagery:
- * the project's gradient plus its name, drawn once to an offscreen canvas. */
+/** Card texture: gradient + labels immediately, then the project's photo
+ * layered under the labels once it loads (CMS supplies real imagery later). */
 function makeTexture(p: FeaturedProject): THREE.CanvasTexture {
   const c = document.createElement("canvas");
   c.width = 512;
   c.height = 352;
   const ctx = c.getContext("2d")!;
-  const grad = ctx.createLinearGradient(0, 0, 512, 352);
+
+  const drawLabels = () => {
+    const grad = ctx.createLinearGradient(0, 120, 0, 352);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(1, "rgba(0,0,0,0.72)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 120, 512, 232);
+    ctx.fillStyle = "rgba(244,243,239,0.94)";
+    ctx.font = "600 44px Unbounded, sans-serif";
+    ctx.fillText(p.name, 28, 310);
+    ctx.fillStyle = "rgba(244,243,239,0.7)";
+    ctx.font = "500 17px 'JetBrains Mono', monospace";
+    ctx.fillText(p.tag, 28, 44);
+    ctx.fillText(p.index, 448, 44);
+  };
+
+  const gradBg = ctx.createLinearGradient(0, 0, 512, 352);
   const stops = p.gradient.match(/#[0-9a-f]{6}/gi) ?? ["#26262b", "#0b0b0c"];
-  stops.forEach((s, i) => grad.addColorStop(i / Math.max(1, stops.length - 1), s));
-  ctx.fillStyle = grad;
+  stops.forEach((s, i) => gradBg.addColorStop(i / Math.max(1, stops.length - 1), s));
+  ctx.fillStyle = gradBg;
   ctx.fillRect(0, 0, 512, 352);
-  ctx.fillStyle = "rgba(244,243,239,0.92)";
-  ctx.font = "600 44px Unbounded, sans-serif";
-  ctx.fillText(p.name, 28, 310);
-  ctx.fillStyle = "rgba(244,243,239,0.55)";
-  ctx.font = "500 17px 'JetBrains Mono', monospace";
-  ctx.fillText(p.tag, 28, 44);
-  ctx.fillText(p.index, 448, 44);
+  drawLabels();
+
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
+
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    ctx.drawImage(img, 0, 0, 512, 352);
+    drawLabels();
+    tex.needsUpdate = true;
+  };
+  img.src = p.image;
+
   return tex;
 }
 

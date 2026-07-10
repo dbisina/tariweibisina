@@ -12,11 +12,16 @@ export interface FeaturedProject {
   blurb: string;
   gradient: string;
   side: "engineering" | "business";
+  /** Placeholder photography (seeded, deterministic) until the CMS supplies
+   * real project imagery — Daniel asked for real placeholder images, not
+   * flat gradients. */
+  image: string;
 }
 
 export const ALL_PROJECTS: FeaturedProject[] = [
   {
     slug: "relay",
+    image: "https://picsum.photos/seed/tariwei-relay/1024/704",
     index: "01",
     name: "Relay",
     tag: "SYSTEMS · AGENT INFRA",
@@ -26,6 +31,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     slug: "aegis-matrix",
+    image: "https://picsum.photos/seed/tariwei-aegis-matrix/1024/704",
     index: "02",
     name: "Aegis Matrix",
     tag: "SYSTEMS · QUALITY GATES",
@@ -35,6 +41,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     slug: "etllm",
+    image: "https://picsum.photos/seed/tariwei-etllm/1024/704",
     index: "03",
     name: "ETLLM",
     tag: "SYSTEMS · DATA",
@@ -44,6 +51,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     slug: "airfree",
+    image: "https://picsum.photos/seed/tariwei-airfree/1024/704",
     index: "04",
     name: "Airfree",
     tag: "SYSTEMS · STORAGE",
@@ -53,6 +61,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     slug: "hebron-hotels",
+    image: "https://picsum.photos/seed/tariwei-hebron-hotels/1024/704",
     index: "05",
     name: "Hebron Hotels",
     tag: "BUSINESS · HOSPITALITY",
@@ -62,6 +71,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     slug: "wayfarian",
+    image: "https://picsum.photos/seed/tariwei-wayfarian/1024/704",
     index: "06",
     name: "Wayfarian",
     tag: "BUSINESS · TRAVEL",
@@ -71,6 +81,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     slug: "studyrag",
+    image: "https://picsum.photos/seed/tariwei-studyrag/1024/704",
     index: "07",
     name: "StudyRAG",
     tag: "BUSINESS · EDUCATION",
@@ -80,6 +91,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     slug: "uncle-stans",
+    image: "https://picsum.photos/seed/tariwei-uncle-stans/1024/704",
     index: "08",
     name: "Uncle Stan's",
     tag: "BUSINESS · FOOD",
@@ -89,6 +101,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     slug: "deusx",
+    image: "https://picsum.photos/seed/tariwei-deusx/1024/704",
     index: "09",
     name: "DeusX",
     tag: "FOUNDER · AI SYSTEMS",

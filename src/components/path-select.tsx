@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as THREE from "three";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
+import { ThreeCanvas } from "@/components/three-canvas";
 import { Instance, Instances } from "@react-three/drei";
 import { motion } from "framer-motion";
 import { useSiteStore, type Path } from "@/lib/store";
@@ -261,9 +262,9 @@ export function PathSelect() {
   return (
     <section className="relative min-h-screen w-full overflow-hidden px-6 md:px-10 py-24">
       <div className="absolute inset-0">
-        <Canvas camera={{ position: [0, 0, 7.5], fov: 42 }} gl={{ antialias: true, alpha: true }} dpr={[1, 2]}>
+        <ThreeCanvas camera={{ position: [0, 0, 7.5], fov: 42 }}>
           <Scene hoveredSide={hoveredSide} ink={ink} />
-        </Canvas>
+        </ThreeCanvas>
       </div>
 
       <div className="relative z-10 flex flex-col items-center gap-3 text-center">

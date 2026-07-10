@@ -37,8 +37,13 @@ export function FeaturedProjects() {
                 className="group relative block aspect-[3/4] overflow-hidden rounded-2xl border border-ln"
               >
                 <motion.div
-                  className="absolute inset-0"
-                  style={{ background: p.gradient }}
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{
+                    background: p.gradient,
+                    backgroundImage: `url(${p.image}), ${p.gradient}`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
                   animate={{ scale: hovered ? 1.04 : 1 }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
                 />
@@ -76,7 +81,7 @@ export function FeaturedProjects() {
                 </div>
 
                 <motion.div
-                  className="pointer-events-none absolute right-5 top-5 flex items-center gap-1.5 rounded-full bg-acc px-3 py-1.5 font-mono text-[9px] tracking-[0.2em] text-bg"
+                  className="pointer-events-none absolute right-5 top-5 flex items-center gap-1.5 rounded-full bg-acc px-3 py-1.5 font-mono text-[9px] tracking-[0.2em] text-[color:var(--bg)]"
                   initial={false}
                   animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1 : 0.85 }}
                   transition={{ duration: 0.25 }}
