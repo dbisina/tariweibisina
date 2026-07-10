@@ -1,22 +1,14 @@
 import type { Metadata } from "next";
-import { Gabarito, Figtree, JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { Rubik, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { RealmSync } from "@/components/realm-sync";
 import "./globals.css";
 
-// Rounded-modern pair (Daniel rejected Clash/Switzer, Cabinet/General Sans,
-// and Unbounded/Space Grotesk): Gabarito = geometric rounded display,
-// Figtree = clean slightly-rounded body. Both load via next/font so a later
-// CMS font swap is a one-file change.
-const gabarito = Gabarito({
-  variable: "--font-gabarito",
+// mauriciojuba.com (Daniel's font reference) runs everything on Rubik
+// Variable 300-900 — a rounded modern sans. Same move here: one family,
+// weight does the hierarchy work.
+const rubik = Rubik({
+  variable: "--font-rubik",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const figtree = Figtree({
-  variable: "--font-figtree",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -46,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${gabarito.variable} ${figtree.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      className={`${rubik.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>

@@ -15,9 +15,14 @@ const PATHS = [
 /**
  * The "tariwei" wordmark. `variant="shimmer"` (default) runs a continuous
  * diagonal light sweep across the strokes wherever the logo appears, per
- * the brand requirement. `variant="draw"` is a one-shot stroke draw-in,
- * used only by the preloader.
+ * the brand requirement. `variant="draw"` writes the signature out letter
+ * by letter (t-a-r-i-w-e-i, dots last) using the reference prototype's
+ * per-stroke timing — PATHS is not in reading order, so the delay/duration
+ * tables below map each path back to its place in the handwriting.
  */
+// PATHS index → letter: 0='e' 1='w' 2='a' 3='t' 4='r' 5='i₁stem' 6='i₂stem' 7='i₁dot' 8='i₂dot'
+const WRITE_DELAY = [1.5, 1.15, 0.3, 0, 0.6, 0.85, 1.75, 1.05, 1.95];
+const WRITE_DUR = [0.55, 0.6, 0.55, 0.55, 0.55, 0.45, 0.45, 0.3, 0.3];
 export function Logo({
   className,
   variant = "shimmer",
@@ -79,7 +84,7 @@ export function Logo({
               strokeDasharray={1}
               strokeDashoffset={1}
               style={{
-                animation: `logo-draw .55s cubic-bezier(.4,0,.3,1) ${drawDelay + i * 0.12}s forwards, logo-fill .45s ease ${drawDelay + i * 0.12 + 0.35}s forwards`,
+                animation: `logo-draw ${WRITE_DUR[i]}s cubic-bezier(.4,0,.3,1) ${drawDelay + WRITE_DELAY[i]}s forwards, logo-fill .4s ease ${drawDelay + WRITE_DELAY[i] + WRITE_DUR[i] * 0.75}s forwards`,
               }}
             />
           ))}

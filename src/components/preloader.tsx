@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Logo } from "./logo";
 
-const MIN_DURATION_MS = 2400;
+const MIN_DURATION_MS = 3050;
 
 /** Signature draw-in from the reference prototype — strokes trace, then
  * fill. No progress bar / caption row (Daniel cut the underline). Exits by

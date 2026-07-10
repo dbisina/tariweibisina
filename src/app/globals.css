@@ -8,8 +8,8 @@
   --acc: #ff5a2c;
   --acc-2: #ff4a1c;
 
-  --font-display: var(--font-gabarito), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --font-accent: var(--font-instrument-serif), serif;
 }
@@ -101,5 +101,11 @@ a {
   }
   to {
     transform: translateX(-50%);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
   }
 }

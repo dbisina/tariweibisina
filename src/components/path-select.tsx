@@ -1,314 +1,163 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import * as THREE from "three";
-import { useFrame, useThree } from "@react-three/fiber";
-import { ThreeCanvas } from "@/components/three-canvas";
-import { Instance, Instances } from "@react-three/drei";
-import { motion } from "framer-motion";
 import { useSiteStore, type Path } from "@/lib/store";
 
 /**
- * Second immersive portal — "Engineer or Business Owner", shown as a
- * scroll-triggered section on the homepage (not a full navigation gate like
- * the realm picker). Reuses the angled-card + scattered-shard visual
- * language from RealmSelect for consistency, but both cards share the
- * SAME active realm palette (this choice isn't a color scheme).
+ * THE CROSSROADS — direct port of the reference prototype's door portals
+ * (Tariwei.dc.html #crossroads): two arched doorway cards tilted toward
+ * each other, spinning conic rim light, interior imagery dimmed under a
+ * gradient, DOOR 01/02 labels, STEP THROUGH cta, floor shadow and
+ * realm:// captions.
  */
 
-type Side = "engineer" | "business";
-
-function useInkColor(): string {
-  const [ink, setInk] = useState("#f4f3ef");
-  useEffect(() => {
-    const read = () => {
-      const v = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
-      if (v) setInk(v);
-    };
-    read();
-    const id = window.setInterval(read, 800);
-    return () => window.clearInterval(id);
-  }, []);
-  return ink;
-}
-
-type ShardDef = {
-  pos: THREE.Vector3;
-  rot: THREE.Euler;
-  spin: number;
-  driftPhase: number;
-  restScale: number;
-  fullScale: number;
-};
-
-function buildShards(count: number, spread: readonly [readonly [number, number], readonly [number, number], readonly [number, number]]): ShardDef[] {
-  const [xr, yr, zr] = spread;
-  return Array.from({ length: count }, () => ({
-    pos: new THREE.Vector3(
-      THREE.MathUtils.randFloat(xr[0], xr[1]),
-      THREE.MathUtils.randFloat(yr[0], yr[1]),
-      THREE.MathUtils.randFloat(zr[0], zr[1])
-    ),
-    rot: new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI),
-    spin: THREE.MathUtils.randFloat(0.04, 0.14) * (Math.random() > 0.5 ? 1 : -1),
-    driftPhase: Math.random() * Math.PI * 2,
-    restScale: THREE.MathUtils.randFloat(0.5, 0.8),
-    fullScale: THREE.MathUtils.randFloat(0.8, 1.2),
-  }));
-}
-
-function ShardField({
-  anchor,
-  rotationY,
-  tint,
-  phase,
-  getIntensity,
-  spread,
-  count,
-}: {
-  anchor: [number, number, number];
-  rotationY: number;
-  tint: string;
-  phase: number;
-  getIntensity: () => number;
-  spread: readonly [readonly [number, number], readonly [number, number], readonly [number, number]];
-  count: number;
-}) {
-  const groupRef = useRef<THREE.Group>(null);
-  const instanceRefs = useRef<(THREE.Group | null)[]>([]);
-
-  const geometry = useMemo(() => {
-    const g = new THREE.TetrahedronGeometry(0.15, 0);
-    g.scale(1, 0.55, 1);
-    return g;
-  }, []);
-
-  const material = useMemo(
-    () =>
-      new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(tint),
-        transmission: 0.5,
-        thickness: 0.6,
-        roughness: 0.25,
-        ior: 1.3,
-        iridescence: 0.3,
-        transparent: true,
-        opacity: 0.85,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      }),
-    [tint]
-  );
-
-  const defs = useMemo(() => buildShards(count, spread), [count, spread]);
-
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    const intensity = getIntensity();
-
-    if (groupRef.current) {
-      groupRef.current.scale.setScalar(1 + 0.03 * Math.sin(t * 0.5 + phase));
-    }
-
-    instanceRefs.current.forEach((obj, i) => {
-      if (!obj) return;
-      const d = defs[i];
-      const scale = THREE.MathUtils.lerp(d.restScale, d.fullScale, 0.5 + 0.5 * intensity);
-      obj.scale.setScalar(scale);
-      obj.position.set(
-        d.pos.x + Math.sin(t * 0.4 + d.driftPhase) * 0.06,
-        d.pos.y + Math.cos(t * 0.33 + d.driftPhase * 1.3) * 0.06,
-        d.pos.z
-      );
-      obj.rotation.set(d.rot.x + t * d.spin, d.rot.y + t * d.spin * 0.7, d.rot.z);
-    });
-  });
-
-  return (
-    <group ref={groupRef} position={anchor} rotation={[0, rotationY, 0]}>
-      <Instances geometry={geometry} material={material} limit={defs.length}>
-        {defs.map((_, i) => (
-          <Instance
-            key={i}
-            ref={(el) => {
-              instanceRefs.current[i] = el as THREE.Group | null;
-            }}
-          />
-        ))}
-      </Instances>
-    </group>
-  );
-}
-
-function Scene({ hoveredSide, ink }: { hoveredSide: Side | null; ink: string }) {
-  const { viewport } = useThree();
-  const intensityA = useRef(0.3);
-  const intensityB = useRef(0.3);
-
-  useFrame((_, delta) => {
-    intensityA.current = THREE.MathUtils.damp(intensityA.current, hoveredSide === "engineer" ? 1 : 0.3, 4, delta);
-    intensityB.current = THREE.MathUtils.damp(intensityB.current, hoveredSide === "business" ? 1 : 0.3, 4, delta);
-  });
-
-  const anchorX = Math.max(0.55, viewport.width * 0.19);
-
-  return (
-    <>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[0, 3, 5]} intensity={0.9} color={ink} />
-      <ShardField
-        anchor={[-anchorX, 0, 0]}
-        rotationY={0.4}
-        tint={ink}
-        phase={0}
-        getIntensity={() => intensityA.current}
-        spread={[[-1.2, 0.9], [-1.7, 1.7], [-0.3, 0.3]]}
-        count={22}
-      />
-      <ShardField
-        anchor={[anchorX, 0, 0]}
-        rotationY={-0.4}
-        tint={ink}
-        phase={1.6}
-        getIntensity={() => intensityB.current}
-        spread={[[-0.9, 1.2], [-1.7, 1.7], [-0.3, 0.3]]}
-        count={22}
-      />
-    </>
-  );
-}
-
-function PathCard({
-  side,
-  label,
-  tagline,
-  hovered,
-  onEnter,
-  onLeave,
-  onPick,
-  tiltDeg,
-}: {
-  side: Side;
-  label: string;
-  tagline: string;
-  hovered: boolean;
-  onEnter: () => void;
-  onLeave: () => void;
-  onPick: () => void;
-  tiltDeg: number;
-}) {
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Enter as ${label}`}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      onFocus={onEnter}
-      onBlur={onLeave}
-      onClick={onPick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onPick();
-        }
-      }}
-      className="group relative w-full max-w-[420px] sm:w-[38vw] cursor-pointer outline-none"
-      style={{
-        transform: `rotateY(${tiltDeg}deg)`,
-        transformStyle: "preserve-3d",
-        transition: "transform 0.6s cubic-bezier(.22,.7,.16,1)",
-      }}
-    >
-      <div
-        className="relative overflow-hidden border border-ln px-6 py-8 sm:px-8 sm:py-10 transition-[backdrop-filter,box-shadow,transform] duration-500"
-        style={{
-          background: "color-mix(in srgb, var(--bg) 55%, transparent)",
-          backdropFilter: `blur(${hovered ? 24 : 12}px) saturate(140%)`,
-          WebkitBackdropFilter: `blur(${hovered ? 24 : 12}px) saturate(140%)`,
-          boxShadow: hovered ? "0 30px 80px rgba(0,0,0,0.3)" : "0 14px 40px rgba(0,0,0,0.15)",
-          transform: hovered ? "scale(1.03)" : "scale(1)",
-        }}
-      >
-        <p className="font-mono text-[10px] tracking-[0.24em] uppercase text-mut">
-          {hovered ? "release to enter" : "hover"}
-        </p>
-        <h3 className="mt-6 font-display text-[clamp(28px,4.6vw,56px)] leading-[1] text-ink">
-          {label}
-        </h3>
-        <p className="mt-3 max-w-[26ch] font-sans text-[13px] text-mut">{tagline}</p>
-        <p className="mt-8 font-mono text-[10px] tracking-[0.2em] text-ink">enter →</p>
-      </div>
-    </div>
-  );
-}
+const DOORS: {
+  path: Path;
+  href: string;
+  door: string;
+  title: [string, string];
+  copy: string;
+  caption: string;
+  image: string;
+  tilt: number;
+}[] = [
+  {
+    path: "engineer",
+    href: "/engineer",
+    door: "DOOR 01",
+    title: ["Enter as", "an engineer"],
+    copy: "Protocols, kernels, system design, research and hackathons. Proof of competence.",
+    caption: "realm://engineering",
+    image: "https://picsum.photos/seed/tariwei-door-eng/900/1500",
+    tilt: 8,
+  },
+  {
+    path: "business",
+    href: "/business",
+    door: "DOOR 02",
+    title: ["Enter as a", "business owner"],
+    copy: "Problems, solutions, live demos and the numbers that moved. Proof of impact.",
+    caption: "realm://business",
+    image: "https://picsum.photos/seed/tariwei-door-biz/900/1500",
+    tilt: -8,
+  },
+];
 
 export function PathSelect() {
   const router = useRouter();
-  const ink = useInkColor();
-  const [hoveredSide, setHoveredSide] = useState<Side | null>(null);
-  const isNarrow = typeof window !== "undefined" ? window.innerWidth < 640 : false;
-
-  const handlePick = useCallback(
-    (side: Side) => {
-      const path: Path = side;
-      useSiteStore.getState().setPath(path);
-      router.push(side === "engineer" ? "/engineer" : "/business");
-    },
-    [router]
-  );
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden px-6 md:px-10 py-24">
-      <div className="absolute inset-0">
-        <ThreeCanvas camera={{ position: [0, 0, 7.5], fov: 42 }}>
-          <Scene hoveredSide={hoveredSide} ink={ink} />
-        </ThreeCanvas>
-      </div>
+    <section className="w-full px-6 pb-28 pt-28 md:px-10 md:pb-36 md:pt-40">
+      <div className="mx-auto max-w-6xl">
+        <div className="text-center">
+          <p className="anim-fade-up font-mono text-[11px] tracking-[0.24em] text-acc">
+            THE CROSSROADS
+          </p>
+          <h2
+            className="anim-fade-up mx-auto mt-4 font-display font-medium leading-none tracking-[-0.03em] text-ink"
+            style={{ fontSize: "clamp(38px, 5.4vw, 76px)", animationDelay: "0.1s" }}
+          >
+            Choose your <span className="font-accent italic font-normal">portal.</span>
+          </h2>
+          <p
+            className="anim-fade-up mx-auto mt-3 max-w-md font-sans text-[15px] leading-relaxed text-mut"
+            style={{ animationDelay: "0.2s" }}
+          >
+            Same engineer, two languages. Pick the one you speak — you can always cross over.
+          </p>
+        </div>
 
-      <div className="relative z-10 flex flex-col items-center gap-3 text-center">
-        <motion.span
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-15%" }}
-          transition={{ duration: 0.5 }}
-          className="font-mono text-[10px] uppercase tracking-[0.28em] text-mut"
+        <div
+          className="mt-16 flex flex-wrap items-start justify-center gap-[clamp(32px,6vw,96px)]"
+          style={{ perspective: "2200px" }}
         >
-          {"//"} 03 — CHOOSE YOUR PATH
-        </motion.span>
-        <motion.h2
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-15%" }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="font-display text-[clamp(2rem,6vw,4.2rem)] leading-[0.95] tracking-tight text-ink"
-        >
-          Engineer, or <span className="font-accent italic text-acc">business owner</span>?
-        </motion.h2>
-      </div>
+          {DOORS.map((d) => (
+            <div key={d.path} className="anim-fade-up" style={{ animationDelay: "0.25s" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  useSiteStore.getState().setPath(d.path);
+                  router.push(d.href);
+                }}
+                className="group relative block w-[min(380px,80vw)] cursor-pointer border-0 bg-transparent p-0 text-left"
+                style={{
+                  transform: `rotateY(${d.tilt}deg)`,
+                  transition: "transform 0.7s cubic-bezier(0.22, 0.7, 0.16, 1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "rotateY(0deg) translateY(-6px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = `rotateY(${d.tilt}deg)`;
+                }}
+              >
+                {/* arch frame with spinning rim light */}
+                <span className="relative block overflow-hidden rounded-t-full rounded-b-[22px] bg-ln p-0.5">
+                  <span
+                    aria-hidden
+                    className="absolute -inset-[55%] animate-[spin_7s_linear_infinite]"
+                    style={{
+                      background:
+                        "conic-gradient(from 0deg, transparent 0deg, transparent 62deg, var(--acc) 112deg, transparent 162deg, transparent 242deg, rgba(255,90,44,0.45) 292deg, transparent 342deg)",
+                    }}
+                  />
+                  <span className="relative block overflow-hidden rounded-t-full rounded-b-[20px] bg-[#08080a]">
+                    <span className="relative block" style={{ aspectRatio: "0.6" }}>
+                      <span
+                        className="absolute inset-0 bg-cover bg-center opacity-50 transition-all duration-700 group-hover:scale-105 group-hover:opacity-70"
+                        style={{
+                          backgroundImage: `url(${d.image})`,
+                          filter: "grayscale(0.3) contrast(1.08)",
+                        }}
+                      />
+                      <span
+                        className="absolute inset-0"
+                        style={{
+                          background:
+                            "linear-gradient(180deg, rgba(5,5,6,0.45) 0%, rgba(5,5,6,0.05) 40%, rgba(5,5,6,0.9) 84%)",
+                        }}
+                      />
+                      <span className="absolute inset-0 flex flex-col items-center justify-between px-7 pb-9 pt-11 text-center">
+                        <span className="font-mono text-[10px] tracking-[0.26em] text-[#f4f3ef]/65">
+                          {d.door}
+                        </span>
+                        <span>
+                          <span
+                            className="block font-display font-medium leading-[1.02] tracking-[-0.02em] text-[#f4f3ef]"
+                            style={{ fontSize: "clamp(30px, 3.4vw, 42px)" }}
+                          >
+                            {d.title[0]}
+                            <br />
+                            {d.title[1]}
+                          </span>
+                          <span className="mx-auto mt-3.5 block max-w-[280px] font-sans text-[13.5px] leading-relaxed text-[#f4f3ef]/60">
+                            {d.copy}
+                          </span>
+                          <span className="mt-5 inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-acc">
+                            STEP THROUGH <span>→</span>
+                          </span>
+                        </span>
+                      </span>
+                    </span>
+                  </span>
+                </span>
+              </button>
 
-      <div className="relative z-10 mt-16 flex flex-col items-center justify-center gap-8 sm:flex-row sm:gap-[6vw]">
-        <PathCard
-          side="engineer"
-          label="Engineer"
-          tagline="Stacks, architecture, research, hackathons."
-          hovered={hoveredSide === "engineer"}
-          onEnter={() => setHoveredSide("engineer")}
-          onLeave={() => setHoveredSide((s) => (s === "engineer" ? null : s))}
-          onPick={() => handlePick("engineer")}
-          tiltDeg={isNarrow ? 0 : 16}
-        />
-        <PathCard
-          side="business"
-          label="Business Owner"
-          tagline="Case studies, pitch decks, and getting a project scoped."
-          hovered={hoveredSide === "business"}
-          onEnter={() => setHoveredSide("business")}
-          onLeave={() => setHoveredSide((s) => (s === "business" ? null : s))}
-          onPick={() => handlePick("business")}
-          tiltDeg={isNarrow ? 0 : -16}
-        />
+              {/* floor shadow + caption */}
+              <div
+                className="mx-auto mt-5 h-4 w-[70%] rounded-full"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at center, rgba(0,0,0,0.45), transparent 68%)",
+                  filter: "blur(5px)",
+                }}
+              />
+              <p className="mt-3 text-center font-mono text-[10.5px] tracking-[0.22em] text-mut">
+                {d.caption}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
