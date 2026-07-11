@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Rubik, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { RealmSync } from "@/components/realm-sync";
+import { PageTransition } from "@/components/page-transition";
 import "./globals.css";
 
 // mauriciojuba.com (Daniel's font reference) runs everything on Rubik
@@ -43,7 +44,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <RealmSync />
-        {children}
+        <PageTransition>{children}</PageTransition>
       </body>
     </html>
   );

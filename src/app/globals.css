@@ -109,3 +109,20 @@ a {
     transform: rotate(1turn);
   }
 }
+
+/* page-transition curtain: cover instantly, hold, raise off the top with
+   the orange tail trailing (no logo — preloader only) */
+@keyframes curtain-raise {
+  0% {
+    transform: translateY(0);
+  }
+  14% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-130vh);
+  }
+}
+.curtain-raise {
+  animation: curtain-raise 0.95s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
