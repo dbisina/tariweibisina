@@ -27,23 +27,29 @@ async function telegram(text: string): Promise<boolean> {
   }
 }
 
-/** open-wa exposes a local HTTP API; POST { to, content } to /sendText */
-async function whatsapp(text: string): Promise<boolean> {
+/** open-wa exposes a local HTTP API; POST { to, content } to /sendText.
+ * Exported as `sendWhatsApp` so the inbound bot (whatsapp-bot.ts) can reply
+ * to whoever messaged in, not just the default OPENWA_TO recipient. */
+export async function sendWhatsApp(text: string, to?: string): Promise<boolean> {
   const url = process.env.OPENWA_API_URL;
-  const to = process.env.OPENWA_TO;
-  if (!url || !to) return false;
+  const recipient = to ?? process.env.OPENWA_TO;
+  if (!url || !recipient) return false;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (process.env.OPENWA_API_KEY) headers["Authorization"] = `Bearer ${process.env.OPENWA_API_KEY}`;
   try {
     const r = await fetch(`${url.replace(/\/$/, "")}/sendText`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ args: { to, content: text } }),
+      body: JSON.stringify({ args: { to: recipient, content: text } }),
     });
     return r.ok;
   } catch {
     return false;
   }
+}
+
+async function whatsapp(text: string): Promise<boolean> {
+  return sendWhatsApp(text);
 }
 
 async function email(subject: string, text: string): Promise<boolean> {
