@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { useStudioStore } from "@/lib/studio";
+import { useStudioStore, type StudioConfig } from "@/lib/studio";
 
 /**
  * Site-wide effects that don't belong in RealmSync:
@@ -10,9 +10,13 @@ import { useStudioStore } from "@/lib/studio";
  *     change (path + referrer), powering the dashboard's visitor view.
  *  2. Motion preference — the Appearance "motion" setting flips a root
  *     data-attribute and, at "off", a global animation kill-switch.
- *  3. Ad override hydration — the /adspot WhatsApp command writes a
- *     server-side override (api/ad-config); pull it once on mount so a
- *     WhatsApp edit shows up on the live site without redeploying.
+ *  3. Config hydration from Postgres — the DB is the source of truth (see
+ *     lib/db.ts, lib/studio.ts's publish()), localStorage is just a
+ *     same-browser instant-edit cache until the next Publish. Sequenced as
+ *     one effect on purpose: the full Studio config loads first, then the
+ *     /adspot WhatsApp override is layered on top of *that* — two separate
+ *     effects would race and the ad override could get clobbered if the
+ *     studio-config fetch resolved second.
  */
 export function StudioApply() {
   const pathname = usePathname();
@@ -52,14 +56,33 @@ export function StudioApply() {
     };
   }, [motion]);
 
-  // ad-slot override, set from WhatsApp — pulled once per load
+  // DB config hydration, sequenced: whole Studio config first, then the
+  // small /adspot override on top — see the block comment above.
   useEffect(() => {
-    fetch("/api/ad-config")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: { config?: Record<string, unknown> } | null) => {
-        if (d?.config) setConfig((c) => ({ ...c, content: { ...c.content, ad: { ...c.content.ad, ...d.config } } }));
-      })
-      .catch(() => {});
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/studio-config");
+        const d = r.ok ? await r.json() : null;
+        if (!cancelled && d?.config) {
+          setConfig((c) => ({ ...c, ...(d.config as Partial<StudioConfig>) }));
+        }
+      } catch {
+        // no DB configured, or the fetch failed — localStorage stays authoritative
+      }
+      try {
+        const r = await fetch("/api/ad-config");
+        const d = r.ok ? await r.json() : null;
+        if (!cancelled && d?.config) {
+          setConfig((c) => ({ ...c, content: { ...c.content, ad: { ...c.content.ad, ...d.config } } }));
+        }
+      } catch {
+        // ditto
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

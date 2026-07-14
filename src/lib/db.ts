@@ -1,90 +1,56 @@
 import crypto from "crypto";
-import type { Lead } from "@/lib/leads";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient, type Prisma } from "@/generated/prisma/client";
+import type { ChannelResult, Lead, LeadSource, StructuredBrief } from "@/lib/leads";
 
 /**
- * Postgres persistence for leads (VISION.md). Env-gated and dependency-soft:
- *   - needs DATABASE_URL and the `pg` package (`npm i pg`).
- *   - if either is missing, every call is a safe no-op and the client-side
- *     Studio store remains the record. So the site runs today; flip on
- *     durable storage by setting DATABASE_URL and installing pg.
+ * Postgres persistence via Prisma (v7, driver-adapter based — see
+ * prisma.config.ts for the connection URL and prisma/schema.prisma for the
+ * 4 models this owns). Env-gated: every function below is a no-op returning
+ * a safe default when DATABASE_URL is unset, so the site runs today and
+ * durable storage flips on the moment it's set.
  *
- * `pg` is a literal `import("pg")` (not a variable specifier / webpackIgnore)
- * so Next's standalone-output file tracer actually bundles it — a dynamic
- * import with a computed specifier is invisible to the tracer and would
- * silently vanish from .next/standalone/node_modules in production, making
- * every DB call below fail closed with no error surfaced anywhere. It's
- * still soft: `pg` failing to resolve at runtime is caught below and treated
- * as "not installed," same no-op fallback as before.
+ * The client is a module-level singleton stashed on `globalThis` so dev's
+ * hot-reload doesn't spawn a new connection pool on every edit.
+ *
+ * The generated client (src/generated/prisma/client.ts) ships with a
+ * `@ts-nocheck` on the new "prisma-client" generator, which loses real
+ * generic typing on the constructed instance — query results below type as
+ * `any`, same as the old hand-rolled `pg` version of this file did on
+ * purpose. Runtime shape is still correct (verified via the actual schema);
+ * this is a types-only gap in a very new generator, not a behavior gap.
  */
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
-let poolPromise: Promise<any> | null = null;
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-async function getPool(): Promise<any | null> {
+function getClient(): PrismaClient | null {
   if (!process.env.DATABASE_URL) return null;
-  if (!poolPromise) {
-    poolPromise = (async () => {
-      try {
-        const pg: any = await import("pg");
-        const Pool = pg.Pool ?? pg.default?.Pool;
-        const pool = new Pool({
-          connectionString: process.env.DATABASE_URL,
-          ssl: process.env.DATABASE_SSL === "false" ? false : { rejectUnauthorized: false },
-        });
-        await pool.query(`
-          create table if not exists leads (
-            id text primary key,
-            ts bigint not null,
-            source text not null,
-            name text not null,
-            contact text not null,
-            budget text,
-            detail text not null,
-            brief jsonb,
-            channels jsonb
-          );
-          create table if not exists visits (
-            id text primary key,
-            ts bigint not null,
-            path text not null,
-            ref text
-          );
-          create table if not exists ad_config (
-            id text primary key,
-            config jsonb not null,
-            updated_ts bigint not null
-          );
-        `);
-        return pool;
-      } catch (e) {
-        console.error("db: pg unavailable, staying no-op:", e);
-        return null;
-      }
-    })();
+  if (!globalForPrisma.prisma) {
+    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+    globalForPrisma.prisma = new PrismaClient({ adapter });
   }
-  return poolPromise;
+  return globalForPrisma.prisma;
 }
 
 export async function saveLead(lead: Lead): Promise<boolean> {
-  const pool = await getPool();
-  if (!pool) return false;
+  const prisma = getClient();
+  if (!prisma) return false;
   try {
-    await pool.query(
-      `insert into leads (id, ts, source, name, contact, budget, detail, brief, channels)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       on conflict (id) do nothing`,
-      [
-        lead.id,
-        lead.ts,
-        lead.source,
-        lead.name,
-        lead.contact,
-        lead.budget ?? null,
-        lead.detail,
-        lead.brief ? JSON.stringify(lead.brief) : null,
-        lead.channels ? JSON.stringify(lead.channels) : null,
-      ]
-    );
+    await prisma.lead.upsert({
+      where: { id: lead.id },
+      create: {
+        id: lead.id,
+        ts: BigInt(lead.ts),
+        source: lead.source,
+        name: lead.name,
+        contact: lead.contact,
+        budget: lead.budget ?? null,
+        detail: lead.detail,
+        brief: (lead.brief as unknown as Prisma.InputJsonValue) ?? undefined,
+        channels: (lead.channels as unknown as Prisma.InputJsonValue) ?? undefined,
+      },
+      update: {}, // id already exists — leave the original record alone
+    });
     return true;
   } catch (e) {
     console.error("db: saveLead failed:", e);
@@ -92,19 +58,38 @@ export async function saveLead(lead: Lead): Promise<boolean> {
   }
 }
 
+export async function listLeads(limit = 200): Promise<Lead[]> {
+  const prisma = getClient();
+  if (!prisma) return [];
+  try {
+    const rows = await prisma.lead.findMany({ orderBy: { ts: "desc" }, take: limit });
+    return rows.map((r: any) => ({
+      id: r.id,
+      ts: Number(r.ts),
+      source: r.source as LeadSource,
+      name: r.name,
+      contact: r.contact,
+      budget: r.budget ?? undefined,
+      detail: r.detail,
+      brief: (r.brief as StructuredBrief | null) ?? undefined,
+      channels: (r.channels as ChannelResult | null) ?? undefined,
+    }));
+  } catch (e) {
+    console.error("db: listLeads failed:", e);
+    return [];
+  }
+}
+
 /** Server-side pageview log (separate from the client Studio ring buffer) —
  * durable enough to power the weekly WhatsApp digest. Fire-and-forget by
  * design: a failed insert never breaks the page. */
 export async function logVisit(path: string, ref: string): Promise<boolean> {
-  const pool = await getPool();
-  if (!pool) return false;
+  const prisma = getClient();
+  if (!prisma) return false;
   try {
-    await pool.query(`insert into visits (id, ts, path, ref) values ($1,$2,$3,$4)`, [
-      crypto.randomUUID(),
-      Date.now(),
-      path,
-      ref || null,
-    ]);
+    await prisma.visit.create({
+      data: { id: crypto.randomUUID(), ts: BigInt(Date.now()), path, ref: ref || null },
+    });
     return true;
   } catch (e) {
     console.error("db: logVisit failed:", e);
@@ -121,24 +106,34 @@ export interface VisitSummary {
 
 /** Aggregate visits over the last `days` days, for the weekly digest / /visits command. */
 export async function visitSummary(days = 7): Promise<VisitSummary> {
-  const pool = await getPool();
+  const prisma = getClient();
   const since = Date.now() - days * 24 * 60 * 60 * 1000;
-  if (!pool) return { total: 0, since, topPaths: [], topRefs: [] };
+  if (!prisma) return { total: 0, since, topPaths: [], topRefs: [] };
   try {
-    const { rows } = await pool.query(
-      `select path, ref from visits where ts >= $1`,
-      [since]
-    );
-    const paths = new Map<string, number>();
-    const refs = new Map<string, number>();
-    for (const r of rows as { path: string; ref: string | null }[]) {
-      paths.set(r.path, (paths.get(r.path) ?? 0) + 1);
-      const ref = r.ref || "direct";
-      refs.set(ref, (refs.get(ref) ?? 0) + 1);
-    }
-    const top = (m: Map<string, number>, key: string) =>
-      [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k, count]) => ({ [key]: k, count })) as never;
-    return { total: rows.length, since, topPaths: top(paths, "path"), topRefs: top(refs, "ref") };
+    const sinceTs = BigInt(since);
+    const [total, byPath, byRef] = await Promise.all([
+      prisma.visit.count({ where: { ts: { gte: sinceTs } } }),
+      prisma.visit.groupBy({
+        by: ["path"],
+        where: { ts: { gte: sinceTs } },
+        _count: { path: true },
+        orderBy: { _count: { path: "desc" } },
+        take: 5,
+      }),
+      prisma.visit.groupBy({
+        by: ["ref"],
+        where: { ts: { gte: sinceTs } },
+        _count: { ref: true },
+        orderBy: { _count: { ref: "desc" } },
+        take: 5,
+      }),
+    ]);
+    return {
+      total,
+      since,
+      topPaths: byPath.map((p: any) => ({ path: p.path, count: p._count.path })),
+      topRefs: byRef.map((r: any) => ({ ref: r.ref || "direct", count: r._count.ref })),
+    };
   } catch (e) {
     console.error("db: visitSummary failed:", e);
     return { total: 0, since, topPaths: [], topRefs: [] };
@@ -147,32 +142,34 @@ export async function visitSummary(days = 7): Promise<VisitSummary> {
 
 const AD_CONFIG_ID = "default";
 
-/** Server-authoritative override for the ad slot, set via the /adspot
- * WhatsApp command. Null when unset — the client Studio config (or its
- * localStorage edit) then applies as-is with no override. */
+/** Small server-authoritative override for the ad slot, set via the /adspot
+ * WhatsApp command — layered on top of whatever StudioConfig.content.ad
+ * currently is (see studio-apply.tsx). Null when unset. */
 export async function getAdConfigRow(): Promise<Record<string, unknown> | null> {
-  const pool = await getPool();
-  if (!pool) return null;
+  const prisma = getClient();
+  if (!prisma) return null;
   try {
-    const { rows } = await pool.query(`select config from ad_config where id = $1`, [AD_CONFIG_ID]);
-    return rows[0]?.config ?? null;
+    const row = await prisma.adConfig.findUnique({ where: { id: AD_CONFIG_ID } });
+    return (row?.config as Record<string, unknown>) ?? null;
   } catch (e) {
     console.error("db: getAdConfigRow failed:", e);
     return null;
   }
 }
 
-export async function setAdConfigRow(patch: Record<string, unknown>): Promise<Record<string, unknown> | null> {
-  const pool = await getPool();
-  if (!pool) return null;
+export async function setAdConfigRow(
+  patch: Record<string, unknown>
+): Promise<Record<string, unknown> | null> {
+  const prisma = getClient();
+  if (!prisma) return null;
   try {
     const current = (await getAdConfigRow()) ?? {};
     const merged = { ...current, ...patch };
-    await pool.query(
-      `insert into ad_config (id, config, updated_ts) values ($1,$2,$3)
-       on conflict (id) do update set config = $2, updated_ts = $3`,
-      [AD_CONFIG_ID, JSON.stringify(merged), Date.now()]
-    );
+    await prisma.adConfig.upsert({
+      where: { id: AD_CONFIG_ID },
+      create: { id: AD_CONFIG_ID, config: merged as Prisma.InputJsonValue, updatedTs: BigInt(Date.now()) },
+      update: { config: merged as Prisma.InputJsonValue, updatedTs: BigInt(Date.now()) },
+    });
     return merged;
   } catch (e) {
     console.error("db: setAdConfigRow failed:", e);
@@ -180,27 +177,38 @@ export async function setAdConfigRow(patch: Record<string, unknown>): Promise<Re
   }
 }
 
-export async function listLeads(limit = 200): Promise<Lead[]> {
-  const pool = await getPool();
-  if (!pool) return [];
+const STUDIO_CONFIG_ID = "default";
+
+/** The whole Studio CMS document (StudioConfig from lib/studio.ts), published
+ * as one unit from /studio's Publish button. This — not localStorage — is
+ * the source of truth the live site hydrates from (see studio-apply.tsx). */
+export async function getStudioConfigRow(): Promise<Record<string, unknown> | null> {
+  const prisma = getClient();
+  if (!prisma) return null;
   try {
-    const { rows } = await pool.query(
-      `select * from leads order by ts desc limit $1`,
-      [limit]
-    );
-    return rows.map((r: any) => ({
-      id: r.id,
-      ts: Number(r.ts),
-      source: r.source,
-      name: r.name,
-      contact: r.contact,
-      budget: r.budget ?? undefined,
-      detail: r.detail,
-      brief: r.brief ?? undefined,
-      channels: r.channels ?? undefined,
-    }));
+    const row = await prisma.studioConfig.findUnique({ where: { id: STUDIO_CONFIG_ID } });
+    return (row?.config as Record<string, unknown>) ?? null;
   } catch (e) {
-    console.error("db: listLeads failed:", e);
-    return [];
+    console.error("db: getStudioConfigRow failed:", e);
+    return null;
+  }
+}
+
+/** Full replace, not a patch — Publish always pushes the entire current
+ * config, matching the "explicit publish" model (no debounced/partial
+ * writes racing each other from multiple open Studio tabs). */
+export async function setStudioConfigRow(config: Record<string, unknown>): Promise<boolean> {
+  const prisma = getClient();
+  if (!prisma) return false;
+  try {
+    await prisma.studioConfig.upsert({
+      where: { id: STUDIO_CONFIG_ID },
+      create: { id: STUDIO_CONFIG_ID, config: config as Prisma.InputJsonValue, updatedTs: BigInt(Date.now()) },
+      update: { config: config as Prisma.InputJsonValue, updatedTs: BigInt(Date.now()) },
+    });
+    return true;
+  } catch (e) {
+    console.error("db: setStudioConfigRow failed:", e);
+    return false;
   }
 }

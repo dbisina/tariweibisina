@@ -164,11 +164,15 @@ function rid(): string {
   return Math.abs((Math.random() * 1e9) | 0).toString(36) + (Date.now() % 1e6).toString(36);
 }
 
+export type PublishState = "idle" | "publishing" | "success" | "error";
+
 interface StudioState {
   config: StudioConfig;
   views: PageView[];
   leads: Lead[];
   unlocked: boolean;
+  publishState: PublishState;
+  publishedAt: number | null;
   setConfig: (fn: (c: StudioConfig) => StudioConfig) => void;
   resetConfig: () => void;
   resetProjects: () => void;
@@ -177,15 +181,18 @@ interface StudioState {
   clearAnalytics: () => void;
   unlock: () => void;
   lock: () => void;
+  publish: () => Promise<boolean>;
 }
 
 export const useStudioStore = create<StudioState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       config: defaultConfig(),
       views: [],
       leads: [],
       unlocked: false,
+      publishState: "idle",
+      publishedAt: null,
       setConfig: (fn) => set((s) => ({ config: fn(s.config) })),
       resetConfig: () => set({ config: defaultConfig() }),
       resetProjects: () =>
@@ -205,6 +212,30 @@ export const useStudioStore = create<StudioState>()(
       clearAnalytics: () => set({ views: [], leads: [] }),
       unlock: () => set({ unlocked: true }),
       lock: () => set({ unlocked: false }),
+      /** Pushes the whole current config to Postgres (POST /api/studio-config)
+       * in one write — the explicit "Publish" action, not a live/debounced
+       * autosave. This is what makes a Studio edit visible on every device,
+       * not just the browser that made it (see studio-apply.tsx's hydration). */
+      publish: async () => {
+        set({ publishState: "publishing" });
+        try {
+          const { config } = get();
+          const res = await fetch("/api/studio-config", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(config.adminKey ? { "x-studio-key": config.adminKey } : {}),
+            },
+            body: JSON.stringify(config),
+          });
+          const ok = res.ok && (await res.json())?.ok !== false;
+          set({ publishState: ok ? "success" : "error", publishedAt: ok ? Date.now() : get().publishedAt });
+          return ok;
+        } catch {
+          set({ publishState: "error" });
+          return false;
+        }
+      },
     }),
     {
       name: "tariwei-studio",

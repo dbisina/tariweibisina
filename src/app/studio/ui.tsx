@@ -117,14 +117,16 @@ export function Btn({
   onClick,
   variant = "ghost",
   type = "button",
+  disabled = false,
 }: {
   children: ReactNode;
   onClick?: () => void;
   variant?: "ghost" | "solid" | "danger";
   type?: "button" | "submit";
+  disabled?: boolean;
 }) {
   const base =
-    "rounded-full px-4 py-2 font-mono text-[10.5px] tracking-[0.12em] uppercase transition-colors";
+    "rounded-full px-4 py-2 font-mono text-[10.5px] tracking-[0.12em] uppercase transition-colors disabled:opacity-40 disabled:pointer-events-none";
   const cls =
     variant === "solid"
       ? "bg-acc text-[color:var(--bg)] hover:opacity-90"
@@ -132,7 +134,7 @@ export function Btn({
         ? "border border-red-500/40 text-red-400 hover:border-red-500 hover:text-red-300"
         : "border border-ln text-mut hover:border-acc hover:text-ink";
   return (
-    <button type={type} onClick={onClick} className={`${base} ${cls}`}>
+    <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${cls}`}>
       {children}
     </button>
   );

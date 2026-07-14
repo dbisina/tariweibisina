@@ -41,12 +41,16 @@ const SECTIONS = [
 export default function StudioPage() {
   const unlocked = useStudioStore((s) => s.unlocked);
   const unlock = useStudioStore((s) => s.unlock);
+  const publish = useStudioStore((s) => s.publish);
+  const publishState = useStudioStore((s) => s.publishState);
+  const publishedAt = useStudioStore((s) => s.publishedAt);
   const [mounted, setMounted] = useState(false);
   const [active, setActive] = useState<(typeof SECTIONS)[number]["id"]>("overview");
   const [key, setKey] = useState("");
   const [err, setErr] = useState(false);
 
   // avoid a hydration mismatch: persisted `unlocked` only known client-side
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: this is the standard "detect client mount" pattern, no external system to synchronize with
   useEffect(() => setMounted(true), []);
 
   if (!mounted) return <div className="min-h-screen bg-[color:var(--bg)]" />;
@@ -116,6 +120,23 @@ export default function StudioPage() {
               </button>
             ))}
           </nav>
+
+          <div className="mt-6 border-t border-ln pt-4 md:mt-8">
+            <Btn
+              variant="solid"
+              disabled={publishState === "publishing"}
+              onClick={() => publish()}
+            >
+              {publishState === "publishing" ? "Publishing…" : "Publish"}
+            </Btn>
+            <p className="mt-2 font-mono text-[9.5px] tracking-[0.1em] text-mut">
+              {publishState === "success" && publishedAt
+                ? `Published ${new Date(publishedAt).toLocaleTimeString()}`
+                : publishState === "error"
+                  ? "Publish failed — check DATABASE_URL/STUDIO_ADMIN_KEY"
+                  : "Pushes this config live for every visitor"}
+            </p>
+          </div>
         </aside>
 
         {/* panel */}

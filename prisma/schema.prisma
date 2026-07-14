@@ -1,0 +1,68 @@
+// Prisma 7: the connection URL lives in prisma.config.ts (not here), and
+// the modern "prisma-client" generator emits plain TS into src/generated
+// rather than node_modules — see prisma.config.ts and lib/db.ts.
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Lead intake (hire-me/quote/contact/adspot) — see src/lib/leads.ts for the
+/// shared shape. `brief`/`channels` are the StructuredBrief/ChannelResult
+/// JSON blobs; kept schemaless since they're read as one document, never
+/// queried by inner field.
+model Lead {
+  id       String  @id
+  ts       BigInt
+  source   String
+  name     String
+  contact  String
+  budget   String?
+  detail   String
+  brief    Json?
+  channels Json?
+
+  @@map("leads")
+}
+
+/// Server-side pageview log — powers the weekly WhatsApp digest and the
+/// /visits command. Separate from the client-only Studio analytics ring
+/// buffer (which is per-browser localStorage).
+model Visit {
+  id   String  @id
+  ts   BigInt
+  path String
+  ref  String?
+
+  @@index([ts])
+  @@map("visits")
+}
+
+/// Small WhatsApp-editable override for the ad slot, layered on top of
+/// whatever StudioConfig.content.ad currently is (see /adspot in
+/// lib/whatsapp-bot.ts) — lets Daniel toggle/edit the ad without touching
+/// the whole CMS document. Single row, id "default".
+model AdConfig {
+  id        String @id
+  config    Json
+  updatedTs BigInt @map("updated_ts")
+
+  @@map("ad_config")
+}
+
+/// The whole Studio CMS document — theme tokens, hero/about copy, nav, the
+/// project roster, ad defaults, AI provider pref (see StudioConfig in
+/// lib/studio.ts). Published as one unit from /studio's Publish button.
+/// Single row, id "default"; this is the source of truth on page load —
+/// localStorage is just a same-browser instant-edit cache until the next
+/// Publish (see studio-apply.tsx).
+model StudioConfig {
+  id        String @id
+  config    Json
+  updatedTs BigInt @map("updated_ts")
+
+  @@map("studio_config")
+}

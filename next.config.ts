@@ -5,9 +5,13 @@ import path from "path";
  * `output: "standalone"` — Railway/Nixpacks builds a self-contained
  * .next/standalone bundle instead of shipping full node_modules, which is
  * both the recommended and the faster/leaner path for a containerized
- * deploy. (Requires db.ts's `pg` import to be a static literal, not a
- * webpackIgnore'd variable specifier, so Next's file-tracer actually
- * bundles it — see db.ts.)
+ * deploy.
+ *
+ * `serverExternalPackages: ["@prisma/client"]` — Prisma's generated client
+ * ships a native query-engine binary that Next's file tracer doesn't always
+ * follow correctly through a bundled import; marking it external tells Next
+ * to require it from real node_modules at runtime instead of bundling it,
+ * which is Prisma's own documented fix for standalone-output deploys.
  *
  * headers() are deploy-wide hardening, chosen not to break anything already
  * built here: Permissions-Policy allows camera/mic to `self` only (Rimuru's
@@ -18,6 +22,7 @@ import path from "path";
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
+  serverExternalPackages: ["@prisma/client"],
   turbopack: {
     root: path.resolve(__dirname),
   },
