@@ -1,5 +1,19 @@
+import type { Metadata } from "next";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { ContactForm } from "@/components/contact-form";
+
+const TITLE = "Contact";
+const DESCRIPTION =
+  "Reach Daniel Tariwei Bisina — email, GitHub, LinkedIn, X, or WhatsApp. Open to projects and roles.";
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: "/contact" },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: "/contact" },
+  twitter: { title: TITLE, description: DESCRIPTION },
+};
 
 const CHANNELS = [
   { label: "EMAIL", value: "danbis664@gmail.com", href: "mailto:danbis664@gmail.com" },
@@ -13,7 +27,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen">
       <SiteNav />
-      <main className="mx-auto max-w-6xl px-6 pt-40 md:px-10 md:pt-48">
+      <main className="mx-auto max-w-[1800px] px-4 pt-40 md:px-6 md:pt-48">
         <div className="anim-fade-up">
           <p className="font-mono text-[11px] tracking-[0.24em] text-acc">
             CONTACT · OPEN TO PROJECTS &amp; ROLES
@@ -57,6 +71,8 @@ export default function ContactPage() {
             </span>
           </div>
         </div>
+
+        <ContactForm />
       </main>
       <SiteFooter />
     </div>

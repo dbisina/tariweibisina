@@ -1,6 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
+import { AdSpot } from "@/components/ad-spot";
 import { SiteFooter } from "@/components/site-footer";
+
+const TITLE = "For Engineers";
+const DESCRIPTION =
+  "Protocols, kernels, system design. Proof of competence — the schematics, the tradeoffs, and the code that ran, not a portfolio of screenshots.";
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: "/engineer" },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: "/engineer" },
+  twitter: { title: TITLE, description: DESCRIPTION },
+};
 
 const STATS = [
   { v: "9", l: "SYSTEMS SHIPPED" },
@@ -38,7 +52,7 @@ export default function EngineerPage() {
     <div className="min-h-screen">
       <SiteNav />
       <main>
-        <section className="mx-auto max-w-6xl px-6 pt-40 md:px-10 md:pt-48">
+        <section className="mx-auto max-w-[1800px] px-4 pt-40 md:px-6 md:pt-48">
           <p className="anim-fade-up font-mono text-[11px] tracking-[0.24em] text-acc">
             REALM · ENGINEERING
           </p>
@@ -72,7 +86,7 @@ export default function EngineerPage() {
           </div>
         </section>
 
-        <section className="mx-auto mt-24 max-w-6xl px-6 md:px-10">
+        <section className="mx-auto mt-24 max-w-[1800px] px-4 md:px-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {ENTRIES.map((e) => (
               <Link
@@ -104,6 +118,7 @@ export default function EngineerPage() {
           </div>
         </section>
       </main>
+      <AdSpot />
       <SiteFooter />
     </div>
   );

@@ -1,16 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
-import { getCasePresentation, PITCH_DECKS } from "@/lib/case-studies";
+import { SiteFooter } from "@/components/site-footer";
+import { useStudioStore } from "@/lib/studio";
 
 export default function PitchDecksPage() {
-  const decks = PITCH_DECKS.map((slug) => getCasePresentation(slug)).filter(
-    (d): d is NonNullable<typeof d> => d !== null
-  );
+  // select the stable array reference; filter in render (a new array from the
+  // selector breaks useSyncExternalStore snapshot caching)
+  const projects = useStudioStore((s) => s.config.projects);
+  const decks = projects.filter((p) => p.pitch !== null);
 
   return (
     <div className="min-h-screen">
       <SiteNav />
-      <main className="mx-auto max-w-5xl px-6 pt-40 pb-32 md:px-10">
+      <main className="mx-auto max-w-[1680px] px-4 pt-40 pb-32 md:px-6">
         <p className="font-mono text-[10px] tracking-[0.24em] text-acc">FOR INVESTORS</p>
         <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,5.5rem)] leading-[0.95] tracking-tight text-ink">
           Pitch decks.
@@ -25,21 +29,28 @@ export default function PitchDecksPage() {
             <Link
               key={d.slug}
               href={`/business/pitch-decks/${d.slug}`}
-              className="group flex items-baseline justify-between border-b border-ln py-8"
+              className="group flex items-baseline justify-between gap-6 border-b border-ln py-8"
             >
-              <div>
+              <div className="min-w-0">
                 <span className="font-mono text-[10px] tracking-[0.2em] text-mut">
-                  {d.eyebrow}
+                  {d.pitch?.eyebrow || d.tag}
                 </span>
                 <h2 className="mt-2 font-display text-3xl text-ink transition-colors group-hover:text-acc md:text-5xl">
-                  {d.title}
+                  {d.name}
                 </h2>
+                <p className="mt-2 max-w-xl font-sans text-sm text-mut">
+                  {d.pitch?.tagline || d.oneLiner}
+                </p>
               </div>
-              <span className="font-mono text-xs text-acc">VIEW →</span>
+              <span className="flex-none font-mono text-xs text-acc">VIEW →</span>
             </Link>
           ))}
+          {decks.length === 0 && (
+            <p className="font-sans text-mut">No decks published yet.</p>
+          )}
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

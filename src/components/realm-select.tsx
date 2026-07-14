@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSiteStore, type AudioMode } from "@/lib/store";
+import { useSiteStore } from "@/lib/store";
 import { Logo } from "@/components/logo";
 import styles from "./realm-select.module.css";
 
@@ -14,8 +14,8 @@ import styles from "./realm-select.module.css";
  *  - Two floating holographic cards angled toward each other (±22°), each with
  *    an animated holo border, sheen sweep, and a mini preview of the site in
  *    that realm.
- *  - Choosing a realm sweeps the seam off-screen, then asks for the audio
- *    mode (silence / zen / classical) before entering the site.
+ *  - Choosing a realm sweeps the seam off-screen, then enters the site once
+ *    the sweep settles.
  */
 
 type Side = "light" | "dark";
@@ -180,18 +180,10 @@ function CardMock() {
   );
 }
 
-const AUDIO_OPTIONS: { mode: AudioMode; label: string; hint: string }[] = [
-  { mode: "none", label: "Silence", hint: "no sound at all" },
-  { mode: "zen", label: "Zen", hint: "ambience + scroll sfx" },
-  { mode: "classical", label: "Classical", hint: "a subtle piece of the day" },
-];
-
 export function RealmSelect() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
-  const firstAudioRef = useRef<HTMLButtonElement>(null);
   const blendTarget = useRef(0.5);
-  const chosenAt = useRef(0);
   const lastPicked = useRef<Side>("dark");
   const [picked, setPicked] = useState<Side | null>(null);
   const returning = useSiteStore((s) => s.hasEnteredBefore);
@@ -291,37 +283,14 @@ export function RealmSelect() {
     return () => removeEventListener("pointermove", onMove);
   }, []);
 
+  // Choosing a realm sweeps the seam off-screen, then enters directly once
+  // the sweep settles — no intermediate step.
   const choose = useCallback((side: Side) => {
     setPicked(side);
     lastPicked.current = side;
-    chosenAt.current = performance.now();
-    blendTarget.current = side === "light" ? 0 : 1; // sweep the seam away
+    blendTarget.current = side === "light" ? 0 : 1;
+    setTimeout(() => useSiteStore.getState().setRealm(side), 650);
   }, []);
-
-  // Move keyboard focus into the audio screen once it has faded in
-  useEffect(() => {
-    if (!picked) return;
-    const id = setTimeout(() => firstAudioRef.current?.focus(), 550);
-    return () => clearTimeout(id);
-  }, [picked]);
-
-  const back = useCallback(() => {
-    setPicked(null);
-    blendTarget.current = 0.5; // seam converges back
-  }, []);
-
-  const enter = useCallback(
-    (mode: AudioMode) => {
-      if (!picked) return;
-      // The audio screen fades in over ~0.5s; ignore clicks that land on it
-      // while it is still invisible (e.g. an impatient double-click on a card)
-      if (performance.now() - chosenAt.current < 550) return;
-      const store = useSiteStore.getState();
-      store.setAudioMode(mode);
-      store.setRealm(picked); // flips the page into the site
-    },
-    [picked]
-  );
 
   return (
     <div
@@ -386,24 +355,6 @@ export function RealmSelect() {
         style={{ color: shown === "light" ? "#0a0a0f" : "#f5f4f2" }}
       >
         <h1>{shown === "light" ? "Light realm" : "Dark realm"}</h1>
-        <p>Now pick your sound</p>
-        <div className={styles.audioRow}>
-          {AUDIO_OPTIONS.map((opt, i) => (
-            <button
-              key={opt.mode}
-              ref={i === 0 ? firstAudioRef : undefined}
-              type="button"
-              className={styles.audioBtn}
-              onClick={() => enter(opt.mode)}
-            >
-              {opt.label}
-              <span className={styles.audioBtnHint}>{opt.hint}</span>
-            </button>
-          ))}
-        </div>
-        <button type="button" className={styles.backBtn} onClick={back}>
-          Choose again
-        </button>
       </div>
     </div>
   );

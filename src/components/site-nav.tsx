@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Logo } from "./logo";
+import { AdSpotCompact } from "./ad-spot";
 
 /**
  * Nav with a full-width extension panel (Daniel: no small dropdowns).
@@ -50,7 +51,7 @@ export function SiteNav() {
       className="fixed inset-x-0 top-0 z-40 border-b border-ln bg-bg/80 backdrop-blur-md"
       onMouseLeave={() => setOpen(null)}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6 md:px-10">
+      <div className="mx-auto flex h-16 max-w-[1800px] items-center justify-between px-4 md:px-6">
         <Link href="/" aria-label="tariwei home" className="flex items-center" onMouseEnter={() => setOpen(null)}>
           <Logo variant="shimmer" className="h-3.5 w-auto text-ink" />
         </Link>
@@ -86,6 +87,7 @@ export function SiteNav() {
           >
             Contact
           </Link>
+          <AdSpotCompact />
         </div>
       </div>
 
@@ -100,7 +102,7 @@ export function SiteNav() {
         }}
       >
         {group && (
-          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-6 py-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)] md:px-10">
+          <div className="mx-auto grid max-w-[1800px] grid-cols-1 gap-8 px-4 py-8 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)] md:px-6">
             {/* photos left */}
             <div className="hidden gap-4 md:flex">
               {group.photos.map((src, i) => (

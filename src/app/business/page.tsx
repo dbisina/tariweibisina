@@ -1,6 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
+import { AdSpot } from "@/components/ad-spot";
 import { SiteFooter } from "@/components/site-footer";
+
+const TITLE = "For Business";
+const DESCRIPTION =
+  "Problems in, products out. Solutions, live demos and the numbers that moved — full case presentations with a link straight to the working thing.";
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: "/business" },
+  openGraph: { title: TITLE, description: DESCRIPTION, url: "/business" },
+  twitter: { title: TITLE, description: DESCRIPTION },
+};
 
 const STATS = [
   { v: "5", l: "CLIENT PRODUCTS" },
@@ -38,7 +52,7 @@ export default function BusinessPage() {
     <div className="min-h-screen">
       <SiteNav />
       <main>
-        <section className="mx-auto max-w-6xl px-6 pt-40 md:px-10 md:pt-48">
+        <section className="mx-auto max-w-[1800px] px-4 pt-40 md:px-6 md:pt-48">
           <p className="anim-fade-up font-mono text-[11px] tracking-[0.24em] text-acc">
             REALM · BUSINESS
           </p>
@@ -72,7 +86,7 @@ export default function BusinessPage() {
           </div>
         </section>
 
-        <section className="mx-auto mt-24 max-w-6xl px-6 md:px-10">
+        <section className="mx-auto mt-24 max-w-[1800px] px-4 md:px-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {ENTRIES.map((e) => (
               <Link
@@ -104,6 +118,7 @@ export default function BusinessPage() {
           </div>
         </section>
       </main>
+      <AdSpot />
       <SiteFooter />
     </div>
   );

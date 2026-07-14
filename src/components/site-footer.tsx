@@ -8,8 +8,8 @@ import { Logo } from "./logo";
  */
 export function SiteFooter() {
   return (
-    <footer className="mt-10 border-t border-ln">
-      <div className="mx-auto max-w-6xl px-6 pt-16 md:px-10">
+    <footer data-perch="THE FOOTER" className="mt-10 border-t border-ln">
+      <div className="mx-auto max-w-[1800px] px-4 pt-16 md:px-6">
         <div className="flex flex-wrap items-end justify-between gap-7">
           <div>
             <p className="font-mono text-[11px] tracking-[0.22em] text-acc">NEXT MOVE</p>
@@ -57,6 +57,9 @@ export function SiteFooter() {
             <a href="https://wa.me/2347077213386" target="_blank" rel="noreferrer" className="hover:text-acc">
               WhatsApp
             </a>
+            <Link href="/studio" className="text-mut/60 hover:text-acc">
+              Studio
+            </Link>
           </div>
         </div>
       </div>

@@ -16,6 +16,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
 
   useEffect(() => {
     startRef.current = Date.now();
+
     const interval = window.setInterval(() => {
       const elapsed = Date.now() - startRef.current;
       setPct(Math.min(100, Math.round((elapsed / MIN_DURATION_MS) * 100)));
@@ -26,7 +27,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
       setPct(100);
       setLifting(true);
     }, MIN_DURATION_MS);
-    // slower single curtain (black + attached orange tail), ~1.35s
+
     const done = window.setTimeout(onDone, MIN_DURATION_MS + 1500);
 
     return () => {

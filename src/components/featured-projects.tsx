@@ -1,90 +1,65 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { ALL_PROJECTS } from "@/lib/projects";
+import { useStudioStore } from "@/lib/studio";
+import type { ProjectDoc } from "@/lib/content";
 
 /**
- * Selected-work section in podium.global's work-grid language
- * (DESIGN-NOTES.md): a near-black band with staggered columns of media
- * cards that flow at different rates as you scroll (cross-flow parallax),
- * bold condensed uppercase titles BELOW the media with year/client right,
- * titles dim until their card is in the active center band.
+ * Selected-work grid — podium.global's card-flow, measured directly off the
+ * live site (not guessed): a smoothed scroll value lags behind the real
+ * scroll position, and each column reads that lag through its own signed
+ * multiplier — alternating direction, decreasing magnitude column to column
+ * (measured ratios ≈ -1, +0.8, -0.6, +0.5). During fast scrolling the lag
+ * grows and each column drifts its own way; once scrolling settles, the lag
+ * decays to zero and every card relaxes back into its resting grid position.
+ * Four columns, two cards each, CMS-controlled (featured flags, else the
+ * first eight by order).
  */
 
-const YEAR = "2025";
-const PICKS = [
-  ALL_PROJECTS[0], // Relay
-  ALL_PROJECTS[4], // Hebron Hotels
-  ALL_PROJECTS[2], // ETLLM
-  ALL_PROJECTS[5], // Wayfarian
-  ALL_PROJECTS[1], // Aegis Matrix
-  ALL_PROJECTS[7], // Uncle Stan's
-];
+// checkerboard sizing: long (tall) / short (wide), inverted column to column
+// — col 0/2 run long-then-short, col 1/3 run short-then-long.
+const LONG = "3/4";
+const SHORT = "16/9";
+function aspectFor(col: number, row: number): string {
+  const longFirst = col % 2 === 0;
+  const long = row === 0 ? longFirst : !longFirst;
+  return long ? LONG : SHORT;
+}
 
-// column layout: [columnIndex, aspect, topOffsetPx]
-const SLOTS: [number, string, number][] = [
-  [0, "3/4", 0],
-  [1, "16/10", 140],
-  [2, "3/4", 60],
-  [0, "16/10", 90],
-  [1, "3/4", 120],
-  [2, "16/10", 80],
-];
+// signed multiplier per column, applied to the scroll lag (px)
+const COL_MULTIPLIER = [-1, 0.8, -0.6, 0.5];
+const LAG_SCALE = 0.22; // tunes the measured podium ratios to our card scale
+const DAMPING = 0.07; // how quickly the smoothed value chases the real one
+const FADE_SCALE = 60; // how much lag it takes to reach the fade floor
+const FADE_FLOOR = 0.35; // slide + fade combined: never fades below this
 
-// parallax speed per column — middle drifts against the outer two
-const COL_SPEED = [-0.06, 0.09, -0.045];
-
-function FlowCard({
-  project,
-  aspect,
-  topOffset,
-}: {
-  project: (typeof ALL_PROJECTS)[number];
-  aspect: string;
-  topOffset: number;
-}) {
-  const ref = useRef<HTMLAnchorElement>(null);
-  const [active, setActive] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => setActive(e.isIntersecting)),
-      { rootMargin: "-30% 0px -30% 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+function FlowCard({ project, aspect }: { project: ProjectDoc; aspect: string }) {
+  const category = project.tag.split("·")[1]?.trim() ?? project.tag;
 
   return (
     <Link
-      ref={ref}
       href={`/projects/${project.slug}`}
-      className="group block"
-      style={{ marginTop: topOffset }}
+      data-perch="FEATURED PROJECT"
+      className="group relative block w-full overflow-hidden bg-[#101013]"
+      style={{ aspectRatio: aspect }}
     >
       <div
-        className="w-full overflow-hidden bg-[#101013]"
-        style={{ aspectRatio: aspect }}
-      >
-        <div
-          className="h-full w-full bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-[1.045]"
-          style={{ backgroundImage: `url(${project.image})`, filter: active ? "none" : "saturate(0.8) brightness(0.85)" , transition: "filter .5s ease, transform .7s ease"}}
-        />
-      </div>
-      <div className="mt-3 flex items-baseline justify-between gap-4">
-        <h3
-          className="font-display text-xl font-bold uppercase tracking-[0.01em] transition-colors duration-400 md:text-2xl"
-          style={{ color: active ? "#f4f3ef" : "#5c5b57" }}
-        >
+        className="h-full w-full bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-[1.045]"
+        style={{ backgroundImage: `url(${project.image})` }}
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
+        style={{ background: "linear-gradient(to top, rgba(5,5,6,0.92) 0%, rgba(5,5,6,0.35) 55%, transparent 100%)" }}
+      />
+      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 md:p-5">
+        <h3 className="font-display text-lg font-bold uppercase leading-[1.02] tracking-[-0.01em] text-[#f4f3ef] md:text-2xl">
           {project.name}
         </h3>
-        <div className="text-right font-mono text-[9.5px] leading-snug tracking-[0.1em] text-[#5c5b57]">
-          {YEAR}
+        <div className="flex-none text-right font-mono text-[9.5px] leading-snug tracking-[0.1em] text-[#f4f3ef]/70">
+          {project.year}
           <br />
-          {project.tag.split("·")[1]?.trim() ?? project.tag}
+          {category}
         </div>
       </div>
     </Link>
@@ -92,46 +67,49 @@ function FlowCard({
 }
 
 export function FeaturedProjects() {
-  const sectionRef = useRef<HTMLElement>(null);
   const colRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const smoothedY = useRef(0);
+  const initialized = useRef(false);
 
-  // cross-flow: columns translate against scroll at different rates
+  // CMS-controlled selection: featured flags, else the first eight projects.
+  const all = useStudioStore((s) => s.config.projects);
+  const featured = all.filter((p) => p.featured);
+  const PICKS = (featured.length >= 8 ? featured : all).slice(0, 8);
+
   useEffect(() => {
     let raf = 0;
     const tick = () => {
-      const sec = sectionRef.current;
-      if (sec) {
-        const r = sec.getBoundingClientRect();
-        const vh = window.innerHeight;
-        const progress = (vh - r.top) / (vh + r.height); // 0 entering, 1 leaving
-        const centered = (progress - 0.5) * r.height;
-        colRefs.current.forEach((col, i) => {
-          if (col) col.style.transform = `translateY(${centered * COL_SPEED[i]}px)`;
-        });
+      const actualY = window.scrollY;
+      if (!initialized.current) {
+        smoothedY.current = actualY; // no lag on first paint
+        initialized.current = true;
+      } else {
+        smoothedY.current += (actualY - smoothedY.current) * DAMPING;
       }
+      const lag = (actualY - smoothedY.current) * LAG_SCALE;
+
+      colRefs.current.forEach((col, i) => {
+        if (!col) return;
+        const colLag = lag * COL_MULTIPLIER[i];
+        col.style.transform = `translateY(${colLag}px)`;
+        col.style.opacity = String(1 - Math.min(1 - FADE_FLOOR, Math.abs(colLag) / FADE_SCALE));
+      });
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const cols: { project: (typeof ALL_PROJECTS)[number]; aspect: string; top: number }[][] = [
-    [],
-    [],
-    [],
-  ];
+  const cols: { project: ProjectDoc; aspect: string }[][] = [[], [], [], []];
   PICKS.forEach((p, i) => {
-    const [c, aspect, top] = SLOTS[i];
-    cols[c].push({ project: p, aspect, top });
+    const col = i % 4;
+    const row = Math.floor(i / 4);
+    cols[col].push({ project: p, aspect: aspectFor(col, row) });
   });
 
   return (
-    // podium's work band stays near-black in both realms
-    <section
-      ref={sectionRef}
-      className="relative w-full overflow-hidden bg-[#050506] px-6 py-28 md:px-10 md:py-36"
-    >
-      <div className="mx-auto max-w-6xl">
+    <section className="relative w-full overflow-hidden bg-[#050506] px-4 py-28 md:px-6 md:py-36">
+      <div className="mx-auto max-w-[1800px]">
         <div className="flex items-baseline justify-between">
           <span className="font-mono text-[10px] tracking-[0.22em] text-[#5c5b57]">
             SELECTED WORK
@@ -144,17 +122,17 @@ export function FeaturedProjects() {
           </Link>
         </div>
 
-        <div className="mt-14 grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
           {cols.map((col, i) => (
             <div
               key={i}
               ref={(el) => {
                 colRefs.current[i] = el;
               }}
-              className="flex flex-col gap-14 will-change-transform"
+              className="flex flex-col gap-10 will-change-transform"
             >
-              {col.map(({ project, aspect, top }) => (
-                <FlowCard key={project.slug} project={project} aspect={aspect} topOffset={top} />
+              {col.map(({ project, aspect }) => (
+                <FlowCard key={project.slug} project={project} aspect={aspect} />
               ))}
             </div>
           ))}

@@ -1,10 +1,36 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { SiteNav } from "@/components/site-nav";
-import { CasePresentationView } from "@/components/case-presentation";
-import { getCasePresentation, PITCH_DECKS } from "@/lib/case-studies";
+import { PitchDeckPage as PitchDeckPageClient } from "./pitch-deck-page";
+import { SEED_PITCHES, seedBySlug } from "@/lib/content";
+import { jsonLdScript, projectJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 
 export function generateStaticParams() {
-  return PITCH_DECKS.map((slug) => ({ slug }));
+  return SEED_PITCHES.map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const seed = seedBySlug(slug);
+  if (!seed || !seed.pitch) return {};
+  const title = `${seed.name} Pitch Deck`;
+  const description = seed.pitch.tagline || seed.oneLiner;
+  return {
+    title,
+    description,
+    alternates: { canonical: `/business/pitch-decks/${slug}` },
+    openGraph: {
+      title,
+      description,
+      url: `/business/pitch-decks/${slug}`,
+      type: "article",
+      images: [{ url: seed.image, width: 1024, height: 704, alt: seed.name }],
+    },
+    twitter: { title, description, images: [seed.image] },
+  };
 }
 
 export default async function PitchDeckPage({
@@ -13,14 +39,23 @@ export default async function PitchDeckPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  if (!PITCH_DECKS.includes(slug)) notFound();
-  const data = getCasePresentation(slug);
-  if (!data) notFound();
+  const seed = seedBySlug(slug);
+  if (!seed || !seed.pitch) notFound();
 
   return (
-    <div className="min-h-screen">
-      <SiteNav />
-      <CasePresentationView data={data} />
-    </div>
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(projectJsonLd(seed))} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Pitch Decks", path: "/business/pitch-decks" },
+            { name: seed.name, path: `/business/pitch-decks/${slug}` },
+          ])
+        )}
+      />
+      <PitchDeckPageClient seed={seed} />
+    </>
   );
 }

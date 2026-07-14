@@ -19,9 +19,9 @@ const CHIPS = [
 
 export function AboutHero() {
   return (
-    <section className="relative min-h-screen w-full overflow-hidden px-6 pt-32 md:px-10 md:pt-40">
+    <section className="relative min-h-screen w-full overflow-hidden px-4 pt-32 md:px-6 md:pt-40">
       <VisitorTag className="anim-fade-up absolute right-6 top-24 hidden text-right md:block md:right-10 md:top-28" />
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-[1800px]">
         <div className="anim-fade-up">
           <p className="font-sans text-[15px] font-medium tracking-[0.04em] text-ink">
             POLYGLOT SOFTWARE &amp; AI SYSTEMS ENGINEER
@@ -31,19 +31,26 @@ export function AboutHero() {
           </p>
         </div>
 
-        {/* hierarchy per Daniel: both given names outlined on one line up
-            top, the brand name TARIWEI. huge and solid beneath them */}
-        <h1 className="mt-10 select-none font-display uppercase leading-[0.92]">
+        {/* hierarchy per Daniel: surname-first on the top line — BISINA,
+            outlined, then DANIEL solid in ink at the SAME size as BISINA
+            (Tariwei's weight, not its scale) so the line balances. The
+            brand name TARIWEI. stays huge and solid beneath. */}
+        <h1 data-perch="THE HEADLINE" className="mt-10 select-none font-display uppercase leading-[0.92]">
           <span
-            className="anim-fade-up block font-light text-transparent"
+            className="anim-fade-up block"
             style={{
               fontSize: "clamp(2.1rem, 6.5vw, 5.8rem)",
-              WebkitTextStroke: "1.5px var(--ink)",
               letterSpacing: "0.02em",
               animationDelay: "0.12s",
             }}
           >
-DANIEL BISINA
+            <span
+              className="font-light text-transparent"
+              style={{ WebkitTextStroke: "1.5px var(--ink)" }}
+            >
+              BISINA,
+            </span>{" "}
+            <span className="font-bold text-ink">DANIEL</span>
           </span>
           <span
             className="anim-fade-up block font-bold text-acc"

@@ -4,26 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
-import { ALL_PROJECTS } from "@/lib/projects";
+import { useStudioStore } from "@/lib/studio";
+import type { ProjectDoc } from "@/lib/content";
 
 /**
- * Business PROJECTS — the presentational view (podium/semler reference
- * language): every business-side project as a large editorial card that
- * opens its full case presentation. The raw, no-narrative view of all work
- * lives at /catalog instead.
+ * Business PROJECTS — the presentational view (podium/semler language): every
+ * business-side project as a large editorial card that opens its full case
+ * presentation. Reads the live Studio roster so adding, editing or removing a
+ * project in /studio is reflected here immediately. The raw, no-narrative index
+ * of all work lives at /catalog instead.
  */
 
-const BUSINESS = ALL_PROJECTS.filter((p) => p.side === "business");
-
-function CaseCard({
-  project,
-  index,
-  large,
-}: {
-  project: (typeof ALL_PROJECTS)[number];
-  index: number;
-  large: boolean;
-}) {
+function CaseCard({ project, index, large }: { project: ProjectDoc; index: number; large: boolean }) {
   const ref = useRef<HTMLAnchorElement>(null);
   const [seen, setSeen] = useState(false);
   useEffect(() => {
@@ -36,6 +28,8 @@ function CaseCard({
     io.observe(el);
     return () => io.disconnect();
   }, []);
+
+  const kicker = project.tag.split("·")[1]?.trim() ?? project.tag;
 
   return (
     <Link
@@ -56,7 +50,7 @@ function CaseCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10" />
         <div className="absolute inset-0 flex flex-col justify-between p-6">
           <span className="font-mono text-[10px] tracking-[0.22em] text-[#f4f3ef]/70">
-            {String(index + 1).padStart(2, "0")} · {project.tag.split("·")[1]?.trim()}
+            {String(index + 1).padStart(2, "0")} · {kicker}
           </span>
           <div className="flex items-center gap-2 self-start rounded-full bg-acc px-4 py-2 font-mono text-[9px] tracking-[0.2em] text-[#0b0b0c] opacity-0 transition-opacity group-hover:opacity-100">
             OPEN CASE →
@@ -67,20 +61,24 @@ function CaseCard({
         <h3 className="font-display text-2xl font-medium text-ink transition-colors group-hover:text-acc md:text-3xl">
           {project.name}
         </h3>
-        <span className="font-mono text-[10px] tracking-[0.14em] text-mut">2025</span>
+        <span className="font-mono text-[10px] tracking-[0.14em] text-mut">{project.year}</span>
       </div>
-      <p className="mt-1 max-w-md font-sans text-sm text-mut">{project.blurb}</p>
+      <p className="mt-1 max-w-md font-sans text-sm text-mut">{project.oneLiner}</p>
     </Link>
   );
 }
 
 export default function BusinessProjectsPage() {
+  // stable array from the selector; filter in render (see pitch-decks note)
+  const projects = useStudioStore((s) => s.config.projects);
+  const business = projects.filter((p) => p.side === "business");
+
   return (
     <div className="min-h-screen">
       <SiteNav />
-      <main className="mx-auto max-w-6xl px-6 pt-40 pb-24 md:px-10 md:pt-48">
+      <main className="mx-auto max-w-[1800px] px-4 pt-40 pb-24 md:px-6 md:pt-48">
         <p className="font-mono text-[11px] tracking-[0.24em] text-acc">
-          BUSINESS · {String(BUSINESS.length).padStart(2, "0")} CASE STUDIES
+          BUSINESS · {String(business.length).padStart(2, "0")} CASE STUDIES
         </p>
         <h1
           className="mt-5 font-display font-medium leading-[0.94] tracking-[-0.035em] text-ink"
@@ -97,7 +95,7 @@ export default function BusinessProjectsPage() {
         </p>
 
         <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2">
-          {BUSINESS.map((p, i) => (
+          {business.map((p, i) => (
             <CaseCard key={p.slug} project={p} index={i} large={i % 3 === 0} />
           ))}
         </div>

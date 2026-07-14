@@ -47,8 +47,8 @@ export function PathSelect() {
   const router = useRouter();
 
   return (
-    <section className="w-full px-6 pb-28 pt-28 md:px-10 md:pb-36 md:pt-40">
-      <div className="mx-auto max-w-6xl">
+    <section className="w-full px-4 pb-28 pt-28 md:px-6 md:pb-36 md:pt-40">
+      <div className="mx-auto max-w-[1800px]">
         <div className="text-center">
           <p className="anim-fade-up font-mono text-[11px] tracking-[0.24em] text-acc">
             THE CROSSROADS
