@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdConfigRow, setAdConfigRow } from "@/lib/db";
+import { isStudioAuthed } from "@/lib/studio-auth";
 
 /**
  * Server-authoritative override for the ad slot (StudioConfig.content.ad),
@@ -15,9 +16,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const need = process.env.STUDIO_ADMIN_KEY;
-  if (need && req.headers.get("x-studio-key") !== need)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!isStudioAuthed(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   let patch: Record<string, unknown>;
   try {
     patch = await req.json();

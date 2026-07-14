@@ -12,6 +12,12 @@ export function ClassicalPlayerControl() {
   const title = currentTrackTitle();
 
   useEffect(() => {
+    // syncs local state to classical-audio.ts's module-level playing flag —
+    // that module has no subscribe/event mechanism (useSyncExternalStore
+    // needs one), so a one-shot read on the mode transition is the sync
+    // point; every actual play/pause after this goes through the button's
+    // own toggleClassicalAudio() call, which sets `playing` directly.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: syncing to an external module without a subscribe API, not a cascading re-render
     if (audioMode === "classical") setPlaying(isClassicalPlaying());
   }, [audioMode]);
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+import { isStudioAuthed } from "@/lib/studio-auth";
 
 /**
  * Media upload for the Studio CMS. The editor POSTs a file (multipart) and
@@ -16,6 +17,7 @@ export const runtime = "nodejs";
 const MAX_BYTES = 100 * 1024 * 1024; // 100MB — covers short video reels
 
 export async function POST(req: Request) {
+  if (!isStudioAuthed(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;
   const key = process.env.CLOUDINARY_API_KEY;
   const secret = process.env.CLOUDINARY_API_SECRET;

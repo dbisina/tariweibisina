@@ -20,6 +20,10 @@ export default function Home() {
   // realm/audio are session-only (never persisted) — every visit walks
   // preloader -> realm+audio pick -> welcome flip -> home
   useEffect(() => {
+    // defensive reset: if realm is ever cleared after being set, the flow
+    // must restart at "not welcomed" rather than skip straight to the
+    // (now-stale) welcomed home page.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: resets derived UI-flow state when a prerequisite (realm) is cleared, not a cascading render
     if (!realm) setWelcomed(false);
   }, [realm]);
 

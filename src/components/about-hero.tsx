@@ -20,15 +20,26 @@ const CHIPS = [
 export function AboutHero() {
   return (
     <section className="relative min-h-screen w-full overflow-hidden px-4 pt-32 md:px-6 md:pt-40">
+      {/* soft depth behind the headline — flat mono text on an empty
+          background is what read as bland on narrow screens where there's
+          no other visual weight to balance it against */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-[30%] h-[60vh] w-[120vw] -translate-x-1/2 opacity-[0.16] md:opacity-[0.12]"
+        style={{ background: "radial-gradient(closest-side, var(--acc), transparent 70%)", filter: "blur(60px)" }}
+      />
       <VisitorTag className="anim-fade-up absolute right-6 top-24 hidden text-right md:block md:right-10 md:top-28" />
       <div className="mx-auto max-w-[1800px]">
-        <div className="anim-fade-up">
-          <p className="font-sans text-[15px] font-medium tracking-[0.04em] text-ink">
-            POLYGLOT SOFTWARE &amp; AI SYSTEMS ENGINEER
-          </p>
-          <p className="mt-1 font-mono text-[10.5px] tracking-[0.18em] text-mut">
-            GPU KERNELS · AI-NATIVE OPERATING SYSTEMS · PRODUCTION WEB &amp; MOBILE
-          </p>
+        <div className="anim-fade-up flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+          <div>
+            <p className="font-sans text-[15px] font-medium tracking-[0.04em] text-ink">
+              POLYGLOT SOFTWARE &amp; AI SYSTEMS ENGINEER
+            </p>
+            <p className="mt-1 font-mono text-[10.5px] tracking-[0.18em] text-mut">
+              GPU KERNELS · AI-NATIVE OPERATING SYSTEMS · PRODUCTION WEB &amp; MOBILE
+            </p>
+          </div>
+          <VisitorTag className="md:hidden" />
         </div>
 
         {/* hierarchy per Daniel: surname-first on the top line — BISINA,
@@ -88,7 +99,7 @@ export function AboutHero() {
             stack. Founder of <span className="font-medium text-ink">DeusX Technologies</span>,
             building AI-native systems from the metal up.
           </p>
-          <Logo variant="shimmer" className="h-10 w-auto text-ink md:h-14" />
+          <Logo variant="shimmer" className="h-12 w-auto text-ink md:h-14" />
         </div>
       </div>
     </section>

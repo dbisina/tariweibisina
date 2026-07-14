@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getStudioConfigRow, setStudioConfigRow } from "@/lib/db";
+import { isStudioAuthed } from "@/lib/studio-auth";
 
 /**
  * The whole Studio CMS document, published as one unit from /studio's
@@ -16,9 +17,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const need = process.env.STUDIO_ADMIN_KEY;
-  if (need && req.headers.get("x-studio-key") !== need)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!isStudioAuthed(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   let config: Record<string, unknown>;
   try {
     config = await req.json();

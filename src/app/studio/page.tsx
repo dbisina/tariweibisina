@@ -14,6 +14,7 @@ import {
   SettingsPanel,
 } from "./panels";
 import { ProjectsPanel } from "./projects-editor";
+import { ResearchPanel } from "./research-editor";
 
 /**
  * The Studio — Daniel's CMS + analytics console. Everything editable on the
@@ -22,18 +23,19 @@ import { ProjectsPanel } from "./projects-editor";
  * the home hero and ad, and the Overview/Leads panels surface the client-side
  * analytics captured by <StudioApply>.
  *
- * The passcode gate is a soft, presentation-layer lock only — a client-only
- * site can't hold a real secret. Wire it to real auth (or an API route with a
- * server-checked session) before this manages a production backend.
+ * The gate is real, server-checked auth (see lib/studio-auth.ts + POST
+ * /api/studio-auth): the password never reaches the client, and the session
+ * is an httpOnly cookie, not anything readable from the JS bundle. `unlocked`
+ * in the store is just a client-side "don't re-show the form" cache of that
+ * server session, verified fresh on every mount below.
  */
-const OWNER_KEY = "tariwei";
-
 const SECTIONS = [
   { id: "overview", label: "Overview", Panel: OverviewPanel },
   { id: "appearance", label: "Appearance", Panel: AppearancePanel },
   { id: "content", label: "Content", Panel: ContentPanel },
   { id: "nav", label: "Navigation", Panel: NavPanel },
   { id: "projects", label: "Projects", Panel: ProjectsPanel },
+  { id: "research", label: "Research", Panel: ResearchPanel },
   { id: "leads", label: "Leads", Panel: LeadsPanel },
   { id: "settings", label: "Settings", Panel: SettingsPanel },
 ] as const;
@@ -41,10 +43,13 @@ const SECTIONS = [
 export default function StudioPage() {
   const unlocked = useStudioStore((s) => s.unlocked);
   const unlock = useStudioStore((s) => s.unlock);
+  const lock = useStudioStore((s) => s.lock);
   const publish = useStudioStore((s) => s.publish);
   const publishState = useStudioStore((s) => s.publishState);
   const publishedAt = useStudioStore((s) => s.publishedAt);
   const [mounted, setMounted] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [active, setActive] = useState<(typeof SECTIONS)[number]["id"]>("overview");
   const [key, setKey] = useState("");
   const [err, setErr] = useState(false);
@@ -53,16 +58,41 @@ export default function StudioPage() {
   // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: this is the standard "detect client mount" pattern, no external system to synchronize with
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="min-h-screen bg-[color:var(--bg)]" />;
+  // real check, every mount: a stale/cleared server session (e.g. cookie
+  // expired, or logged out on another device) must not trust the locally
+  // cached `unlocked` flag on its own.
+  useEffect(() => {
+    fetch("/api/studio-auth")
+      .then((r) => r.json())
+      .then((d) => (d?.authed ? unlock() : lock())) // lock() is a no-op-safe reset when there's nothing to clear
+      .catch(() => {})
+      .finally(() => setCheckingSession(false));
+  }, [unlock, lock]);
+
+  if (!mounted || checkingSession) return <div className="min-h-screen bg-[color:var(--bg)]" />;
 
   if (!unlocked) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[color:var(--bg)] px-6">
         <form
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            if (key.trim() === OWNER_KEY) unlock();
-            else setErr(true);
+            if (submitting) return;
+            setSubmitting(true);
+            setErr(false);
+            try {
+              const res = await fetch("/api/studio-auth", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ key }),
+              });
+              if (res.ok) unlock();
+              else setErr(true);
+            } catch {
+              setErr(true);
+            } finally {
+              setSubmitting(false);
+            }
           }}
           className="w-full max-w-sm text-center"
         >
@@ -82,8 +112,8 @@ export default function StudioPage() {
           />
           {err && <p className="mt-2 font-mono text-[11px] text-red-400">Wrong key.</p>}
           <div className="mt-4 flex justify-center">
-            <Btn variant="solid" type="submit">
-              Enter studio
+            <Btn variant="solid" type="submit" disabled={submitting}>
+              {submitting ? "Checking…" : "Enter studio"}
             </Btn>
           </div>
           <Link href="/" className="mt-6 inline-block font-mono text-[10px] tracking-[0.16em] text-mut hover:text-ink">

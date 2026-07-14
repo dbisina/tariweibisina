@@ -192,11 +192,11 @@ export function RealmSelect() {
   const firstAudioRef = useRef<HTMLButtonElement>(null);
   const blendTarget = useRef(0.5);
   const chosenAt = useRef(0);
-  const lastPicked = useRef<Side>("dark");
+  const [lastPicked, setLastPicked] = useState<Side>("dark");
   const [picked, setPicked] = useState<Side | null>(null);
   const returning = useSiteStore((s) => s.hasEnteredBefore);
   // Keeps the heading/color stable while the chosen screen fades out after "Choose again"
-  const shown = picked ?? lastPicked.current;
+  const shown = picked ?? lastPicked;
 
   /* ---- WebGL background ---- */
   useEffect(() => {
@@ -294,7 +294,7 @@ export function RealmSelect() {
   // Choosing a realm sweeps the seam off-screen, then asks for the audio mode.
   const choose = useCallback((side: Side) => {
     setPicked(side);
-    lastPicked.current = side;
+    setLastPicked(side);
     chosenAt.current = performance.now();
     blendTarget.current = side === "light" ? 0 : 1;
   }, []);

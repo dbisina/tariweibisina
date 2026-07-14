@@ -25,8 +25,6 @@ const PANELS_PER_ROW = 12;
 const ROWS = 3;
 const WHEEL_ROT = 0.005;
 const WHEEL_KICK = 0.004;
-const BEND_H_FACTOR = 0.9; // scaled for our velocity units
-const BEND_V_FACTOR = 0.8;
 const MORPH_S = 1.1;
 
 interface Tier {
@@ -201,7 +199,10 @@ function Panels({
           baseAngle: ((i + row * 0.5) / PANELS_PER_ROW) * Math.PI * 2,
           ringY: (row - (ROWS - 1) / 2) * (t.panelH * 1.25),
           spiralShift: (i / PANELS_PER_ROW - 0.5) * t.rowSpacing,
-          phase: Math.random() * Math.PI * 2,
+          // deterministic, not Math.random() — this must stay stable across
+          // re-renders (only cosmetic per-panel variety, golden-angle spread
+          // looks as random as Math.random() ever did)
+          phase: (k * 2.399963) % (Math.PI * 2),
         };
       }),
     [total, t]
@@ -239,6 +240,13 @@ function Panels({
 
   const born = useRef<number | null>(null);
 
+  // r3f's useFrame runs its callback on every animation frame OUTSIDE
+  // React's render pass (like a rAF loop, not a render) — imperatively
+  // mutating a ref's `.current` there is the library's own documented
+  // pattern for perf (it's how you animate without triggering a re-render
+  // every frame). The new React Compiler lint rules don't know useFrame
+  // isn't "render" and flag `shared.current` writes as if they were.
+  /* eslint-disable react-hooks/immutability -- see comment above: idiomatic r3f useFrame, not render */
   useFrame(({ clock }, delta) => {
     const s = shared.current;
     if (born.current === null) born.current = clock.elapsedTime;
@@ -298,6 +306,7 @@ function Panels({
     camera.position.set(0, 0, t.cameraZ);
     camera.lookAt(0, 0, 0);
   });
+  /* eslint-enable react-hooks/immutability */
 
   return (
     <>

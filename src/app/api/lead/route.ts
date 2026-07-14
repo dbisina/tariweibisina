@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { structureBrief } from "@/lib/ai/structure";
 import { notifyLead } from "@/lib/notify";
 import { saveLead, listLeads } from "@/lib/db";
+import { isStudioAuthed } from "@/lib/studio-auth";
 import type { Lead, LeadSource, RawLead } from "@/lib/leads";
 
 /**
@@ -45,9 +46,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const need = process.env.STUDIO_ADMIN_KEY;
-  if (need && req.headers.get("x-studio-key") !== need)
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!isStudioAuthed(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const leads = await listLeads();
   return NextResponse.json({ leads });
 }

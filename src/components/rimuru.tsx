@@ -172,6 +172,7 @@ interface Phys {
   lastSay: number;
   lastScrollNote: number;
   lastBottomNote: number;
+  lastHintAt: number;
   perchSaidAt: Map<Element, number>;
   hoverEl: Element | null;
   scrollPrev: number;
@@ -206,6 +207,7 @@ export function Rimuru() {
   const [open, setOpen] = useState(false); // ambient chat expanded
   const [live, setLive] = useState(false); // voice/camera call
   const [parked, setParked] = useState(false); // manual standby toggle
+  const [parkHint, setParkHint] = useState(false); // periodic "click to park" callout
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
@@ -434,6 +436,7 @@ export function Rimuru() {
       lastSay: 0,
       lastScrollNote: 0,
       lastBottomNote: 0,
+      lastHintAt: 0,
       perchSaidAt: new Map(),
       hoverEl: null,
       scrollPrev: 0,
@@ -453,19 +456,9 @@ export function Rimuru() {
     const floorY = () => phys.vh - FLOOR_MARGIN;
     const wantDocked = () => parkedRef.current || openRef.current || liveRef.current;
 
-    // parked spot = perched ON TOP of the chat bar (right end of the pill,
-    // clear of the mic/send buttons), not floor-level beside it — so on
-    // narrow viewports where the bar spans nearly the full width he still
-    // lands on it instead of drifting off past its edge.
-    const dockX = () => {
-      const bar = document.querySelector('[data-perch="THE CHAT BAR"]') as HTMLElement | null;
-      const r = bar?.getBoundingClientRect();
-      if (!r || r.width < 10) return phys.vw - SIZE * 0.85;
-      const lo = r.left + SIZE * 0.55;
-      const hi = r.right - SIZE * 0.55;
-      if (lo >= hi) return (r.left + r.right) / 2;
-      return Math.min(hi, Math.max(lo, r.left + r.width * 0.74));
-    };
+    // parked spot = the screen edge, floor-level — clear of the chat bar
+    // and everything in it.
+    const dockX = () => phys.vw - SIZE * 0.6;
 
     const after = (ms: number, fn: () => void) => {
       const t = setTimeout(() => {
@@ -567,8 +560,6 @@ export function Rimuru() {
       g.setAttribute("transform", "translate(0 48) scale(1 0.12) translate(0 -48)");
       after(90, () => g && g.removeAttribute("transform"));
     };
-    const blinkTwice = () => { blink(); after(240, blink); };
-
     // ── movement ─────────────────────────────────────────────────
     const hop = (vy: number, vx: number) => {
       phys.vy = vy; phys.vx = vx;
@@ -935,6 +926,15 @@ export function Rimuru() {
         showEl(zzzRef, true);
       }
 
+      // discoverability nudge: catch him mid-roam near screen-center, point
+      // back at the park button — spaced way out so it never nags.
+      if (!wantDocked() && phys.grounded && !phys.dragging && !phys.traveling && !phys.sleeping &&
+          Math.abs(phys.x - phys.vw / 2) < 70 && now - phys.lastHintAt > 40000) {
+        phys.lastHintAt = now;
+        setParkHint(true);
+        after(4500, () => setParkHint(false));
+      }
+
       setExprDom(effExpr());
 
       phys.facingC += (phys.facingT - phys.facingC) * Math.min(1, dt * 9);
@@ -1260,11 +1260,25 @@ export function Rimuru() {
       <button
         onClick={() => setParked((p) => !p)}
         aria-label={parked ? "Unpark Rimuru" : "Park Rimuru"}
-        className="pointer-events-auto fixed bottom-4 left-4 z-[430] rounded-full border border-ln bg-bg/85 px-4 py-2 font-mono text-[10px] tracking-[0.16em] text-mut backdrop-blur-xl transition-colors hover:border-acc hover:text-acc"
+        className="pointer-events-auto fixed right-3 top-[4.75rem] z-[430] rounded-full border border-ln bg-bg/85 px-4 py-2 font-mono text-[10px] tracking-[0.16em] text-mut backdrop-blur-xl transition-colors hover:border-acc hover:text-acc sm:top-20"
         style={{ boxShadow: "0 10px 30px rgba(0,0,0,0.3)" }}
       >
         {parked ? "UNPARK RIMURU" : "PARK RIMURU"}
       </button>
+
+      {/* ── periodic "click here to park" callout, pointing at the button ── */}
+      <div
+        aria-hidden={!parkHint}
+        className="pointer-events-none fixed right-3 top-[7.7rem] z-[429] max-w-[190px] rounded-2xl border border-ln bg-bg/90 px-3.5 py-2.5 font-sans text-[11.5px] leading-snug text-ink backdrop-blur-xl transition-all duration-300 sm:top-[8.2rem]"
+        style={{
+          boxShadow: "0 14px 40px rgba(0,0,0,0.35)",
+          opacity: parkHint ? 1 : 0,
+          transform: parkHint ? "translateY(0)" : "translateY(-6px)",
+        }}
+      >
+        <span className="absolute -top-1.5 right-6 h-3 w-3 rotate-45 border-l border-t border-ln bg-bg" />
+        Want me still? Click here to park me.
+      </div>
 
       {/* ── ambient docked bar (Gemini-style, non-blocking) ────────── */}
       <div data-perch="THE CHAT BAR" className="pointer-events-none fixed inset-x-0 bottom-0 z-[420] flex justify-center px-3 pb-4">

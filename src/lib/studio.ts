@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Realm } from "@/lib/store";
 import { SEED_PROJECTS, type ProjectDoc } from "@/lib/content";
+import { RESEARCH_ENTRIES, type ResearchEntry } from "@/lib/research";
 import type { Lead } from "@/lib/leads";
 
 export type { Lead } from "@/lib/leads";
@@ -69,6 +70,7 @@ export interface StudioConfig {
   };
   nav: NavItem[];
   projects: ProjectDoc[];
+  research: ResearchEntry[];
   ai: { provider: "auto" | "gemini" | "local" };
   /** Sent as `x-studio-key` on GET /api/lead. Only needed if the server has
    * STUDIO_ADMIN_KEY set; otherwise the endpoint is open. */
@@ -127,6 +129,10 @@ function defaultProjects(): ProjectDoc[] {
   return JSON.parse(JSON.stringify(SEED_PROJECTS)) as ProjectDoc[];
 }
 
+function defaultResearch(): ResearchEntry[] {
+  return JSON.parse(JSON.stringify(RESEARCH_ENTRIES)) as ResearchEntry[];
+}
+
 export function defaultConfig(): StudioConfig {
   return {
     appearance: {
@@ -150,6 +156,7 @@ export function defaultConfig(): StudioConfig {
     },
     nav: DEFAULT_NAV,
     projects: defaultProjects(),
+    research: defaultResearch(),
     ai: { provider: "auto" },
     adminKey: "",
   };
@@ -176,6 +183,7 @@ interface StudioState {
   setConfig: (fn: (c: StudioConfig) => StudioConfig) => void;
   resetConfig: () => void;
   resetProjects: () => void;
+  resetResearch: () => void;
   logView: (path: string, ref: string) => void;
   logLead: (lead: Omit<Lead, "id" | "ts">) => void;
   clearAnalytics: () => void;
@@ -197,6 +205,8 @@ export const useStudioStore = create<StudioState>()(
       resetConfig: () => set({ config: defaultConfig() }),
       resetProjects: () =>
         set((s) => ({ config: { ...s.config, projects: defaultProjects() } })),
+      resetResearch: () =>
+        set((s) => ({ config: { ...s.config, research: defaultResearch() } })),
       logView: (path, ref) =>
         set((s) => {
           const last = s.views[s.views.length - 1];
@@ -211,7 +221,12 @@ export const useStudioStore = create<StudioState>()(
         })),
       clearAnalytics: () => set({ views: [], leads: [] }),
       unlock: () => set({ unlocked: true }),
-      lock: () => set({ unlocked: false }),
+      // clears the real server session (httpOnly cookie) as well as the
+      // local "don't re-show the gate" flag — see lib/studio-auth.ts
+      lock: () => {
+        set({ unlocked: false });
+        fetch("/api/studio-auth", { method: "DELETE" }).catch(() => {});
+      },
       /** Pushes the whole current config to Postgres (POST /api/studio-config)
        * in one write — the explicit "Publish" action, not a live/debounced
        * autosave. This is what makes a Studio edit visible on every device,

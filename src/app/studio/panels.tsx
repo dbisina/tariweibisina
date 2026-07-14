@@ -337,6 +337,10 @@ export function LeadsPanel() {
   }, [adminKey]);
 
   useEffect(() => {
+    // fetch-on-mount: refresh() starts with a synchronous setFetching(true)
+    // before its await, which is what trips this rule — standard loading-flag
+    // pattern, not a cascading render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: fetch-on-mount loading flag, not a cascading render
     refresh();
   }, [refresh]);
 

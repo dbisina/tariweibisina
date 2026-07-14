@@ -1,7 +1,6 @@
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
-import { RESEARCH_ENTRIES } from "@/lib/research";
-import { ResearchCard } from "./research-card";
+import { ResearchList } from "./research-list";
 
 /**
  * Research list — alternating cards, whole card clickable to its own
@@ -21,11 +20,7 @@ export default function ResearchPage() {
           systems.
         </p>
 
-        <div className="mt-16 border-b border-ln">
-          {RESEARCH_ENTRIES.map((entry, i) => (
-            <ResearchCard key={entry.slug} entry={entry} index={i} />
-          ))}
-        </div>
+        <ResearchList />
       </main>
       <SiteFooter />
     </div>

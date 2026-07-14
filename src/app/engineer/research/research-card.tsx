@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import type { RESEARCH_ENTRIES } from "@/lib/research";
+import type { ResearchEntry } from "@/lib/research";
 
 /** On scroll into view the image reveals first, the text follows a beat
  * later — even rows: image left, details right; odd rows: inverted. */
@@ -10,7 +10,7 @@ export function ResearchCard({
   entry,
   index,
 }: {
-  entry: (typeof RESEARCH_ENTRIES)[number];
+  entry: ResearchEntry;
   index: number;
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
