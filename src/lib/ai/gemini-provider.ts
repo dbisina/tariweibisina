@@ -1,6 +1,8 @@
 import type { ChatAction, ChatMessage, ChatProvider, ChatReply } from "./types";
 import { systemPrompt } from "./knowledge";
+import { seedBySlug } from "@/lib/content";
 import { nextGeminiKey, poolSize, reportGeminiKeyError } from "./key-pool";
+import { TOOLS, executeTool, type FunctionCall } from "./tools";
 
 /**
  * Gemini adapter. Uses the REST generateContent endpoint (works without the
@@ -11,39 +13,71 @@ import { nextGeminiKey, poolSize, reportGeminiKeyError } from "./key-pool";
  *
  * Keys come from the round-robin pool (key-pool.ts) so a single 429/5xx
  * fails over to the next configured key instead of surfacing an error.
+ *
+ * Agentic tools: get_project_details (real case-study + GitHub repo content,
+ * fetched on demand — see github-knowledge.ts) and show_project (a real
+ * navigation action, not just words) are declared below and executed
+ * server-side in a request/response loop, same shape the Live API uses
+ * (see live-token/route.ts) so both surfaces share one tool contract.
  */
 const MODEL = "gemini-3.5-flash";
+const MAX_TOOL_ROUNDS = 3;
 
-async function callGemini(apiKey: string, messages: ChatMessage[]): Promise<string> {
+interface GenReply {
+  text: string;
+  shownSlugs: string[];
+}
+
+async function callGemini(apiKey: string, messages: ChatMessage[]): Promise<GenReply> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
-  const contents = messages
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Gemini's content/part shape isn't worth a local type for a request body we only build and serialize
+  const contents: any[] = messages
     .filter((m) => m.role !== "system")
     .map((m) => ({
       role: m.role === "assistant" ? "model" : "user",
       parts: [{ text: m.content }],
     }));
 
-  const body = {
-    systemInstruction: { parts: [{ text: systemPrompt() }] },
-    contents,
-    generationConfig: { temperature: 0.6, maxOutputTokens: 400 },
-  };
+  const shownSlugs: string[] = [];
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const detail = await res.text();
-    const err = new Error(`Gemini ${res.status}: ${detail}`);
-    (err as Error & { status?: number }).status = res.status;
-    throw err;
+  for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+    const body = {
+      systemInstruction: { parts: [{ text: systemPrompt() }] },
+      contents,
+      tools: TOOLS,
+      generationConfig: { temperature: 0.6, maxOutputTokens: 500 },
+    };
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const detail = await res.text();
+      const err = new Error(`Gemini ${res.status}: ${detail}`);
+      (err as Error & { status?: number }).status = res.status;
+      throw err;
+    }
+    const data = await res.json();
+    const parts: { text?: string; functionCall?: FunctionCall }[] = data?.candidates?.[0]?.content?.parts ?? [];
+    const calls = parts.filter((p) => p.functionCall).map((p) => p.functionCall!);
+
+    if (!calls.length) {
+      return { text: parts.map((p) => p.text ?? "").join(""), shownSlugs };
+    }
+
+    contents.push({ role: "model", parts });
+    const responseParts = [];
+    for (const call of calls) {
+      const { response, shownSlug } = await executeTool(call);
+      if (shownSlug) shownSlugs.push(shownSlug);
+      responseParts.push({ functionResponse: { name: call.name, response } });
+    }
+    contents.push({ role: "user", parts: responseParts });
   }
-  const data = await res.json();
-  return (
-    data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? ""
-  );
+
+  return { text: "That took more steps than expected — try asking again.", shownSlugs };
 }
 
 export class GeminiProvider implements ChatProvider {
@@ -58,8 +92,8 @@ export class GeminiProvider implements ChatProvider {
       const key = this.apiKey ?? nextGeminiKey();
       if (!key) break;
       try {
-        const raw = await callGemini(key, messages);
-        return parseActions(raw);
+        const { text: raw, shownSlugs } = await callGemini(key, messages);
+        return parseActions(raw, shownSlugs);
       } catch (e) {
         lastErr = e;
         const status = (e as Error & { status?: number }).status;
@@ -75,8 +109,10 @@ export class GeminiProvider implements ChatProvider {
 }
 
 /** The system prompt asks the model to end with "ACTIONS: [label](path), …".
- * Pull those into real chips and strip them from the visible text. */
-function parseActions(raw: string): ChatReply {
+ * Pull those into real chips and strip them from the visible text, then
+ * layer in real show_project navigations the model actually invoked (deduped
+ * against the text-convention ones, capped at 3 total). */
+function parseActions(raw: string, shownSlugs: string[]): ChatReply {
   const actions: ChatAction[] = [];
   const m = raw.match(/ACTIONS:\s*(.+)\s*$/i);
   let text = raw;
@@ -89,6 +125,13 @@ function parseActions(raw: string): ChatReply {
       if (target.startsWith("/")) actions.push({ label: a[1].trim(), path: target });
       else if (target.startsWith("http")) actions.push({ label: a[1].trim(), href: target });
     }
+  }
+  for (const slug of shownSlugs) {
+    if (actions.length >= 3) break;
+    const path = `/projects/${slug}`;
+    if (actions.some((a) => a.path === path)) continue;
+    const p = seedBySlug(slug);
+    actions.push({ label: p ? `Open ${p.name}` : "Open project", path });
   }
   return { text: text || raw, actions: actions.length ? actions : undefined, provider: "gemini" };
 }

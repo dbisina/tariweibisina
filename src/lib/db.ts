@@ -194,6 +194,68 @@ export async function getStudioConfigRow(): Promise<Record<string, unknown> | nu
   }
 }
 
+// ── Repo knowledge packs ("graphify" — see lib/ai/repo-indexer.ts) ─────────
+
+export interface RepoDoc {
+  title: string;
+  content: string;
+}
+
+export interface RepoIndexRow {
+  slug: string;
+  repoUrl: string;
+  status: "pending" | "indexing" | "ready" | "error";
+  error: string | null;
+  docs: RepoDoc[];
+  updatedTs: number;
+}
+
+export async function getRepoIndexRow(slug: string): Promise<RepoIndexRow | null> {
+  const prisma = getClient();
+  if (!prisma) return null;
+  try {
+    const row = await prisma.repoIndex.findUnique({ where: { id: slug } });
+    if (!row) return null;
+    return {
+      slug: row.id,
+      repoUrl: row.repoUrl,
+      status: row.status as RepoIndexRow["status"],
+      error: row.error ?? null,
+      docs: (row.docs as unknown as RepoDoc[]) ?? [],
+      updatedTs: Number(row.updatedTs),
+    };
+  } catch (e) {
+    console.error("db: getRepoIndexRow failed:", e);
+    return null;
+  }
+}
+
+export async function setRepoIndexRow(
+  slug: string,
+  patch: { repoUrl: string; status: RepoIndexRow["status"]; error?: string | null; docs?: RepoDoc[] }
+): Promise<boolean> {
+  const prisma = getClient();
+  if (!prisma) return false;
+  try {
+    const data = {
+      repoUrl: patch.repoUrl,
+      status: patch.status,
+      error: patch.error ?? null,
+      docs: (patch.docs ?? []) as unknown as Prisma.InputJsonValue,
+      updatedTs: BigInt(Date.now()),
+    };
+    await prisma.repoIndex.upsert({
+      where: { id: slug },
+      create: { id: slug, ...data },
+      update: data,
+    });
+    return true;
+  } catch (e) {
+    console.error("db: setRepoIndexRow failed:", e);
+    return false;
+  }
+}
+
 /** Full replace, not a patch — Publish always pushes the entire current
  * config, matching the "explicit publish" model (no debounced/partial
  * writes racing each other from multiple open Studio tabs). */

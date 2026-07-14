@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useStudioStore } from "@/lib/studio";
 import {
   BLOCK_TYPES,
@@ -151,6 +151,88 @@ function MediaUpload({ onDone }: { onDone: (url: string) => void }) {
       />
       <Btn onClick={() => ref.current?.click()}>{busy ? "Uploading…" : "Upload"}</Btn>
       {err && <span className="mt-1 max-w-[170px] text-right font-mono text-[9px] text-red-400">{err}</span>}
+    </div>
+  );
+}
+
+/** Graphify — kick off a deep repo index (README, file tree, LLM-written
+ * architecture/module docs) and watch its status. The pack lands in
+ * Postgres and Rimuru reads it via the get_repo_doc tool. */
+function GraphifyControl({ slug, repoUrl }: { slug: string; repoUrl: string | null }) {
+  const [status, setStatus] = useState<"none" | "pending" | "indexing" | "ready" | "error">("none");
+  const [detail, setDetail] = useState<string>("");
+
+  const check = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/repo-index?slug=${encodeURIComponent(slug)}`);
+      const d = await res.json();
+      if (!res.ok) return;
+      setStatus(d.status ?? "none");
+      if (d.status === "ready") {
+        setDetail(`${d.docTitles?.length ?? 0} docs · ${d.updatedTs ? new Date(d.updatedTs).toLocaleString() : ""}`);
+      } else if (d.status === "error") {
+        setDetail(d.error ?? "failed");
+      } else {
+        setDetail("");
+      }
+    } catch {
+      /* status stays as-is; next poll retries */
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    // fetch-on-mount status check — every setState in check() happens after
+    // an await, not synchronously; same pattern as panels.tsx's refresh().
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: async fetch-on-mount, not a cascading render
+    check();
+  }, [check]);
+
+  useEffect(() => {
+    if (status !== "indexing" && status !== "pending") return;
+    const t = setInterval(check, 3000);
+    return () => clearInterval(t);
+  }, [status, check]);
+
+  const start = async () => {
+    if (!repoUrl) return;
+    setStatus("indexing");
+    setDetail("");
+    try {
+      const res = await fetch("/api/repo-index", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, repoUrl }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setStatus("error");
+        setDetail(d.error ?? "couldn't start");
+      }
+    } catch {
+      setStatus("error");
+      setDetail("couldn't start");
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-ln px-3 py-2.5">
+      <div className="min-w-0">
+        <span className="font-sans text-[13px] text-ink">Repo knowledge (graphify)</span>
+        <p className="truncate font-mono text-[10px] text-mut">
+          {!repoUrl
+            ? "Set a repo URL first"
+            : status === "indexing" || status === "pending"
+              ? "Indexing — reading the tree, manifests and writing docs…"
+              : status === "ready"
+                ? `Ready · ${detail}`
+                : status === "error"
+                  ? `Failed · ${detail}`
+                  : "Not indexed yet — Rimuru only knows the case study"}
+        </p>
+      </div>
+      <Btn onClick={start} disabled={!repoUrl || status === "indexing" || status === "pending"}>
+        {status === "indexing" || status === "pending" ? "Indexing…" : status === "ready" ? "Re-index" : "Graphify"}
+      </Btn>
     </div>
   );
 }
@@ -411,6 +493,9 @@ export function ProjectsPanel() {
             <Field label="Live URL" hint="blank = none">
               <TextInput value={p.liveUrl ?? ""} spellCheck={false} onChange={(e) => patch(p.slug, { liveUrl: e.target.value || null })} />
             </Field>
+            <Field label="Repo URL" hint="github.com/owner/repo — Rimuru reads the README + file tree to answer real questions">
+              <TextInput value={p.repoUrl ?? ""} spellCheck={false} onChange={(e) => patch(p.slug, { repoUrl: e.target.value || null })} />
+            </Field>
             <div className="sm:col-span-2">
               <Field label="One-liner">
                 <TextInput value={p.oneLiner} onChange={(e) => patch(p.slug, { oneLiner: e.target.value })} />
@@ -425,6 +510,9 @@ export function ProjectsPanel() {
           </div>
           <div className="mt-4">
             <Toggle checked={p.featured} onChange={(v) => patch(p.slug, { featured: v })} label="Featured on home" />
+          </div>
+          <div className="mt-4">
+            <GraphifyControl slug={p.slug} repoUrl={p.repoUrl} />
           </div>
         </Card>
 

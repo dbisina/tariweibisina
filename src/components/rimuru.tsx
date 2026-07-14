@@ -98,6 +98,41 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// ── PCM16 <-> base64 helpers for the Gemini Live API's raw audio frames ──
+// (16-bit signed little-endian PCM; 16kHz mic input, 24kHz model output —
+// https://ai.google.dev/gemini-api/docs/live-api/get-started-websocket)
+function floatTo16BitPCM(input: Float32Array): Int16Array {
+  const out = new Int16Array(input.length);
+  for (let i = 0; i < input.length; i++) {
+    const s = Math.max(-1, Math.min(1, input[i]));
+    out[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+  }
+  return out;
+}
+
+function downsampleTo16k(input: Float32Array, inputRate: number): Float32Array {
+  if (inputRate === 16000) return input;
+  const ratio = inputRate / 16000;
+  const outLength = Math.floor(input.length / ratio);
+  const out = new Float32Array(outLength);
+  for (let i = 0; i < outLength; i++) out[i] = input[Math.floor(i * ratio)];
+  return out;
+}
+
+function base64FromInt16(i16: Int16Array): string {
+  const bytes = new Uint8Array(i16.buffer, i16.byteOffset, i16.byteLength);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+function int16FromBase64(b64: string): Int16Array {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Int16Array(bytes.buffer);
+}
+
 /** friendly label for a landed/hovered element: its explicit data-perch tag,
  * or a trimmed snippet of its own text — so he can perch on (and talk about)
  * anything with real content, not just the elements we hand-tagged. */
@@ -211,12 +246,27 @@ export function Rimuru() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const [liveMuted, setLiveMuted] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([GREETING]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const recRef = useRef<SpeechRec | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // ── Gemini Live API (real-time voice call) ────────────────────────
+  const liveWsRef = useRef<WebSocket | null>(null);
+  const liveAudioCtxRef = useRef<AudioContext | null>(null);
+  const livePlayCursorRef = useRef(0); // AudioContext.currentTime cursor for gapless queued playback
+  const liveMutedRef = useRef(false);
+  const liveMicNodesRef = useRef<{
+    source: MediaStreamAudioSourceNode;
+    processor: ScriptProcessorNode;
+    silentGain: GainNode;
+  } | null>(null);
+  const liveInBufferRef = useRef(""); // accumulating input transcript for the current user turn
+  const liveOutBufferRef = useRef(""); // accumulating output transcript for the current model turn
+  const liveActiveRoleRef = useRef<"user" | "assistant" | null>(null); // which msg bubble is still being appended to
 
   // ── physics DOM refs ─────────────────────────────────────────────
   const slimeRef = useRef<HTMLDivElement>(null);
@@ -258,17 +308,8 @@ export function Rimuru() {
   }, [msgs, open]);
 
   // ── chat ─────────────────────────────────────────────────────────
-  const speak = useCallback((text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const u = new SpeechSynthesisUtterance(text.replace(/[↗•·]/g, ""));
-    u.rate = 1.04;
-    u.pitch = 1.15; // light, slime-ish
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  }, []);
-
   const send = useCallback(
-    async (text: string, voiced = false) => {
+    async (text: string) => {
       const q = text.trim();
       if (!q || busy) return;
       setInput("");
@@ -283,7 +324,6 @@ export function Rimuru() {
         });
         const data = await res.json();
         setMsgs((m) => [...m, { role: "assistant", text: data.text, actions: data.actions }]);
-        if (voiced) speak(data.text);
       } catch {
         setMsgs((m) => [
           ...m,
@@ -293,7 +333,7 @@ export function Rimuru() {
         setBusy(false);
       }
     },
-    [aiPref, busy, speak]
+    [aiPref, busy]
   );
 
   const openChat = useCallback(() => {
@@ -301,31 +341,30 @@ export function Rimuru() {
     setOpen(true);
   }, []);
 
-  // ── speech recognition (shared by mic button + live call) ────────
-  const makeRec = useCallback(
-    (continuous: boolean, voiced: boolean): SpeechRec | null => {
-      const W = window as unknown as {
-        webkitSpeechRecognition?: new () => SpeechRec;
-        SpeechRecognition?: new () => SpeechRec;
-      };
-      const Ctor = W.SpeechRecognition ?? W.webkitSpeechRecognition;
-      if (!Ctor) return null;
-      const rec = new Ctor();
-      rec.lang = "en-US";
-      rec.continuous = continuous;
-      rec.interimResults = false;
-      rec.onresult = (e) => {
-        const r = e.results[e.results.length - 1];
-        if (!r || !r.isFinal) return;
-        const t = r[0]?.transcript ?? "";
-        if (t.trim()) send(t, voiced);
-      };
-      rec.onerror = () => setListening(false);
-      rec.onend = () => setListening(false);
-      return rec;
-    },
-    [send]
-  );
+  // ── speech recognition — dictate-to-text for the docked mic button
+  // only now; the live call (below) streams raw audio to the Gemini Live
+  // API directly instead of going through this browser API + text chat. ──
+  const makeRec = useCallback((): SpeechRec | null => {
+    const W = window as unknown as {
+      webkitSpeechRecognition?: new () => SpeechRec;
+      SpeechRecognition?: new () => SpeechRec;
+    };
+    const Ctor = W.SpeechRecognition ?? W.webkitSpeechRecognition;
+    if (!Ctor) return null;
+    const rec = new Ctor();
+    rec.lang = "en-US";
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.onresult = (e) => {
+      const r = e.results[e.results.length - 1];
+      if (!r || !r.isFinal) return;
+      const t = r[0]?.transcript ?? "";
+      if (t.trim()) send(t);
+    };
+    rec.onerror = () => setListening(false);
+    rec.onend = () => setListening(false);
+    return rec;
+  }, [send]);
 
   const toggleMic = () => {
     if (listening) {
@@ -333,7 +372,7 @@ export function Rimuru() {
       setListening(false);
       return;
     }
-    const rec = makeRec(false, false);
+    const rec = makeRec();
     if (!rec) return;
     recRef.current = rec;
     setListening(true);
@@ -341,34 +380,205 @@ export function Rimuru() {
     rec.start();
   };
 
-  // ── live call ────────────────────────────────────────────────────
+  // ── live call — real Gemini Live API over WebSocket ───────────────
+  // https://ai.google.dev/gemini-api/docs/live-api/get-started-websocket
+  // The browser connects DIRECTLY to Google using a short-lived token
+  // minted server-side (api/live-token) so the real API key never reaches
+  // the client. Camera is a local self-preview only — not streamed to the
+  // model (this is a voice call, not video understanding).
+  const upsertLiveMsg = useCallback((role: "user" | "assistant", text: string) => {
+    setMsgs((m) => {
+      if (liveActiveRoleRef.current === role && m.length && m[m.length - 1].role === role) {
+        return [...m.slice(0, -1), { role, text }];
+      }
+      liveActiveRoleRef.current = role;
+      return [...m, { role, text }];
+    });
+  }, []);
+
+  const playLiveAudio = useCallback((i16: Int16Array, sampleRate: number) => {
+    const ctx = liveAudioCtxRef.current;
+    if (!ctx) return;
+    const f32 = new Float32Array(i16.length);
+    for (let i = 0; i < i16.length; i++) f32[i] = i16[i] / 0x8000;
+    const buf = ctx.createBuffer(1, f32.length, sampleRate);
+    buf.copyToChannel(f32, 0);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    const startAt = Math.max(ctx.currentTime, livePlayCursorRef.current);
+    src.start(startAt);
+    livePlayCursorRef.current = startAt + buf.duration;
+  }, []);
+
+  const startLiveMicCapture = useCallback((ctx: AudioContext, stream: MediaStream) => {
+    const audioTracks = stream.getAudioTracks();
+    if (!audioTracks.length) return;
+    const source = ctx.createMediaStreamSource(new MediaStream(audioTracks));
+    // ScriptProcessorNode is deprecated but universally supported and far
+    // simpler than an AudioWorklet module for this — fine for a voice call.
+    const processor = ctx.createScriptProcessor(4096, 1, 1);
+    const silentGain = ctx.createGain();
+    silentGain.gain.value = 0; // must be wired to a destination to tick, but must not be audible (echo)
+    source.connect(processor);
+    processor.connect(silentGain);
+    silentGain.connect(ctx.destination);
+    processor.onaudioprocess = (e) => {
+      if (liveMutedRef.current) return;
+      const ws = liveWsRef.current;
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      const down = downsampleTo16k(e.inputBuffer.getChannelData(0), ctx.sampleRate);
+      const b64 = base64FromInt16(floatTo16BitPCM(down));
+      ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64, mimeType: "audio/pcm;rate=16000" } } }));
+    };
+    liveMicNodesRef.current = { source, processor, silentGain };
+  }, []);
+
   const startLive = async () => {
     setOpen(false);
     setLive(true);
+    liveInBufferRef.current = "";
+    liveOutBufferRef.current = "";
+    liveActiveRoleRef.current = null;
+    liveMutedRef.current = false;
+    setLiveMuted(false);
+
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       streamRef.current = stream;
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch {
-      /* no camera/mic permission — call still works as voice/text */
+      /* no camera/mic permission — surfaces as a connect failure below since there's no audio to send */
     }
-    const rec = makeRec(true, true);
-    if (rec) {
-      recRef.current = rec;
-      setListening(true);
-      rec.start();
+
+    let token: string;
+    try {
+      const res = await fetch("/api/live-token", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.token) throw new Error(data.error || "no token");
+      token = data.token;
+    } catch {
+      setMsgs((m) => [...m, { role: "assistant", text: "Couldn't start the live call — try again in a moment." }]);
+      setLive(false);
+      return;
     }
-    speak("Hi, I'm live. Ask me anything about Daniel's work.");
+
+    const audioCtx = new AudioContext();
+    liveAudioCtxRef.current = audioCtx;
+    livePlayCursorRef.current = 0;
+
+    const ws = new WebSocket(
+      `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?access_token=${encodeURIComponent(token)}`
+    );
+    liveWsRef.current = ws;
+
+    ws.onopen = () => {
+      // config (model, tools, system instruction, transcription) is already
+      // locked into the token via liveConnectConstraints — this just starts
+      // the session.
+      ws.send(JSON.stringify({ setup: { model: "models/gemini-3.1-flash-live-preview" } }));
+    };
+
+    ws.onmessage = async (ev) => {
+      const raw = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
+      let msg: Record<string, unknown>;
+      try {
+        msg = JSON.parse(raw);
+      } catch {
+        return;
+      }
+
+      if (msg.setupComplete) {
+        if (stream) startLiveMicCapture(audioCtx, stream);
+        setListening(true);
+        return;
+      }
+
+      const sc = msg.serverContent as
+        | {
+            interrupted?: boolean;
+            turnComplete?: boolean;
+            modelTurn?: { parts?: { inlineData?: { data?: string; mimeType?: string } }[] };
+            inputTranscription?: { text?: string };
+            outputTranscription?: { text?: string };
+          }
+        | undefined;
+      if (sc) {
+        if (sc.interrupted) livePlayCursorRef.current = audioCtx.currentTime; // drop queued playback, the model was cut off
+        for (const part of sc.modelTurn?.parts ?? []) {
+          if (part.inlineData?.data) playLiveAudio(int16FromBase64(part.inlineData.data), 24000);
+        }
+        if (sc.inputTranscription?.text) {
+          liveInBufferRef.current += sc.inputTranscription.text;
+          upsertLiveMsg("user", liveInBufferRef.current);
+        }
+        if (sc.outputTranscription?.text) {
+          liveOutBufferRef.current += sc.outputTranscription.text;
+          upsertLiveMsg("assistant", liveOutBufferRef.current);
+        }
+        if (sc.turnComplete) {
+          liveInBufferRef.current = "";
+          liveOutBufferRef.current = "";
+          liveActiveRoleRef.current = null;
+        }
+      }
+
+      const toolCall = msg.toolCall as { functionCalls?: { id: string; name: string; args?: Record<string, unknown> }[] } | undefined;
+      if (toolCall?.functionCalls?.length) {
+        const responses = await Promise.all(
+          toolCall.functionCalls.map(async (call) => {
+            try {
+              const res = await fetch("/api/tool-exec", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: call.name, args: call.args ?? {} }),
+              });
+              const result = await res.json();
+              if (call.name === "show_project" && result.response?.path) router.push(result.response.path);
+              return { id: call.id, name: call.name, response: result.response ?? { error: "tool failed" } };
+            } catch {
+              return { id: call.id, name: call.name, response: { error: "tool failed" } };
+            }
+          })
+        );
+        ws.send(JSON.stringify({ toolResponse: { functionResponses: responses } }));
+      }
+    };
+
+    ws.onerror = () => {
+      setMsgs((m) => [...m, { role: "assistant", text: "Live connection hiccup — try ending and starting the call again." }]);
+    };
+    ws.onclose = () => setListening(false);
   };
 
   const endLive = useCallback(() => {
-    recRef.current?.stop();
     setListening(false);
+    liveWsRef.current?.close();
+    liveWsRef.current = null;
+    const nodes = liveMicNodesRef.current;
+    if (nodes) {
+      nodes.processor.disconnect();
+      nodes.source.disconnect();
+      nodes.silentGain.disconnect();
+      liveMicNodesRef.current = null;
+    }
+    liveAudioCtxRef.current?.close().catch(() => {});
+    liveAudioCtxRef.current = null;
+    liveActiveRoleRef.current = null;
+    liveInBufferRef.current = "";
+    liveOutBufferRef.current = "";
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
-    if (typeof window !== "undefined") window.speechSynthesis?.cancel();
     setLive(false);
   }, []);
+
+  const toggleLiveMute = () => {
+    setLiveMuted((v) => {
+      liveMutedRef.current = !v;
+      return !v;
+    });
+  };
 
   useEffect(() => () => endLive(), [endLive]);
 
@@ -1419,30 +1629,27 @@ export function Rimuru() {
                 <video ref={videoRef} autoPlay muted playsInline className="h-full w-full scale-x-[-1] object-cover opacity-90" />
                 <div className="pointer-events-none absolute inset-0 flex items-end justify-between p-3">
                   <span className="rounded-full bg-black/50 px-2.5 py-1 font-mono text-[9px] tracking-[0.14em] text-white">
-                    {listening ? "● LIVE — LISTENING" : "● LIVE"}
+                    {!listening ? "● CONNECTING…" : liveMuted ? "● LIVE — MUTED" : "● LIVE — LISTENING"}
                   </span>
                   <span className="h-11 w-11 rounded-full bg-bg/90 p-1"><Slime /></span>
                 </div>
               </div>
               <div className="min-h-[52px] px-4 py-3">
                 <p className="font-sans text-[13.5px] leading-relaxed text-ink">
-                  {msgs[msgs.length - 1]?.role === "assistant"
-                    ? msgs[msgs.length - 1].text
-                    : busy
-                    ? "…"
-                    : "Speak — I'm listening."}
+                  {msgs[msgs.length - 1]?.text ?? (listening ? "Speak — I'm listening." : "Connecting…")}
                 </p>
               </div>
               <div className="flex items-center justify-center gap-3 border-t border-ln p-3">
                 <button
-                  onClick={toggleMic}
+                  onClick={toggleLiveMute}
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-ln text-ink"
-                  style={{ background: listening ? "var(--acc)" : "transparent", color: listening ? "var(--bg)" : "var(--ink)" }}
-                  aria-label="Toggle mic"
+                  style={{ background: liveMuted ? "var(--acc)" : "transparent", color: liveMuted ? "var(--bg)" : "var(--ink)" }}
+                  aria-label={liveMuted ? "Unmute mic" : "Mute mic"}
                 >
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
                     <rect x="9" y="3" width="6" height="12" rx="3" />
                     <path d="M5 11a7 7 0 0 0 14 0M12 18v3" strokeLinecap="round" />
+                    {liveMuted && <path d="M4 4l16 16" strokeLinecap="round" />}
                   </svg>
                 </button>
                 <button
