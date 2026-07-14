@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Block } from "@/lib/content";
 import { galleryImage } from "@/lib/content";
+import { LazyBg } from "@/components/lazy-bg";
 
 /**
  * Renders the block content model into the site's case-study / pitch-deck
@@ -182,9 +183,9 @@ function OneBlock({ block, slug }: { block: Block; slug: string }) {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {block.items.map((it, i) => (
               <FadeIn key={i} delay={i * 0.08}>
-                <div
+                <LazyBg
+                  src={it.src || galleryImage(slug, i)}
                   className="aspect-[4/3] w-full overflow-hidden rounded-2xl border border-ln bg-cover bg-center"
-                  style={{ backgroundImage: `url(${it.src || galleryImage(slug, i)})` }}
                 />
                 {it.caption && (
                   <p className="mt-2.5 font-sans text-sm text-mut">{it.caption}</p>
@@ -271,9 +272,9 @@ function OneBlock({ block, slug }: { block: Block; slug: string }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   {it.src && (
-                    <div
+                    <LazyBg
+                      src={it.src}
                       className="mb-4 aspect-[16/10] w-full overflow-hidden rounded-2xl border border-ln bg-cover bg-center"
-                      style={{ backgroundImage: `url(${it.src})` }}
                     />
                   )}
                   {it.title && (
@@ -400,7 +401,7 @@ function DeviceFrame({ frame, src, title }: { frame?: string; src: string; title
     );
   if (f === "phone")
     return (
-      <div className="w-[300px] overflow-hidden rounded-[2.2rem] border-[8px] border-neutral-800 bg-neutral-800 shadow-2xl">
+      <div className="w-[300px] max-w-full overflow-hidden rounded-[2.2rem] border-[8px] border-neutral-800 bg-neutral-800 shadow-2xl">
         <div className="aspect-[9/19] w-full overflow-hidden rounded-[1.6rem]">{inner}</div>
       </div>
     );

@@ -1,11 +1,7 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
-import { useStudioStore } from "@/lib/studio";
-import type { ProjectDoc } from "@/lib/content";
+import { CaseCount, CaseGrid } from "./case-grid";
 
 /**
  * Business PROJECTS — the presentational view (podium/semler language): every
@@ -14,71 +10,13 @@ import type { ProjectDoc } from "@/lib/content";
  * project in /studio is reflected here immediately. The raw, no-narrative index
  * of all work lives at /catalog instead.
  */
-
-function CaseCard({ project, index, large }: { project: ProjectDoc; index: number; large: boolean }) {
-  const ref = useRef<HTMLAnchorElement>(null);
-  const [seen, setSeen] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (e) => e[0].isIntersecting && (setSeen(true), io.disconnect()),
-      { rootMargin: "-8% 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  const kicker = project.tag.split("·")[1]?.trim() ?? project.tag;
-
-  return (
-    <Link
-      ref={ref}
-      href={`/projects/${project.slug}`}
-      className={`group block ${large ? "md:col-span-2" : ""}`}
-      style={{
-        opacity: seen ? 1 : 0,
-        transform: seen ? "none" : "translateY(28px)",
-        transition: "opacity .7s ease, transform .7s cubic-bezier(.22,.7,.16,1)",
-      }}
-    >
-      <div className={`relative overflow-hidden rounded-2xl border border-ln ${large ? "aspect-[16/9]" : "aspect-[4/3]"}`}>
-        <div
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.04]"
-          style={{ backgroundImage: `url(${project.image})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10" />
-        <div className="absolute inset-0 flex flex-col justify-between p-6">
-          <span className="font-mono text-[10px] tracking-[0.22em] text-[#f4f3ef]/70">
-            {String(index + 1).padStart(2, "0")} · {kicker}
-          </span>
-          <div className="flex items-center gap-2 self-start rounded-full bg-acc px-4 py-2 font-mono text-[9px] tracking-[0.2em] text-[#0b0b0c] opacity-0 transition-opacity group-hover:opacity-100">
-            OPEN CASE →
-          </div>
-        </div>
-      </div>
-      <div className="mt-4 flex items-baseline justify-between gap-4">
-        <h3 className="font-display text-2xl font-medium text-ink transition-colors group-hover:text-acc md:text-3xl">
-          {project.name}
-        </h3>
-        <span className="font-mono text-[10px] tracking-[0.14em] text-mut">{project.year}</span>
-      </div>
-      <p className="mt-1 max-w-md font-sans text-sm text-mut">{project.oneLiner}</p>
-    </Link>
-  );
-}
-
 export default function BusinessProjectsPage() {
-  // stable array from the selector; filter in render (see pitch-decks note)
-  const projects = useStudioStore((s) => s.config.projects);
-  const business = projects.filter((p) => p.side === "business");
-
   return (
     <div className="min-h-screen">
       <SiteNav />
       <main className="mx-auto max-w-[1800px] px-4 pt-40 pb-24 md:px-6 md:pt-48">
         <p className="font-mono text-[11px] tracking-[0.24em] text-acc">
-          BUSINESS · {String(business.length).padStart(2, "0")} CASE STUDIES
+          BUSINESS · <CaseCount /> CASE STUDIES
         </p>
         <h1
           className="mt-5 font-display font-medium leading-[0.94] tracking-[-0.035em] text-ink"
@@ -94,11 +32,7 @@ export default function BusinessProjectsPage() {
           </Link>
         </p>
 
-        <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-14 md:grid-cols-2">
-          {business.map((p, i) => (
-            <CaseCard key={p.slug} project={p} index={i} large={i % 3 === 0} />
-          ))}
-        </div>
+        <CaseGrid />
       </main>
       <SiteFooter />
     </div>

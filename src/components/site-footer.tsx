@@ -44,20 +44,20 @@ export function SiteFooter() {
 
         <div className="mt-0 flex flex-wrap justify-between gap-4 border-t border-ln py-6 font-sans text-[12.5px] text-mut">
           <span>© 2026 DeusX Technologies — built by Daniel Tariwei Bisina</span>
-          <div className="flex gap-5">
-            <a href="https://github.com/dbisina" target="_blank" rel="noreferrer" className="hover:text-acc">
+          <div className="-my-2 flex flex-wrap gap-1 sm:gap-5">
+            <a href="https://github.com/dbisina" target="_blank" rel="noreferrer" className="py-2 hover:text-acc">
               GitHub
             </a>
-            <a href="https://linkedin.com/in/danielbisina" target="_blank" rel="noreferrer" className="hover:text-acc">
+            <a href="https://linkedin.com/in/danielbisina" target="_blank" rel="noreferrer" className="py-2 hover:text-acc">
               LinkedIn
             </a>
-            <a href="https://x.com/danielbisina" target="_blank" rel="noreferrer" className="hover:text-acc">
+            <a href="https://x.com/danielbisina" target="_blank" rel="noreferrer" className="py-2 hover:text-acc">
               X
             </a>
-            <a href="https://wa.me/2347077213386" target="_blank" rel="noreferrer" className="hover:text-acc">
+            <a href="https://wa.me/2347077213386" target="_blank" rel="noreferrer" className="py-2 hover:text-acc">
               WhatsApp
             </a>
-            <Link href="/studio" className="text-mut/60 hover:text-acc">
+            <Link href="/studio" className="py-2 text-mut/60 hover:text-acc">
               Studio
             </Link>
           </div>

@@ -78,7 +78,7 @@ export default function StudioPage() {
               setErr(false);
             }}
             placeholder="Owner key"
-            className="mt-6 w-full rounded-full border border-ln bg-transparent px-4 py-2.5 text-center font-sans text-[14px] text-ink outline-none focus:border-acc"
+            className="mt-6 w-full rounded-full border border-ln bg-transparent px-4 py-2.5 text-center font-sans text-base text-ink outline-none focus:border-acc"
           />
           {err && <p className="mt-2 font-mono text-[11px] text-red-400">Wrong key.</p>}
           <div className="mt-4 flex justify-center">

@@ -453,6 +453,20 @@ export function Rimuru() {
     const floorY = () => phys.vh - FLOOR_MARGIN;
     const wantDocked = () => parkedRef.current || openRef.current || liveRef.current;
 
+    // parked spot = perched ON TOP of the chat bar (right end of the pill,
+    // clear of the mic/send buttons), not floor-level beside it — so on
+    // narrow viewports where the bar spans nearly the full width he still
+    // lands on it instead of drifting off past its edge.
+    const dockX = () => {
+      const bar = document.querySelector('[data-perch="THE CHAT BAR"]') as HTMLElement | null;
+      const r = bar?.getBoundingClientRect();
+      if (!r || r.width < 10) return phys.vw - SIZE * 0.85;
+      const lo = r.left + SIZE * 0.55;
+      const hi = r.right - SIZE * 0.55;
+      if (lo >= hi) return (r.left + r.right) / 2;
+      return Math.min(hi, Math.max(lo, r.left + r.width * 0.74));
+    };
+
     const after = (ms: number, fn: () => void) => {
       const t = setTimeout(() => {
         phys.timers.delete(t);
@@ -962,7 +976,7 @@ export function Rimuru() {
         // teleports, just back to the dock spot instead of a roam spot.
         if (openRef.current || liveRef.current || phys.dragging) return;
         const tx = parkedRef.current
-          ? phys.vw - SIZE * 0.85
+          ? dockX()
           : phys.vw * (0.25 + Math.random() * 0.5);
         const cb = () => {
           transient("happy", 1800);
@@ -978,7 +992,7 @@ export function Rimuru() {
       },
       hideBubble,
       dock() {
-        travelTo(phys.vw - SIZE * 0.85, () => say(PARK_LINE, { force: true, ttl: 3200 }));
+        travelTo(dockX(), () => say(PARK_LINE, { force: true, ttl: 3200 }));
       },
       undock() {
         transient("happy", 1600);

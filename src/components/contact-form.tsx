@@ -61,13 +61,13 @@ export function ContactForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your name"
-          className="rounded-2xl border border-ln bg-transparent p-4 font-sans text-[15px] text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
+          className="rounded-2xl border border-ln bg-transparent p-4 font-sans text-base text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
         />
         <input
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email or handle"
-          className="rounded-2xl border border-ln bg-transparent p-4 font-sans text-[15px] text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
+          className="rounded-2xl border border-ln bg-transparent p-4 font-sans text-base text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
         />
       </div>
       <textarea
@@ -75,7 +75,7 @@ export function ContactForm() {
         onChange={(e) => setMessage(e.target.value)}
         rows={4}
         placeholder="What's on your mind?"
-        className="mt-4 w-full resize-none rounded-2xl border border-ln bg-transparent p-4 font-sans text-[15px] leading-relaxed text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
+        className="mt-4 w-full resize-none rounded-2xl border border-ln bg-transparent p-4 font-sans text-base leading-relaxed text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
       />
       <button
         disabled={!ready}

@@ -118,7 +118,7 @@ export default function HireMePage() {
             <button
               key={m}
               onClick={() => setMode(m)}
-              className="rounded-full px-5 py-2 font-sans text-sm transition-colors"
+              className="rounded-full px-5 py-3 font-sans text-sm transition-colors"
               style={{
                 background: mode === m ? "var(--acc)" : "transparent",
                 color: mode === m ? "var(--bg)" : "var(--mut)",
@@ -139,7 +139,7 @@ export default function HireMePage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Who's asking?"
-                  className="w-full rounded-2xl border border-ln bg-transparent p-4 font-sans text-[15px] text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
+                  className="w-full rounded-2xl border border-ln bg-transparent p-4 font-sans text-base text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
                 />
               </Labeled>
               <Labeled n="02" label="CONTACT">
@@ -147,7 +147,7 @@ export default function HireMePage() {
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
                   placeholder="Email or handle"
-                  className="w-full rounded-2xl border border-ln bg-transparent p-4 font-sans text-[15px] text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
+                  className="w-full rounded-2xl border border-ln bg-transparent p-4 font-sans text-base text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
                 />
               </Labeled>
             </div>
@@ -176,7 +176,7 @@ export default function HireMePage() {
                     ? "One or two lines — what are you after?"
                     : "What are you building, and what does done look like? The more detail, the sharper the estimate."
                 }
-                className="w-full resize-none rounded-2xl border border-ln bg-transparent p-5 font-sans text-[15px] leading-relaxed text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
+                className="w-full resize-none rounded-2xl border border-ln bg-transparent p-5 font-sans text-base leading-relaxed text-ink outline-none transition-colors placeholder:text-mut focus:border-acc"
               />
             </Labeled>
 
@@ -225,7 +225,7 @@ function Chips({
         <button
           key={o}
           onClick={() => onPick(o)}
-          className="rounded-full border px-4 py-2 font-sans text-sm transition-colors"
+          className="rounded-full border px-4 py-2.5 font-sans text-sm transition-colors"
           style={{
             borderColor: value === o ? "var(--acc)" : "var(--ln)",
             color: value === o ? "var(--acc)" : "var(--ink)",

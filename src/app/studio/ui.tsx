@@ -18,7 +18,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 }
 
 const inputCls =
-  "w-full rounded-lg border border-ln bg-transparent px-3 py-2 font-sans text-[14px] text-ink outline-none transition-colors focus:border-acc placeholder:text-mut/60";
+  "w-full rounded-lg border border-ln bg-transparent px-3 py-2 font-sans text-base text-ink outline-none transition-colors focus:border-acc placeholder:text-mut/60";
 
 export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${inputCls} ${props.className ?? ""}`} />;

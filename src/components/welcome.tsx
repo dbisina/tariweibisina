@@ -46,8 +46,8 @@ export function Welcome({ onDone }: { onDone: () => void }) {
       }}
     >
       <h1
-        className="select-none px-6 text-center font-display font-bold uppercase leading-none"
-        style={{ fontSize: "clamp(3rem, 13vw, 13rem)", letterSpacing: "-0.02em" }}
+        className="select-none break-words px-6 text-center font-display font-bold uppercase leading-none"
+        style={{ fontSize: "clamp(1.6rem, 13vw, 13rem)", letterSpacing: "-0.02em" }}
       >
         {returning ? "Welcome back" : "Welcome"}
       </h1>

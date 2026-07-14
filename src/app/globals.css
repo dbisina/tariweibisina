@@ -24,6 +24,7 @@
 }
 
 @theme inline {
+  --breakpoint-xs: 23rem;
   --color-bg: var(--bg);
   --color-ink: var(--ink);
   --color-mut: var(--mut);

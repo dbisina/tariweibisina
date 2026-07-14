@@ -455,7 +455,7 @@ export function Catalog() {
             <button
               key={m}
               onClick={() => setMode(m)}
-              className="rounded-full px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] transition-colors"
+              className="rounded-full px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.18em] transition-colors"
               style={{
                 background: m === mode ? "var(--ink)" : "transparent",
                 color: m === mode ? "var(--bg)" : "var(--mut)",

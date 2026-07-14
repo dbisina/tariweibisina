@@ -3,7 +3,7 @@ import { Rubik, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import { RealmSync } from "@/components/realm-sync";
 import { StudioApply } from "@/components/studio-apply";
 import { PageTransition } from "@/components/page-transition";
-import { Rimuru } from "@/components/rimuru";
+import { RimuruLazy } from "@/components/rimuru-lazy";
 import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { ClassicalPlayerControl } from "@/components/classical-player-control";
 import { OWNER } from "@/lib/ai/knowledge";
@@ -27,17 +27,20 @@ import "./globals.css";
 const rubik = Rubik({
   variable: "--font-rubik",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
+  display: "swap",
 });
 
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
   subsets: ["latin"],
+  display: "swap",
   weight: ["400"],
   style: ["normal", "italic"],
 });
@@ -128,7 +131,7 @@ export default function RootLayout({
         <KeyboardShortcuts />
         <ClassicalPlayerControl />
         <PageTransition>{children}</PageTransition>
-        <Rimuru />
+        <RimuruLazy />
       </body>
     </html>
   );

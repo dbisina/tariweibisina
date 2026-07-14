@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Block, ProjectDoc } from "@/lib/content";
 import { galleryImage } from "@/lib/content";
+import { LazyBg } from "@/components/lazy-bg";
 
 /**
  * Full-screen investor pitch deck — lamalama.com/#pitchdeck language: a
@@ -145,10 +146,10 @@ function DeckBlockBody({ block, slug }: { block: Block; slug: string }) {
       return (
         <div className="mt-10 grid w-full max-w-5xl grid-cols-2 gap-4 md:grid-cols-3">
           {block.items.slice(0, 6).map((it, i) => (
-            <div
+            <LazyBg
               key={i}
+              src={it.src || galleryImage(slug, i)}
               className="aspect-[4/3] overflow-hidden rounded-xl bg-cover bg-center"
-              style={{ backgroundImage: `url(${it.src || galleryImage(slug, i)})` }}
             />
           ))}
         </div>
@@ -164,7 +165,7 @@ function DeckBlockBody({ block, slug }: { block: Block; slug: string }) {
           {first?.src && (
             <div className="aspect-video w-full overflow-hidden rounded-2xl border border-current/15 bg-black/5">
               {block.type === "video" || block.type === "walkthrough" ? (
-                <div className="h-full w-full bg-cover bg-center" style={{ backgroundImage: `url(${first.src})` }} />
+                <LazyBg src={first.src} className="h-full w-full bg-cover bg-center" />
               ) : (
                 <iframe src={first.src} title={first.title || "Preview"} className="h-full w-full border-0" loading="lazy" />
               )}
@@ -337,7 +338,7 @@ export function PitchDeckViewer({ doc }: { doc: ProjectDoc }) {
             ref={(el) => {
               slideRefs.current[i] = el;
             }}
-            className="flex h-screen w-full snap-start flex-col items-center justify-center px-6 text-center md:px-16"
+            className="flex h-dvh w-full snap-start flex-col items-center justify-center px-6 text-center md:px-16"
             style={{
               background: s.dark ? "#0b0b0c" : "#f4f3ef",
               color: s.dark ? "#f4f3ef" : "#131316",

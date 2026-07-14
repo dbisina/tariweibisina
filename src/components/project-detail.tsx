@@ -56,9 +56,9 @@ export function ProjectDetail({ seed, mode }: { seed: ProjectDoc; mode: "case" |
             {eyebrow}
           </p>
           <h1
-            className="anim-fade-up mt-3 font-display font-light uppercase text-[#f4f3ef]"
+            className="anim-fade-up mt-3 break-words font-display font-light uppercase text-[#f4f3ef]"
             style={{
-              fontSize: "clamp(2.6rem, 8.5vw, 7rem)",
+              fontSize: "clamp(1.7rem, 8.5vw, 7rem)",
               letterSpacing: "0.06em",
               lineHeight: 1,
               animationDelay: "0.45s",
@@ -113,18 +113,18 @@ export function ProjectDetail({ seed, mode }: { seed: ProjectDoc; mode: "case" |
 
       {/* persistent bottom stats pill */}
       {stats.length > 0 && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
-          <div className="pointer-events-auto flex items-stretch divide-x divide-ln overflow-hidden rounded-2xl border border-ln bg-bg/85 backdrop-blur-md">
+        <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-3 sm:px-4">
+          <div className="pointer-events-auto flex max-w-full items-stretch divide-x divide-ln overflow-x-auto rounded-2xl border border-ln bg-bg/85 backdrop-blur-md">
             {stats.map((s, i) => (
-              <div key={i} className="flex flex-col justify-center px-5 py-3 text-center md:px-8">
-                <span className="font-sans text-sm text-ink md:text-base">{s.value}</span>
-                <span className="mt-0.5 font-mono text-[9px] tracking-[0.14em] text-mut">{s.label}</span>
+              <div key={i} className="flex flex-none flex-col justify-center px-3 py-2.5 text-center sm:px-5 sm:py-3 md:px-8">
+                <span className="whitespace-nowrap font-sans text-xs text-ink sm:text-sm md:text-base">{s.value}</span>
+                <span className="mt-0.5 whitespace-nowrap font-mono text-[8px] tracking-[0.1em] text-mut sm:text-[9px] sm:tracking-[0.14em]">{s.label}</span>
               </div>
             ))}
             <button
               aria-label="Back to top"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="flex items-center px-4 text-acc"
+              className="flex flex-none items-center px-3 text-acc sm:px-4"
             >
               ↑
             </button>

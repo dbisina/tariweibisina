@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   serverExternalPackages: ["@prisma/client"],
+  images: {
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [{ protocol: "https", hostname: "picsum.photos" }],
+  },
   turbopack: {
     root: path.resolve(__dirname),
   },

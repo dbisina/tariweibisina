@@ -44,18 +44,27 @@ const GROUPS = [
 
 export function SiteNav() {
   const [open, setOpen] = useState<number | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileGroup, setMobileGroup] = useState<number | null>(null);
   const group = open !== null ? GROUPS[open] : null;
+
+  const closeMobile = () => {
+    setMobileOpen(false);
+    setMobileGroup(null);
+  };
 
   return (
     <nav
       className="fixed inset-x-0 top-0 z-40 border-b border-ln bg-bg/80 backdrop-blur-md"
       onMouseLeave={() => setOpen(null)}
     >
-      <div className="mx-auto flex h-16 max-w-[1800px] items-center justify-between px-4 md:px-6">
+      <div className="mx-auto flex h-14 max-w-[1800px] items-center justify-between px-3 sm:h-16 sm:px-4 md:px-6">
         <Link href="/" aria-label="tariwei home" className="flex items-center" onMouseEnter={() => setOpen(null)}>
-          <Logo variant="shimmer" className="h-3.5 w-auto text-ink" />
+          <Logo variant="shimmer" className="h-3 w-auto text-ink sm:h-3.5" />
         </Link>
-        <div className="flex items-center gap-6 md:gap-9 font-display text-[14px] font-medium tracking-[0.005em]">
+
+        {/* desktop links */}
+        <div className="hidden items-center gap-6 font-display text-[14px] font-medium tracking-[0.005em] md:flex md:gap-9">
           {GROUPS.map((g, i) => (
             <Link
               key={g.href}
@@ -89,11 +98,35 @@ export function SiteNav() {
           </Link>
           <AdSpotCompact />
         </div>
+
+        {/* mobile hamburger */}
+        <button
+          type="button"
+          onClick={() => setMobileOpen((o) => !o)}
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileOpen}
+          className="flex h-9 w-9 flex-none items-center justify-center rounded-full text-ink md:hidden"
+        >
+          <span className="relative block h-3.5 w-4">
+            <span
+              className="absolute left-0 right-0 h-[1.5px] bg-current transition-transform duration-300"
+              style={{ top: mobileOpen ? "6px" : "0px", transform: mobileOpen ? "rotate(45deg)" : "none" }}
+            />
+            <span
+              className="absolute left-0 right-0 top-[6px] h-[1.5px] bg-current transition-opacity duration-200"
+              style={{ opacity: mobileOpen ? 0 : 1 }}
+            />
+            <span
+              className="absolute left-0 right-0 h-[1.5px] bg-current transition-transform duration-300"
+              style={{ top: mobileOpen ? "6px" : "12px", transform: mobileOpen ? "rotate(-45deg)" : "none" }}
+            />
+          </span>
+        </button>
       </div>
 
-      {/* extension panel */}
+      {/* desktop extension panel */}
       <div
-        className="overflow-hidden border-ln transition-[max-height,opacity] duration-500"
+        className="hidden overflow-hidden border-ln transition-[max-height,opacity] duration-500 md:block"
         style={{
           maxHeight: group ? 340 : 0,
           opacity: group ? 1 : 0,
@@ -144,6 +177,76 @@ export function SiteNav() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* mobile drawer */}
+      <div
+        className="overflow-y-auto border-ln bg-bg transition-[max-height,opacity] duration-400 md:hidden"
+        style={{
+          maxHeight: mobileOpen ? "calc(100dvh - 3.5rem)" : 0,
+          opacity: mobileOpen ? 1 : 0,
+          borderTopWidth: mobileOpen ? 1 : 0,
+        }}
+      >
+        <div className="flex flex-col px-3 py-2">
+          {GROUPS.map((g, i) => (
+            <div key={g.href} className="border-b border-ln">
+              <div className="flex items-center justify-between">
+                <Link
+                  href={g.href}
+                  onClick={closeMobile}
+                  className="flex-1 py-3.5 font-display text-[15px] font-medium text-ink"
+                >
+                  {g.label}
+                </Link>
+                <button
+                  type="button"
+                  aria-label={`${mobileGroup === i ? "Collapse" : "Expand"} ${g.label}`}
+                  onClick={() => setMobileGroup((mg) => (mg === i ? null : i))}
+                  className="flex h-10 w-10 flex-none items-center justify-center text-mut"
+                >
+                  <span
+                    className="text-[10px] transition-transform duration-300"
+                    style={{ transform: mobileGroup === i ? "rotate(180deg)" : "none" }}
+                  >
+                    ▾
+                  </span>
+                </button>
+              </div>
+              <div
+                className="overflow-hidden transition-[max-height,opacity] duration-300"
+                style={{ maxHeight: mobileGroup === i ? 260 : 0, opacity: mobileGroup === i ? 1 : 0 }}
+              >
+                <div className="flex flex-col gap-0.5 pb-3 pl-3">
+                  {g.sub.map((l) => (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      onClick={closeMobile}
+                      className="py-2 font-sans text-[13px] text-mut transition-colors active:text-acc"
+                    >
+                      {l.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+          <Link
+            href="/catalog"
+            onClick={closeMobile}
+            className="border-b border-ln py-3.5 font-display text-[15px] font-medium text-ink"
+          >
+            Catalog
+          </Link>
+          <Link
+            href="/contact"
+            onClick={closeMobile}
+            className="py-3.5 font-display text-[15px] font-medium text-ink"
+          >
+            Contact
+          </Link>
+        </div>
       </div>
     </nav>
   );

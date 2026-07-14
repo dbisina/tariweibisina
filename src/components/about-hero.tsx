@@ -35,11 +35,11 @@ export function AboutHero() {
             outlined, then DANIEL solid in ink at the SAME size as BISINA
             (Tariwei's weight, not its scale) so the line balances. The
             brand name TARIWEI. stays huge and solid beneath. */}
-        <h1 data-perch="THE HEADLINE" className="mt-10 select-none font-display uppercase leading-[0.92]">
+        <h1 data-perch="THE HEADLINE" className="mt-10 select-none break-words font-display uppercase leading-[0.92]">
           <span
             className="anim-fade-up block"
             style={{
-              fontSize: "clamp(2.1rem, 6.5vw, 5.8rem)",
+              fontSize: "clamp(1.3rem, 6.5vw, 5.8rem)",
               letterSpacing: "0.02em",
               animationDelay: "0.12s",
             }}
@@ -55,7 +55,7 @@ export function AboutHero() {
           <span
             className="anim-fade-up block font-bold text-acc"
             style={{
-              fontSize: "clamp(4rem, 14.5vw, 13rem)",
+              fontSize: "clamp(1.8rem, 14.5vw, 13rem)",
               letterSpacing: "-0.01em",
               animationDelay: "0.28s",
             }}

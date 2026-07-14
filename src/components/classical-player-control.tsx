@@ -21,7 +21,7 @@ export function ClassicalPlayerControl() {
     <button
       onClick={() => setPlaying(toggleClassicalAudio())}
       aria-label={playing ? "Pause music" : "Play music"}
-      className="fixed bottom-[6.5rem] right-5 z-[430] flex max-w-[220px] items-center gap-2 rounded-full border border-ln bg-bg/90 px-3.5 py-2 backdrop-blur-md transition-colors hover:border-acc"
+      className="fixed bottom-[6.5rem] left-4 z-[430] flex max-w-[160px] items-center gap-2 rounded-full border border-ln bg-bg/90 px-3 py-1.5 backdrop-blur-md transition-colors hover:border-acc sm:left-auto sm:right-5 sm:max-w-[220px] sm:px-3.5 sm:py-2"
     >
       <span className="flex-none font-mono text-[11px] text-acc">{playing ? "⏸" : "▶"}</span>
       <span className="truncate font-mono text-[10px] tracking-[0.08em] text-mut">{title}</span>

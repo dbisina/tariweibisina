@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SiteNav } from "@/components/site-nav";
-import { Catalog } from "@/components/catalog";
+import { CatalogLazy } from "@/components/catalog-lazy";
 
 const TITLE = "Catalog";
 const DESCRIPTION =
@@ -18,7 +18,7 @@ export default function CatalogPage() {
   return (
     <div className="min-h-screen">
       <SiteNav />
-      <Catalog />
+      <CatalogLazy />
     </div>
   );
 }
