@@ -13,7 +13,7 @@ import type { Lead, LeadSource, RawLead } from "@/lib/leads";
  */
 export const runtime = "nodejs";
 
-const SOURCES: LeadSource[] = ["hire-me", "quote", "contact"];
+const SOURCES: LeadSource[] = ["hire-me", "quote", "contact", "adspot"];
 
 export async function POST(req: Request) {
   let raw: RawLead;

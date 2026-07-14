@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import type { Lead } from "@/lib/leads";
 
 /**
@@ -38,6 +39,17 @@ async function getPool(): Promise<any | null> {
             brief jsonb,
             channels jsonb
           );
+          create table if not exists visits (
+            id text primary key,
+            ts bigint not null,
+            path text not null,
+            ref text
+          );
+          create table if not exists ad_config (
+            id text primary key,
+            config jsonb not null,
+            updated_ts bigint not null
+          );
         `);
         return pool;
       } catch (e) {
@@ -73,6 +85,94 @@ export async function saveLead(lead: Lead): Promise<boolean> {
   } catch (e) {
     console.error("db: saveLead failed:", e);
     return false;
+  }
+}
+
+/** Server-side pageview log (separate from the client Studio ring buffer) —
+ * durable enough to power the weekly WhatsApp digest. Fire-and-forget by
+ * design: a failed insert never breaks the page. */
+export async function logVisit(path: string, ref: string): Promise<boolean> {
+  const pool = await getPool();
+  if (!pool) return false;
+  try {
+    await pool.query(`insert into visits (id, ts, path, ref) values ($1,$2,$3,$4)`, [
+      crypto.randomUUID(),
+      Date.now(),
+      path,
+      ref || null,
+    ]);
+    return true;
+  } catch (e) {
+    console.error("db: logVisit failed:", e);
+    return false;
+  }
+}
+
+export interface VisitSummary {
+  total: number;
+  since: number;
+  topPaths: { path: string; count: number }[];
+  topRefs: { ref: string; count: number }[];
+}
+
+/** Aggregate visits over the last `days` days, for the weekly digest / /visits command. */
+export async function visitSummary(days = 7): Promise<VisitSummary> {
+  const pool = await getPool();
+  const since = Date.now() - days * 24 * 60 * 60 * 1000;
+  if (!pool) return { total: 0, since, topPaths: [], topRefs: [] };
+  try {
+    const { rows } = await pool.query(
+      `select path, ref from visits where ts >= $1`,
+      [since]
+    );
+    const paths = new Map<string, number>();
+    const refs = new Map<string, number>();
+    for (const r of rows as { path: string; ref: string | null }[]) {
+      paths.set(r.path, (paths.get(r.path) ?? 0) + 1);
+      const ref = r.ref || "direct";
+      refs.set(ref, (refs.get(ref) ?? 0) + 1);
+    }
+    const top = (m: Map<string, number>, key: string) =>
+      [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([k, count]) => ({ [key]: k, count })) as never;
+    return { total: rows.length, since, topPaths: top(paths, "path"), topRefs: top(refs, "ref") };
+  } catch (e) {
+    console.error("db: visitSummary failed:", e);
+    return { total: 0, since, topPaths: [], topRefs: [] };
+  }
+}
+
+const AD_CONFIG_ID = "default";
+
+/** Server-authoritative override for the ad slot, set via the /adspot
+ * WhatsApp command. Null when unset — the client Studio config (or its
+ * localStorage edit) then applies as-is with no override. */
+export async function getAdConfigRow(): Promise<Record<string, unknown> | null> {
+  const pool = await getPool();
+  if (!pool) return null;
+  try {
+    const { rows } = await pool.query(`select config from ad_config where id = $1`, [AD_CONFIG_ID]);
+    return rows[0]?.config ?? null;
+  } catch (e) {
+    console.error("db: getAdConfigRow failed:", e);
+    return null;
+  }
+}
+
+export async function setAdConfigRow(patch: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  const pool = await getPool();
+  if (!pool) return null;
+  try {
+    const current = (await getAdConfigRow()) ?? {};
+    const merged = { ...current, ...patch };
+    await pool.query(
+      `insert into ad_config (id, config, updated_ts) values ($1,$2,$3)
+       on conflict (id) do update set config = $2, updated_ts = $3`,
+      [AD_CONFIG_ID, JSON.stringify(merged), Date.now()]
+    );
+    return merged;
+  } catch (e) {
+    console.error("db: setAdConfigRow failed:", e);
+    return null;
   }
 }
 
