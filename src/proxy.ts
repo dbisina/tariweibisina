@@ -16,6 +16,9 @@ import { NextResponse, type NextRequest } from "next/server";
  *   - POST/PUT/PATCH to /api/*: stricter — these do real work (DB writes,
  *     external HTTP calls)
  *   - /api/chat POST: strictest — each call spends a Gemini API request
+ *
+ * Named `proxy.ts` (not `middleware.ts`) — Next.js 16 renamed the
+ * convention; same file conventions, same runtime behavior.
  */
 const WINDOW_MS = 60_000;
 const DEFAULT_MAX = 180; // generous GET/page budget per IP per minute
@@ -43,7 +46,7 @@ interface Bucket {
 const buckets = new Map<string, Bucket>();
 const MAX_TRACKED_IPS = 20_000; // hard cap so a rotating-IP flood can't grow the Map unbounded
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (
