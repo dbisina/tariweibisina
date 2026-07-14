@@ -9,6 +9,11 @@ import { getProvider, type ChatMessage, type ProviderPref } from "@/lib/ai";
  */
 const SESSIONS = new Map<string, ChatMessage[]>();
 const MAX_TURNS = 24;
+// Cookie-less callers (most bots/crawlers) mint a fresh session id every
+// request (sid() falls back to performance.now()), so without a cap this
+// map grows without bound — a slow, guaranteed-eventual OOM from crawl
+// traffic alone. Evict oldest entries once the map gets large.
+const MAX_SESSIONS = 5000;
 
 function sid(cookie: string | null): string {
   const m = cookie?.match(/rimuru_sid=([^;]+)/);
@@ -52,6 +57,10 @@ export async function POST(req: Request) {
   }
 
   history.push({ role: "assistant", content: reply.text });
+  if (!SESSIONS.has(id) && SESSIONS.size >= MAX_SESSIONS) {
+    const oldest = SESSIONS.keys().next().value;
+    if (oldest !== undefined) SESSIONS.delete(oldest);
+  }
   SESSIONS.set(id, history.slice(-MAX_TURNS));
 
   const res = NextResponse.json(reply);

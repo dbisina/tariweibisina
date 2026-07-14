@@ -5,6 +5,7 @@ import { StudioApply } from "@/components/studio-apply";
 import { PageTransition } from "@/components/page-transition";
 import { Rimuru } from "@/components/rimuru";
 import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
+import { ClassicalPlayerControl } from "@/components/classical-player-control";
 import { OWNER } from "@/lib/ai/knowledge";
 import {
   SITE_URL,
@@ -125,6 +126,7 @@ export default function RootLayout({
         <RealmSync />
         <StudioApply />
         <KeyboardShortcuts />
+        <ClassicalPlayerControl />
         <PageTransition>{children}</PageTransition>
         <Rimuru />
       </body>

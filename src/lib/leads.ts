@@ -11,7 +11,7 @@
  * so the client store, the API route and the notifier all share one shape.
  */
 
-export type LeadSource = "hire-me" | "quote" | "contact";
+export type LeadSource = "hire-me" | "quote" | "contact" | "adspot";
 export type Priority = "low" | "medium" | "high";
 
 /** raw intake straight off the form */

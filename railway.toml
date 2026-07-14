@@ -1,0 +1,21 @@
+# Railway deploy config. Builder is Nixpacks, which auto-detects Next.js
+# and already knows how to run a standalone-output build correctly — no
+# explicit startCommand here on purpose (an override would fight Nixpacks'
+# own standalone detection, see next.config.ts's output: "standalone").
+#
+# Horizontal scaling (replicas) is a project/service setting in the Railway
+# dashboard, not something expressible here — the app is stateless enough
+# for it (Postgres-backed leads/visits/ad-config), with one known caveat:
+# the Gemini key-pool cursor/cooldown (lib/ai/key-pool.ts) and the chat
+# session map (api/chat/route.ts) are in-memory per instance, so multiple
+# replicas each keep their own independent copies. That's fine for both —
+# neither needs cross-instance consistency to work correctly.
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

@@ -12,7 +12,7 @@ import { VisitorTag } from "./visitor-tag";
  */
 
 const CHIPS = [
-  "FOUNDER · DEUSX TECHNOLOGIES",
+  "CO-FOUNDER · DEUSX TECHNOLOGIES",
   "SHIPS THE ENTIRE STACK",
   "OPEN TO PROJECTS & ROLES",
 ];

@@ -1,15 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useStudioStore } from "@/lib/studio";
+import type { LeadSource } from "@/lib/leads";
 
 /**
  * Quick-message form on the Contact page. Captures a lead into the Studio
- * CMS and hands off to the visitor's mail client — no server round-trip
- * needed for the handoff, and Daniel sees the enquiry in the Leads panel.
+ * CMS, fires it through the server pipeline (POST /api/lead — so Daniel gets
+ * pinged on Telegram/WhatsApp/email, same as hire-me/quote), and hands off
+ * to the visitor's mail client as a fallback the visitor can see happen
+ * immediately.
+ *
+ * `?topic=sponsorship` (from the ad slot's CTA) marks the lead source
+ * "adspot" so it's distinguishable from a general enquiry.
  */
 export function ContactForm() {
   const logLead = useStudioStore((s) => s.logLead);
+  const params = useSearchParams();
+  const source: LeadSource = params.get("topic") === "sponsorship" ? "adspot" : "contact";
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -19,7 +28,12 @@ export function ContactForm() {
 
   const submit = () => {
     if (!ready) return;
-    logLead({ source: "contact", name, contact: email, detail: message });
+    logLead({ source, name, contact: email, detail: message });
+    fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source, name, contact: email, detail: message }),
+    }).catch(() => {});
     setSent(true);
     const mailto = `mailto:danbis664@gmail.com?subject=${encodeURIComponent(
       "Hello from " + name

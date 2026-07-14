@@ -27,6 +27,10 @@ function aspectFor(col: number, row: number): string {
   return long ? LONG : SHORT;
 }
 
+// static top offset per column (px) — staggers the columns so their tops
+// don't line up in one flat row, on top of the scroll-driven motion below.
+const COL_OFFSET = [0, 90, 40, 130];
+
 // signed multiplier per column, applied to the scroll lag (px)
 const COL_MULTIPLIER = [-1, 0.8, -0.6, 0.5];
 const LAG_SCALE = 0.22; // tunes the measured podium ratios to our card scale
@@ -68,7 +72,8 @@ function FlowCard({ project, aspect }: { project: ProjectDoc; aspect: string }) 
 
 export function FeaturedProjects() {
   const colRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const smoothedY = useRef(0);
+  const filteredY = useRef(0); // fast-follow: absorbs native scroll's step jumps into a continuous ramp
+  const smoothedY = useRef(0); // slow-follow: chases filteredY — the gap between the two IS the lag
   const initialized = useRef(false);
 
   // CMS-controlled selection: featured flags, else the first eight projects.
@@ -79,14 +84,20 @@ export function FeaturedProjects() {
   useEffect(() => {
     let raf = 0;
     const tick = () => {
-      const actualY = window.scrollY;
+      const rawY = window.scrollY;
       if (!initialized.current) {
-        smoothedY.current = actualY; // no lag on first paint
+        filteredY.current = rawY;
+        smoothedY.current = rawY; // no lag on first paint
         initialized.current = true;
       } else {
-        smoothedY.current += (actualY - smoothedY.current) * DAMPING;
+        // native (non-momentum) scroll delivers scrollY in discrete jumps —
+        // this fast filter turns each jump into a quick continuous ramp
+        // instead of a teleport, so the lag below never has a raw step to
+        // spring back from (that spring-back was the reported "jitter").
+        filteredY.current += (rawY - filteredY.current) * 0.35;
+        smoothedY.current += (filteredY.current - smoothedY.current) * DAMPING;
       }
-      const lag = (actualY - smoothedY.current) * LAG_SCALE;
+      const lag = (filteredY.current - smoothedY.current) * LAG_SCALE;
 
       colRefs.current.forEach((col, i) => {
         if (!col) return;
@@ -130,6 +141,7 @@ export function FeaturedProjects() {
                 colRefs.current[i] = el;
               }}
               className="flex flex-col gap-10 will-change-transform"
+              style={{ marginTop: COL_OFFSET[i] }}
             >
               {col.map(({ project, aspect }) => (
                 <FlowCard key={project.slug} project={project} aspect={aspect} />

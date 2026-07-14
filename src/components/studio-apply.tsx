@@ -5,16 +5,20 @@ import { usePathname } from "next/navigation";
 import { useStudioStore } from "@/lib/studio";
 
 /**
- * Two studio-driven, site-wide effects that don't belong in RealmSync:
+ * Site-wide effects that don't belong in RealmSync:
  *  1. Analytics capture — logs a pageview into the Studio store on every route
  *     change (path + referrer), powering the dashboard's visitor view.
  *  2. Motion preference — the Appearance "motion" setting flips a root
  *     data-attribute and, at "off", a global animation kill-switch.
+ *  3. Ad override hydration — the /adspot WhatsApp command writes a
+ *     server-side override (api/ad-config); pull it once on mount so a
+ *     WhatsApp edit shows up on the live site without redeploying.
  */
 export function StudioApply() {
   const pathname = usePathname();
   const motion = useStudioStore((s) => s.config.appearance.motion);
   const logView = useStudioStore((s) => s.logView);
+  const setConfig = useStudioStore((s) => s.setConfig);
 
   // pageview per route change
   useEffect(() => {
@@ -23,6 +27,12 @@ export function StudioApply() {
       ? new URL(document.referrer).hostname
       : "";
     logView(pathname, ref);
+    // best-effort server-side log for the WhatsApp weekly digest; never blocks the page
+    fetch("/api/view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: pathname, ref }),
+    }).catch(() => {});
   }, [pathname, logView]);
 
   // motion preference
@@ -41,6 +51,17 @@ export function StudioApply() {
       style?.remove();
     };
   }, [motion]);
+
+  // ad-slot override, set from WhatsApp — pulled once per load
+  useEffect(() => {
+    fetch("/api/ad-config")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { config?: Record<string, unknown> } | null) => {
+        if (d?.config) setConfig((c) => ({ ...c, content: { ...c.content, ad: { ...c.content.ad, ...d.config } } }));
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return null;
 }
