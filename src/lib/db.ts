@@ -237,21 +237,38 @@ export async function setRepoIndexRow(
   const prisma = getClient();
   if (!prisma) return false;
   try {
-    const data = {
+    const base = {
       repoUrl: patch.repoUrl,
       status: patch.status,
       error: patch.error ?? null,
-      docs: (patch.docs ?? []) as unknown as Prisma.InputJsonValue,
       updatedTs: BigInt(Date.now()),
     };
+    // docs only overwritten when explicitly provided — a re-index's
+    // "indexing" transition (or a failed run's "error" write) must NOT wipe
+    // the previous good pack; the docs survive until the new pack replaces
+    // them on the final "ready" write.
+    const docsPatch =
+      patch.docs !== undefined ? { docs: patch.docs as unknown as Prisma.InputJsonValue } : {};
     await prisma.repoIndex.upsert({
       where: { id: slug },
-      create: { id: slug, ...data },
-      update: data,
+      create: { id: slug, ...base, docs: (patch.docs ?? []) as unknown as Prisma.InputJsonValue },
+      update: { ...base, ...docsPatch },
     });
     return true;
   } catch (e) {
     console.error("db: setRepoIndexRow failed:", e);
+    return false;
+  }
+}
+
+export async function deleteRepoIndexRow(slug: string): Promise<boolean> {
+  const prisma = getClient();
+  if (!prisma) return false;
+  try {
+    await prisma.repoIndex.deleteMany({ where: { id: slug } });
+    return true;
+  } catch (e) {
+    console.error("db: deleteRepoIndexRow failed:", e);
     return false;
   }
 }

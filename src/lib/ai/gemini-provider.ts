@@ -21,7 +21,10 @@ import { TOOLS, executeTool, type FunctionCall } from "./tools";
  * (see live-token/route.ts) so both surfaces share one tool contract.
  */
 const MODEL = "gemini-3.5-flash";
-const MAX_TOOL_ROUNDS = 3;
+// the taught flow is get_project_details → get_repo_doc → answer, and a
+// comparison question doubles that — 3 rounds made the failure string a
+// normal path instead of a pathological one
+const MAX_TOOL_ROUNDS = 5;
 
 interface GenReply {
   text: string;

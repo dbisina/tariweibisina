@@ -1,6 +1,5 @@
-import { seedBySlug } from "@/lib/content";
 import { getRepoIndexRow } from "@/lib/db";
-import { projectDetails, projectSlugs } from "./knowledge";
+import { findProject, projectDetails } from "./knowledge";
 
 /**
  * Shared tool contract for Rimuru — same declarations and same execution
@@ -18,7 +17,10 @@ export const TOOLS = [
           "Full case-study content for one project, plus its GitHub README and file tree if a repo is linked. Call this before answering anything beyond a one-line summary — architecture, stack, how it works, specific claims. Never guess technical details.",
         parameters: {
           type: "object",
-          properties: { slug: { type: "string", enum: projectSlugs() } },
+          // no enum: slugs come from the [slug: ...] tags in the system
+          // prompt's project list, and staying enum-free keeps CMS-added
+          // projects callable without a redeploy
+          properties: { slug: { type: "string", description: "The project's slug from the project list" } },
           required: ["slug"],
         },
       },
@@ -28,7 +30,7 @@ export const TOOLS = [
           "Pull up a project's page for the visitor — a real navigation action, not just a description. Call this whenever they ask to see, open, pull up, or go to a specific project.",
         parameters: {
           type: "object",
-          properties: { slug: { type: "string", enum: projectSlugs() } },
+          properties: { slug: { type: "string", description: "The project's slug from the project list" } },
           required: ["slug"],
         },
       },
@@ -39,7 +41,7 @@ export const TOOLS = [
         parameters: {
           type: "object",
           properties: {
-            slug: { type: "string", enum: projectSlugs() },
+            slug: { type: "string", description: "The project's slug from the project list" },
             title: { type: "string", description: "Doc title, e.g. 'Architecture overview' or 'Module: src'" },
           },
           required: ["slug", "title"],
@@ -48,6 +50,12 @@ export const TOOLS = [
     ],
   },
 ];
+
+// serving caps — repo packs can be huge ("Key files (verbatim)" is up to
+// ~98KB); a tool response goes straight into model context, and on the Live
+// API that context is shared with audio tokens, so cap what one call returns.
+const MAX_DOC_CHARS = 16000;
+const MAX_INLINE_OVERVIEW_CHARS = 4000;
 
 export interface FunctionCall {
   name: string;
@@ -66,27 +74,39 @@ export async function executeTool(call: FunctionCall): Promise<ToolExecResult> {
     // surface the graphified pack's doc index so the model knows what it
     // can pull next with get_repo_doc — and hand it the overview up front
     const index = await getRepoIndexRow(slug);
-    if (index?.status === "ready" && index.docs.length) {
+    if (index?.docs.length) {
       const overview = index.docs.find((d) => d.title === "Architecture overview");
       details += `\n\n--- Indexed repo knowledge (read any with get_repo_doc) ---\nDocs: ${index.docs
         .map((d) => d.title)
         .join(" | ")}`;
-      if (overview) details += `\n\n${overview.title}:\n${overview.content}`;
+      if (overview) details += `\n\n${overview.title}:\n${overview.content.slice(0, MAX_INLINE_OVERVIEW_CHARS)}`;
     }
     return { response: { details } };
   }
   if (call.name === "show_project") {
-    const p = seedBySlug(slug);
+    const p = await findProject(slug);
     return {
       response: p ? { ok: true, path: `/projects/${slug}` } : { ok: false, error: "unknown slug" },
       shownSlug: p ? slug : undefined,
     };
   }
   if (call.name === "get_repo_doc") {
+    // slug must resolve to a real project — this endpoint is reachable
+    // unauthenticated via /api/tool-exec, so without this check anyone
+    // could enumerate arbitrary repo_index rows by guessing keys.
+    if (!(await findProject(slug))) {
+      return { response: { error: `Unknown project slug "${slug}".` } };
+    }
     const title = String(call.args?.title ?? "").trim().toLowerCase();
     const index = await getRepoIndexRow(slug);
-    if (!index || index.status !== "ready" || !index.docs.length) {
+    // gate on docs existing, not on status === "ready" — during a re-index
+    // the previous pack survives (db.ts preserves docs on transitional
+    // writes) and should keep answering questions.
+    if (!index || !index.docs.length) {
       return { response: { error: "No indexed repo knowledge for this project — answer from the case study instead." } };
+    }
+    if (!title) {
+      return { response: { error: `Doc title required. Available: ${index.docs.map((d) => d.title).join(" | ")}` } };
     }
     const doc =
       index.docs.find((d) => d.title.toLowerCase() === title) ??
@@ -94,7 +114,7 @@ export async function executeTool(call: FunctionCall): Promise<ToolExecResult> {
     if (!doc) {
       return { response: { error: `No doc titled "${call.args?.title}". Available: ${index.docs.map((d) => d.title).join(" | ")}` } };
     }
-    return { response: { title: doc.title, content: doc.content } };
+    return { response: { title: doc.title, content: doc.content.slice(0, MAX_DOC_CHARS) } };
   }
   return { response: { error: `unknown tool "${call.name}"` } };
 }

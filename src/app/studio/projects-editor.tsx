@@ -161,12 +161,22 @@ function MediaUpload({ onDone }: { onDone: (url: string) => void }) {
 function GraphifyControl({ slug, repoUrl }: { slug: string; repoUrl: string | null }) {
   const [status, setStatus] = useState<"none" | "pending" | "indexing" | "ready" | "error">("none");
   const [detail, setDetail] = useState<string>("");
+  // a check() that was already in flight when Graphify was clicked would
+  // resolve with the PRE-click DB state and stomp the optimistic
+  // "indexing" (killing the poll loop) — ignore stale reads briefly
+  const startedAtRef = useRef(0);
 
   const check = useCallback(async () => {
     try {
       const res = await fetch(`/api/repo-index?slug=${encodeURIComponent(slug)}`);
+      if (res.status === 401) {
+        setStatus("error");
+        setDetail("session expired — reload /studio");
+        return;
+      }
       const d = await res.json();
       if (!res.ok) return;
+      if (Date.now() - startedAtRef.current < 4000 && d.status !== "indexing" && d.status !== "pending") return;
       setStatus(d.status ?? "none");
       if (d.status === "ready") {
         setDetail(`${d.docTitles?.length ?? 0} docs · ${d.updatedTs ? new Date(d.updatedTs).toLocaleString() : ""}`);
@@ -195,6 +205,7 @@ function GraphifyControl({ slug, repoUrl }: { slug: string; repoUrl: string | nu
 
   const start = async () => {
     if (!repoUrl) return;
+    startedAtRef.current = Date.now();
     setStatus("indexing");
     setDetail("");
     try {
@@ -214,6 +225,22 @@ function GraphifyControl({ slug, repoUrl }: { slug: string; repoUrl: string | nu
     }
   };
 
+  const clear = async () => {
+    try {
+      const res = await fetch("/api/repo-index", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      });
+      if (res.ok) {
+        setStatus("none");
+        setDetail("");
+      }
+    } catch {
+      /* leave state as-is */
+    }
+  };
+
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border border-ln px-3 py-2.5">
       <div className="min-w-0">
@@ -230,9 +257,16 @@ function GraphifyControl({ slug, repoUrl }: { slug: string; repoUrl: string | nu
                   : "Not indexed yet — Rimuru only knows the case study"}
         </p>
       </div>
-      <Btn onClick={start} disabled={!repoUrl || status === "indexing" || status === "pending"}>
-        {status === "indexing" || status === "pending" ? "Indexing…" : status === "ready" ? "Re-index" : "Graphify"}
-      </Btn>
+      <div className="flex flex-none items-center gap-1.5">
+        {(status === "ready" || status === "error") && (
+          <Btn variant="danger" onClick={clear}>
+            Clear
+          </Btn>
+        )}
+        <Btn onClick={start} disabled={!repoUrl || status === "indexing" || status === "pending"}>
+          {status === "indexing" || status === "pending" ? "Indexing…" : status === "ready" ? "Re-index" : "Graphify"}
+        </Btn>
+      </div>
     </div>
   );
 }
@@ -633,6 +667,13 @@ function renameSlug(
   setEditing: (s: string | null) => void
 ) {
   const slug = raw.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
-  setProjects((ps) => ps.map((p) => (p.slug === oldSlug ? { ...p, slug } : p)));
-  setEditing(slug || oldSlug);
+  let applied = oldSlug;
+  setProjects((ps) => {
+    // a slug that collides with another project would merge their
+    // identities — every subsequent patch/delete/repo-index would hit both
+    if (ps.some((p) => p.slug === slug && p.slug !== oldSlug)) return ps;
+    applied = slug || oldSlug;
+    return ps.map((p) => (p.slug === oldSlug ? { ...p, slug: applied } : p));
+  });
+  setEditing(applied);
 }

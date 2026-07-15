@@ -17,8 +17,14 @@ export const SESSION_COOKIE = "studio_session";
 const DEV_FALLBACK_KEY = "tariwei";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
-function adminKey(): string {
-  return process.env.STUDIO_ADMIN_KEY || DEV_FALLBACK_KEY;
+/** null = auth is impossible (prod with no key configured) — every check
+ * fails closed. The dev fallback is dev-only on purpose: it's a constant
+ * that lives in source, and the session token is a deterministic HMAC of
+ * it, so allowing it in production would make the admin cookie publicly
+ * computable the moment a deploy forgets the env var. */
+function adminKey(): string | null {
+  if (process.env.STUDIO_ADMIN_KEY) return process.env.STUDIO_ADMIN_KEY;
+  return process.env.NODE_ENV === "production" ? null : DEV_FALLBACK_KEY;
 }
 
 function timingSafeEqual(a: string, b: string): boolean {
@@ -30,12 +36,16 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 /** The password Daniel types into the /studio gate. */
 export function verifyPassword(candidate: string): boolean {
-  return timingSafeEqual(candidate, adminKey());
+  const key = adminKey();
+  return !!key && timingSafeEqual(candidate, key);
 }
 
-/** Deterministic session token derived from the secret — never the secret itself. */
-export function sessionToken(): string {
-  return crypto.createHmac("sha256", adminKey()).update("studio-session").digest("hex");
+/** Deterministic session token derived from the secret — never the secret
+ * itself. Null when auth is disabled (prod, no key). */
+function sessionToken(): string | null {
+  const key = adminKey();
+  if (!key) return null;
+  return crypto.createHmac("sha256", key).update("studio-session").digest("hex");
 }
 
 function cookieValue(req: Request, name: string): string | null {
@@ -51,8 +61,10 @@ function cookieValue(req: Request, name: string): string | null {
 
 /** True if this request carries a valid Studio session cookie. */
 export function hasValidSession(req: Request): boolean {
+  const token = sessionToken();
+  if (!token) return false;
   const cookie = cookieValue(req, SESSION_COOKIE);
-  return !!cookie && timingSafeEqual(cookie, sessionToken());
+  return !!cookie && timingSafeEqual(cookie, token);
 }
 
 /** True if this request is authorized either way: a browser session cookie
@@ -62,11 +74,14 @@ export function isStudioAuthed(req: Request): boolean {
   if (hasValidSession(req)) return true;
   const need = process.env.STUDIO_ADMIN_KEY;
   if (!need) return false;
-  return req.headers.get("x-studio-key") === need;
+  const got = req.headers.get("x-studio-key");
+  return !!got && timingSafeEqual(got, need);
 }
 
-export function sessionCookieHeader(): string {
-  return `${SESSION_COOKIE}=${sessionToken()}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE}`;
+export function sessionCookieHeader(): string | null {
+  const token = sessionToken();
+  if (!token) return null;
+  return `${SESSION_COOKIE}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE}`;
 }
 
 export function clearCookieHeader(): string {

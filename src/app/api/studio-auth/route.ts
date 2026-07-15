@@ -22,8 +22,10 @@ export async function POST(req: Request) {
   if (!key || !verifyPassword(key)) {
     return NextResponse.json({ error: "wrong key" }, { status: 401 });
   }
+  const cookie = sessionCookieHeader();
+  if (!cookie) return NextResponse.json({ error: "auth not configured" }, { status: 501 });
   const res = NextResponse.json({ ok: true });
-  res.headers.set("Set-Cookie", sessionCookieHeader());
+  res.headers.set("Set-Cookie", cookie);
   return res;
 }
 

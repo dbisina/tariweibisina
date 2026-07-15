@@ -42,6 +42,12 @@ const KEY_FILE_PATTERNS: RegExp[] = [
 
 const inFlight = new Set<string>();
 
+/** How many graphify runs are active right now — the API route uses this as
+ * a global cap so a burst of clicks can't stampede GitHub + the key pool. */
+export function activeIndexCount(): number {
+  return inFlight.size;
+}
+
 interface TreeEntry {
   path: string;
   type: string;
@@ -61,7 +67,11 @@ async function llm(prompt: string): Promise<string | null> {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.3, maxOutputTokens: 2000 },
+            // thinkingBudget 0: on the 2.5 series, thinking is on by default
+            // and thought tokens count INSIDE maxOutputTokens — big analytical
+            // prompts like these would otherwise burn the whole budget
+            // thinking and return zero visible text.
+            generationConfig: { temperature: 0.3, maxOutputTokens: 3000, thinkingConfig: { thinkingBudget: 0 } },
           }),
         }
       );
@@ -171,13 +181,17 @@ export async function graphifyRepo(slug: string, repoUrl: string): Promise<void>
 
     const blobs = (treeData?.tree ?? []).filter((e) => e.type === "blob");
     const sizeByPath = new Map(blobs.map((e) => [e.path, e.size ?? Infinity]));
-    const paths = blobs
+    const allPaths = blobs
       .map((e) => e.path)
-      .filter((p) => !/(^|\/)(node_modules|\.git|dist|build|\.next|out|vendor|__pycache__|target)\//.test(p))
-      .slice(0, MAX_TREE_PATHS);
+      .filter((p) => !/(^|\/)(node_modules|\.git|dist|build|\.next|out|vendor|__pycache__|target)\//.test(p));
+    const paths = allPaths.slice(0, MAX_TREE_PATHS);
 
     // ── raw key-file contents (manifests, configs, entry points) ──
-    const keyFilePaths = pickKeyFiles(paths);
+    // matched against the FULL tree, not the capped slice — the git trees
+    // API lists depth-first alphabetically, so on an 800+-file repo the
+    // root package.json would otherwise fall outside the window and the
+    // stack doc would go blind on exactly the repos that matter most.
+    const keyFilePaths = pickKeyFiles(allPaths);
     const keyFiles: { path: string; content: string }[] = [];
     for (const p of keyFilePaths) {
       const content = await fetchFileContent(key, p);
@@ -185,7 +199,7 @@ export async function graphifyRepo(slug: string, repoUrl: string): Promise<void>
     }
     const manifestBlock = keyFiles.map((f) => `=== ${f.path} ===\n${f.content}`).join("\n\n");
 
-    const groups = moduleGroups(paths);
+    const groups = moduleGroups(allPaths);
     const moduleSummaryLines = [...groups.entries()]
       .map(([name, files]) => `${name} — ${files.length} files`)
       .join("\n");

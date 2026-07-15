@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isStudioAuthed } from "@/lib/studio-auth";
-import { getRepoIndexRow } from "@/lib/db";
-import { graphifyRepo } from "@/lib/ai/repo-indexer";
+import { getRepoIndexRow, deleteRepoIndexRow } from "@/lib/db";
+import { graphifyRepo, activeIndexCount } from "@/lib/ai/repo-indexer";
 
 /**
  * Graphify control surface for the Studio. POST kicks off a background
@@ -27,10 +27,29 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad request" }, { status: 400 });
   }
   if (!slug || !repoUrl) return NextResponse.json({ error: "slug and repoUrl required" }, { status: 400 });
+  if (activeIndexCount() >= 3)
+    return NextResponse.json({ error: "Too many indexing runs at once — wait for one to finish." }, { status: 429 });
 
   // fire and forget — status lands in the DB, the Studio polls GET below
   graphifyRepo(slug, repoUrl).catch((e) => console.error("repo-index: background graphify crashed:", e));
   return NextResponse.json({ ok: true, status: "indexing" });
+}
+
+/** Remove a project's knowledge pack — the pack otherwise outlives the
+ * repo's visibility (a graphified repo later made private would stay
+ * readable through Rimuru forever). */
+export async function DELETE(req: Request) {
+  if (!isStudioAuthed(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  let slug: string;
+  try {
+    const body = await req.json();
+    slug = String(body?.slug ?? "").trim();
+  } catch {
+    return NextResponse.json({ error: "bad request" }, { status: 400 });
+  }
+  if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
+  const ok = await deleteRepoIndexRow(slug);
+  return NextResponse.json({ ok });
 }
 
 export async function GET(req: Request) {
