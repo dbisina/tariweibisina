@@ -263,7 +263,8 @@ export const useStudioStore = create<StudioState>()(
       // silently renders empty after hydration replaces the SSR seed.
       // v4: olddeus gained its seed pitch deck and research moved into the
       // store — persisted v3 rosters would override both back to null/stale.
-      version: 4,
+      // v5: walkthrough video blocks added to uhop/airfree/mamazee seeds.
+      version: 5,
       migrate: (persisted: unknown) => {
         const s = (persisted ?? {}) as StudioState;
         if (s.config) s.config = { ...s.config, projects: defaultProjects(), research: defaultResearch() };

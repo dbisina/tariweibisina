@@ -3694,6 +3694,26 @@ export const RICH: Record<string, RichSeed> = {
         "items": []
       },
       {
+        "id": "uhop-video",
+        "type": "video",
+        "heading": "See it in motion",
+        "body": "",
+        "quote": "",
+        "author": "",
+        "role": "",
+        "items": [
+          {
+            "text": "",
+            "value": "",
+            "label": "",
+            "title": "",
+            "body": "",
+            "caption": "A guided walkthrough of uhop.dev",
+            "src": "https://res.cloudinary.com/wjgwhrgf/video/upload/v1784125001/tariwei/studio/jeubjpxnidlxw4ohtzpj.mp4"
+          }
+        ]
+      },
+      {
         "id": "uhop-1",
         "type": "prose",
         "heading": "The approach",
@@ -3898,6 +3918,26 @@ export const RICH: Record<string, RichSeed> = {
         "author": "",
         "role": "",
         "items": []
+      },
+      {
+        "id": "airfree-geospatial-video",
+        "type": "video",
+        "heading": "See it in motion",
+        "body": "",
+        "quote": "",
+        "author": "",
+        "role": "",
+        "items": [
+          {
+            "text": "",
+            "value": "",
+            "label": "",
+            "title": "",
+            "body": "",
+            "caption": "A guided walkthrough of the live site",
+            "src": "https://res.cloudinary.com/wjgwhrgf/video/upload/v1784125146/tariwei/studio/duomehwrahadhs2664ti.mp4"
+          }
+        ]
       },
       {
         "id": "airfree-geospatial-1",
@@ -4418,6 +4458,26 @@ export const RICH: Record<string, RichSeed> = {
         "author": "",
         "role": "",
         "items": []
+      },
+      {
+        "id": "mamazee-video",
+        "type": "video",
+        "heading": "See it in motion",
+        "body": "",
+        "quote": "",
+        "author": "",
+        "role": "",
+        "items": [
+          {
+            "text": "",
+            "value": "",
+            "label": "",
+            "title": "",
+            "body": "",
+            "caption": "A guided walkthrough of the live storefront",
+            "src": "https://res.cloudinary.com/wjgwhrgf/video/upload/v1784125154/tariwei/studio/mbvrmxg5e9syd9kx2itf.mp4"
+          }
+        ]
       },
       {
         "id": "mamazee-1",
