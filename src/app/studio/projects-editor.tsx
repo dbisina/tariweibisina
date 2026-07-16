@@ -18,6 +18,26 @@ import { Field, TextInput, TextArea, Select, Toggle, Btn, Card } from "./ui";
 // unique-ish id for new blocks (browser runtime, non-crypto is fine)
 const nid = () => "b-" + Math.abs((Math.random() * 1e9) | 0).toString(36) + Date.now().toString(36).slice(-4);
 
+/** Visual identity per block type — the add-picker and block headers lead
+ * with these so media/embeds/demos are discoverable at a glance instead of
+ * hiding inside a dropdown of same-looking text labels. */
+const BLOCK_META: Record<BlockType, { icon: string; label: string; blurb: string; media?: boolean }> = {
+  prose: { icon: "¶", label: "Paragraph", blurb: "Heading + body text" },
+  stats: { icon: "88", label: "Stat grid", blurb: "Big numbers row" },
+  specs: { icon: "≣", label: "Spec table", blurb: "Label / value rows" },
+  features: { icon: "◆", label: "Features", blurb: "Titled feature cards" },
+  steps: { icon: "1.", label: "Steps", blurb: "Numbered process" },
+  chips: { icon: "#", label: "Tech tags", blurb: "Stack / technology pills" },
+  quote: { icon: "❝", label: "Quote", blurb: "Pull quote + author" },
+  gallery: { icon: "▣", label: "Photos", blurb: "Image grid with captions", media: true },
+  video: { icon: "▶", label: "Video", blurb: "MP4 / YouTube / Vimeo", media: true },
+  embed: { icon: "◱", label: "Live embed", blurb: "Real site or app in a device frame", media: true },
+  demo: { icon: "↗", label: "Live demo", blurb: "Launch-the-app card", media: true },
+  walkthrough: { icon: "␦", label: "Walkthrough", blurb: "Step-by-step screenshots", media: true },
+};
+
+const EMBED_FRAMES = ["browser", "phone", "tablet", "desktop", "bare"] as const;
+
 // which item fields each block type edits
 const ITEM_FIELDS: Record<BlockType, { key: keyof BlockItem; label: string; area?: boolean }[]> = {
   prose: [],
@@ -271,6 +291,80 @@ function GraphifyControl({ slug, repoUrl }: { slug: string; repoUrl: string | nu
   );
 }
 
+/** Live preview of whatever URL is in a media field — the editor shows the
+ * actual image/video, not just a URL string, so "did I add the right photo?"
+ * is answered at a glance. */
+function MediaThumb({ src }: { src?: string }) {
+  const [broken, setBroken] = useState(false);
+  const isVideo = !!src && (/\.(mp4|webm|mov)(\?|#|$)/i.test(src) || /\/video\/upload\//.test(src));
+  const isEmbeddable = !!src && /^https?:\/\//.test(src) && !isVideo;
+  if (!src)
+    return (
+      <div className="flex h-16 w-24 flex-none items-center justify-center rounded-lg border border-dashed border-ln font-mono text-[8px] tracking-[0.12em] text-mut">
+        NO MEDIA
+      </div>
+    );
+  if (broken || (!isVideo && !isEmbeddable))
+    return (
+      <div className="flex h-16 w-24 flex-none items-center justify-center rounded-lg border border-ln font-mono text-[8px] tracking-[0.12em] text-mut">
+        LINK
+      </div>
+    );
+  return isVideo ? (
+    <video src={src} muted playsInline preload="metadata" className="h-16 w-24 flex-none rounded-lg border border-ln object-cover" />
+  ) : (
+    // eslint-disable-next-line @next/next/no-img-element -- arbitrary user-pasted hosts; next/image would 500 on any host missing from remotePatterns
+    <img src={src} alt="" onError={() => setBroken(true)} className="h-16 w-24 flex-none rounded-lg border border-ln object-cover" />
+  );
+}
+
+/** Tag-pill editor for the chips block — type, press Enter, get a pill.
+ * Far closer to how every other CMS does tags than generic item rows. */
+function ChipsEditor({ items, onChange }: { items: BlockItem[]; onChange: (items: BlockItem[]) => void }) {
+  const [draft, setDraft] = useState("");
+  const add = () => {
+    const text = draft.trim();
+    if (!text) return;
+    onChange([...items, { text }]);
+    setDraft("");
+  };
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        {items.map((it, i) => (
+          <span
+            key={i}
+            className="flex items-center gap-1.5 rounded-full border border-ln px-3 py-1.5 font-mono text-[11px] tracking-[0.08em] text-ink"
+          >
+            {it.text || "—"}
+            <button
+              onClick={() => onChange(items.filter((_, j) => j !== i))}
+              className="text-mut hover:text-red-400"
+              aria-label={`Remove ${it.text}`}
+            >
+              ✕
+            </button>
+          </span>
+        ))}
+      </div>
+      <div className="mt-3 flex items-center gap-2">
+        <TextInput
+          value={draft}
+          placeholder="Type a technology and press Enter — e.g. Next.js, CUDA, Postgres"
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
+        />
+        <Btn onClick={add}>Add</Btn>
+      </div>
+    </div>
+  );
+}
+
 function ItemsEditor({
   type,
   items,
@@ -283,11 +377,15 @@ function ItemsEditor({
   const fields = ITEM_FIELDS[type];
   const set = (i: number, key: keyof BlockItem, val: string) =>
     onChange(items.map((it, j) => (j === i ? { ...it, [key]: val } : it)));
+  const meta = BLOCK_META[type];
+  const addLabel =
+    type === "gallery" ? "+ Photo" : type === "video" ? "+ Video" : type === "walkthrough" ? "+ Step" : "+ Item";
   return (
     <div className="space-y-3">
       {items.map((it, i) => (
         <div key={i} className="rounded-lg border border-ln p-3">
-          <div className="mb-2 flex justify-end">
+          <div className="mb-2 flex items-center justify-between">
+            {meta.media ? <MediaThumb src={it.src} /> : <span />}
             <button onClick={() => onChange(items.filter((_, j) => j !== i))} className="px-1.5 text-mut hover:text-red-400">
               ✕
             </button>
@@ -311,6 +409,14 @@ function ItemsEditor({
                   />
                   <MediaUpload onDone={(url) => set(i, "src", url)} />
                 </div>
+              ) : type === "embed" && f.key === "label" ? (
+                <Field key={f.key} label="Device frame" hint="ignored for Appetize URLs — they ship their own">
+                  <Select
+                    value={(it.label as string) || "browser"}
+                    onChange={(v) => set(i, "label", v)}
+                    options={EMBED_FRAMES.map((fr) => ({ value: fr, label: fr[0].toUpperCase() + fr.slice(1) }))}
+                  />
+                </Field>
               ) : (
                 <TextInput
                   key={f.key}
@@ -323,7 +429,7 @@ function ItemsEditor({
           </div>
         </div>
       ))}
-      <Btn onClick={() => onChange([...items, {}])}>+ Item</Btn>
+      <Btn onClick={() => onChange([...items, {}])}>{addLabel}</Btn>
     </div>
   );
 }
@@ -341,11 +447,22 @@ function BlockEditor({
   onDown?: () => void;
   onDelete: () => void;
 }) {
-  const typeLabel = BLOCK_TYPES.find((t) => t.type === block.type)?.label ?? block.type;
+  const meta = BLOCK_META[block.type];
   return (
     <div className="rounded-xl border border-ln p-4">
       <div className="mb-3 flex items-center justify-between">
-        <span className="font-mono text-[10px] tracking-[0.16em] text-acc uppercase">{typeLabel}</span>
+        <span className="flex items-center gap-2.5">
+          <span
+            className="flex h-7 w-7 items-center justify-center rounded-lg border border-ln font-mono text-[13px]"
+            style={{ color: meta.media ? "var(--acc)" : "var(--mut)" }}
+          >
+            {meta.icon}
+          </span>
+          <span className="font-mono text-[10px] tracking-[0.16em] text-acc uppercase">{meta.label}</span>
+          {block.items.length > 0 && (
+            <span className="font-mono text-[9px] text-mut">· {block.items.length}</span>
+          )}
+        </span>
         <MoveDelete onUp={onUp} onDown={onDown} onDelete={onDelete} />
       </div>
 
@@ -379,25 +496,50 @@ function BlockEditor({
         </div>
       )}
 
-      {ITEM_FIELDS[block.type].length > 0 && (
+      {block.type === "chips" ? (
         <div className="mt-3">
-          <ItemsEditor type={block.type} items={block.items} onChange={(items) => onChange({ ...block, items })} />
+          <ChipsEditor items={block.items} onChange={(items) => onChange({ ...block, items })} />
         </div>
+      ) : (
+        ITEM_FIELDS[block.type].length > 0 && (
+          <div className="mt-3">
+            <ItemsEditor type={block.type} items={block.items} onChange={(items) => onChange({ ...block, items })} />
+          </div>
+        )
       )}
     </div>
   );
 }
 
+/** One-click visual block picker — media types (photos, video, live embed,
+ * demo, walkthrough) get accent treatment so they're impossible to miss. */
 function AddBlock({ onAdd }: { onAdd: (t: BlockType) => void }) {
-  const [t, setT] = useState<BlockType>("prose");
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-48">
-        <Select value={t} onChange={(v) => setT(v as BlockType)} options={BLOCK_TYPES.map((b) => ({ value: b.type, label: b.label }))} />
+    <div>
+      <span className="mb-2 block font-mono text-[10px] tracking-[0.16em] text-mut uppercase">Add a section</span>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+        {BLOCK_TYPES.map((b) => {
+          const meta = BLOCK_META[b.type];
+          return (
+            <button
+              key={b.type}
+              onClick={() => onAdd(b.type)}
+              className="group flex items-start gap-2.5 rounded-xl border border-ln p-3 text-left transition-colors hover:border-acc"
+            >
+              <span
+                className="flex h-8 w-8 flex-none items-center justify-center rounded-lg border border-ln font-mono text-[14px] transition-colors group-hover:border-acc"
+                style={{ color: meta.media ? "var(--acc)" : "var(--mut)" }}
+              >
+                {meta.icon}
+              </span>
+              <span className="min-w-0">
+                <span className="block font-display text-[13px] font-medium text-ink">{meta.label}</span>
+                <span className="block truncate font-sans text-[11px] text-mut">{meta.blurb}</span>
+              </span>
+            </button>
+          );
+        })}
       </div>
-      <Btn variant="solid" onClick={() => onAdd(t)}>
-        + Add block
-      </Btn>
     </div>
   );
 }
@@ -535,8 +677,12 @@ export function ProjectsPanel() {
                 <TextInput value={p.oneLiner} onChange={(e) => patch(p.slug, { oneLiner: e.target.value })} />
               </Field>
             </div>
-            <Field label="Hero image URL">
-              <TextInput value={p.image} spellCheck={false} onChange={(e) => patch(p.slug, { image: e.target.value })} />
+            <Field label="Hero image" hint="paste a URL or upload">
+              <div className="flex items-center gap-2">
+                <MediaThumb src={p.image} />
+                <TextInput value={p.image} spellCheck={false} onChange={(e) => patch(p.slug, { image: e.target.value })} />
+                <MediaUpload onDone={(url) => patch(p.slug, { image: url })} />
+              </div>
             </Field>
             <Field label="Gradient (CSS)">
               <TextInput value={p.gradient} spellCheck={false} onChange={(e) => patch(p.slug, { gradient: e.target.value })} />
@@ -556,7 +702,7 @@ export function ProjectsPanel() {
 
         <Card
           title="Case study sections"
-          desc="The body of the project page. Add, reorder and edit any block. For a mobile app, add a Live embed block and paste an appetize.io stream URL — real Android/iOS emulation, no screen recording needed."
+          desc="The body of the project page — photos, videos, live embeds, launch-demo cards, walkthroughs, tech tags, stats, prose. Add from the grid below, reorder with the arrows, upload media straight to Cloudinary from any media field. For a mobile app, add a Live embed and paste an appetize.io stream URL — real Android/iOS emulation, no screen recording needed."
         >
           <BlockList blocks={p.blocks} onChange={(blocks) => patch(p.slug, { blocks })} />
         </Card>

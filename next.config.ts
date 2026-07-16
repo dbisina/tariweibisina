@@ -27,6 +27,12 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [{ protocol: "https", hostname: "picsum.photos" }],
   },
+  experimental: {
+    // Next 16 caps request bodies through the proxy at 10MB by default,
+    // which broke Studio media uploads (walkthrough videos run 20MB+;
+    // /api/upload itself allows 100MB and streams to Cloudinary).
+    proxyClientMaxBodySize: "110mb",
+  },
   turbopack: {
     root: path.resolve(__dirname),
   },

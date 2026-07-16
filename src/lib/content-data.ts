@@ -516,7 +516,96 @@ export const RICH: Record<string, RichSeed> = {
         ]
       }
     ],
-    "pitch": null
+    "pitch": {
+      "eyebrow": "OLDDEUS · THE SELF-RUNNING AGENCY",
+      "tagline": "An AI agent swarm that runs a company's entire go-to-market — leads, outreach, content, calls and reporting — with zero human hours.",
+      "heroStats": [
+        { "value": "8 agents", "label": "in the swarm" },
+        { "value": "24/7", "label": "operation" },
+        { "value": "0 hrs", "label": "founder time / week" },
+        { "value": "Pre-seed", "label": "stage" }
+      ],
+      "blocks": [
+        {
+          "id": "olddeus-p0",
+          "type": "prose",
+          "heading": "The problem",
+          "body": "Every solo founder and small agency dies the same death: the person who builds the product is also the sales team, the marketer, the analyst and the ops manager. Growth work is the first thing dropped under pressure — and the business quietly starves while the product gets better.",
+          "quote": "",
+          "author": "",
+          "role": "",
+          "items": []
+        },
+        {
+          "id": "olddeus-p1",
+          "type": "prose",
+          "heading": "The product",
+          "body": "oldDeus is a swarm of eight scheduled AI agents that runs the whole go-to-market loop autonomously: scouting leads, writing and sending personalised outreach, following up on schedule, publishing content across three platforms, chasing freelance contracts, calling warm prospects, and reporting everything back to the founder through a single Telegram briefing. It already runs DeusX Technologies day to day.",
+          "quote": "",
+          "author": "",
+          "role": "",
+          "items": []
+        },
+        {
+          "id": "olddeus-p2",
+          "type": "stats",
+          "heading": "Live today, not a deck promise",
+          "body": "",
+          "quote": "",
+          "author": "",
+          "role": "",
+          "items": [
+            { "text": "", "value": "8", "label": "autonomous agents in production", "title": "", "body": "", "caption": "", "src": "" },
+            { "text": "", "value": "6", "label": "channels covered — email, LinkedIn, X, Facebook, calls, freelance boards", "title": "", "body": "", "caption": "", "src": "" },
+            { "text": "", "value": "1", "label": "founder interface: a Telegram briefing", "title": "", "body": "", "caption": "", "src": "" },
+            { "text": "", "value": "39M+", "label": "Nigerian MSMEs in the addressable market", "title": "", "body": "", "caption": "", "src": "" }
+          ]
+        },
+        {
+          "id": "olddeus-p3",
+          "type": "features",
+          "heading": "Why now",
+          "body": "",
+          "quote": "",
+          "author": "",
+          "role": "",
+          "items": [
+            { "text": "", "value": "", "label": "", "title": "Agent costs collapsed", "body": "A full go-to-market loop that needed a five-person team now runs on API calls that cost less than a single lunch per day.", "caption": "", "src": "" },
+            { "text": "", "value": "", "label": "", "title": "SMEs are unserved", "body": "Agencies chase enterprise retainers. The tens of millions of small businesses that need consistent outreach and content have no product built for them.", "caption": "", "src": "" },
+            { "text": "", "value": "", "label": "", "title": "Proof by dogfood", "body": "oldDeus isn't a prototype seeking a use case — it is the operating system of the company that built it.", "caption": "", "src": "" }
+          ]
+        },
+        {
+          "id": "olddeus-p4",
+          "type": "steps",
+          "heading": "Roadmap",
+          "body": "",
+          "quote": "",
+          "author": "",
+          "role": "",
+          "items": [
+            { "text": "", "value": "", "label": "", "title": "Now — single-tenant", "body": "The swarm runs DeusX end to end, hardening the agent loop on real outreach volume.", "caption": "", "src": "" },
+            { "text": "", "value": "", "label": "", "title": "Next — multi-tenant beta", "body": "Onboard 10 design partners; each gets their own swarm, their own Telegram briefing, their own pipeline.", "caption": "", "src": "" },
+            { "text": "", "value": "", "label": "", "title": "Then — self-serve", "body": "A company describes itself once; the swarm configures, launches and reports without an onboarding call.", "caption": "", "src": "" }
+          ]
+        },
+        {
+          "id": "olddeus-p5",
+          "type": "quote",
+          "heading": "",
+          "body": "",
+          "quote": "The goal was never a bigger team. It was a company where the founder's only job is the product — and the company still grows while he sleeps.",
+          "author": "Daniel Tariwei Bisina",
+          "role": "Founder, DeusX Technologies",
+          "items": []
+        }
+      ],
+      "ask": {
+        "raise": "In conversation — pre-seed",
+        "use": "Multi-tenant infrastructure, design-partner onboarding, and compliance hardening for outbound at scale",
+        "contact": "danbis664@gmail.com"
+      }
+    }
   },
   "team-intuition-engine": {
     "year": "2025",

@@ -15,6 +15,7 @@ import {
 } from "./panels";
 import { ProjectsPanel } from "./projects-editor";
 import { ResearchPanel } from "./research-editor";
+import { ImportPanel } from "./import-panel";
 
 /**
  * The Studio — Daniel's CMS + analytics console. Everything editable on the
@@ -36,6 +37,7 @@ const SECTIONS = [
   { id: "nav", label: "Navigation", Panel: NavPanel },
   { id: "projects", label: "Projects", Panel: ProjectsPanel },
   { id: "research", label: "Research", Panel: ResearchPanel },
+  { id: "import", label: "Import", Panel: ImportPanel },
   { id: "leads", label: "Leads", Panel: LeadsPanel },
   { id: "settings", label: "Settings", Panel: SettingsPanel },
 ] as const;

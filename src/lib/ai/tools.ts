@@ -1,4 +1,5 @@
 import { getRepoIndexRow } from "@/lib/db";
+import type { ProjectCard } from "./types";
 import { findProject, projectDetails } from "./knowledge";
 
 /**
@@ -65,6 +66,8 @@ export interface FunctionCall {
 export interface ToolExecResult {
   response: Record<string, unknown>;
   shownSlug?: string;
+  /** full card data for the chat UI when show_project resolves */
+  card?: ProjectCard;
 }
 
 export async function executeTool(call: FunctionCall): Promise<ToolExecResult> {
@@ -88,6 +91,9 @@ export async function executeTool(call: FunctionCall): Promise<ToolExecResult> {
     return {
       response: p ? { ok: true, path: `/projects/${slug}` } : { ok: false, error: "unknown slug" },
       shownSlug: p ? slug : undefined,
+      card: p
+        ? { slug: p.slug, name: p.name, tag: p.tag, image: p.image, oneLiner: p.oneLiner, path: `/projects/${p.slug}` }
+        : undefined,
     };
   }
   if (call.name === "get_repo_doc") {

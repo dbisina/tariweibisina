@@ -22,9 +22,23 @@ export interface ChatAction {
   href?: string;
 }
 
+/** A project surfaced visually in the chat — rendered as a rich, clickable
+ * card (hero image + name + tag) instead of a bare text link. Produced by
+ * the show_project tool. */
+export interface ProjectCard {
+  slug: string;
+  name: string;
+  tag: string;
+  image: string;
+  oneLiner: string;
+  path: string;
+}
+
 export interface ChatReply {
   text: string;
   actions?: ChatAction[];
+  /** rich project cards to render above the reply text */
+  cards?: ProjectCard[];
   /** which backend answered — surfaced in dev + telemetry */
   provider: "gemini" | "local";
 }

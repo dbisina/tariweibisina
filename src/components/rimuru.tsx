@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStudioStore } from "@/lib/studio";
-import type { ChatAction } from "@/lib/ai/types";
+import type { ChatAction, ProjectCard } from "@/lib/ai/types";
 
 /**
  * Rimuru — the on-site slime. He is ALIVE on every page: full ragdoll
@@ -21,6 +21,7 @@ interface Msg {
   role: "user" | "assistant";
   text: string;
   actions?: ChatAction[];
+  cards?: ProjectCard[];
 }
 
 // browser speech-recognition surface we actually touch
@@ -323,7 +324,7 @@ export function Rimuru() {
           body: JSON.stringify({ message: q, provider: aiPref }),
         });
         const data = await res.json();
-        setMsgs((m) => [...m, { role: "assistant", text: data.text, actions: data.actions }]);
+        setMsgs((m) => [...m, { role: "assistant", text: data.text, actions: data.actions, cards: data.cards }]);
       } catch {
         setMsgs((m) => [
           ...m,
@@ -535,7 +536,10 @@ export function Rimuru() {
                 body: JSON.stringify({ name: call.name, args: call.args ?? {} }),
               });
               const result = await res.json();
-              if (call.name === "show_project" && result.response?.path) router.push(result.response.path);
+              if (call.name === "show_project" && result.response?.path) {
+                if (result.card) setMsgs((m) => [...m, { role: "assistant", text: "", cards: [result.card] }]);
+                router.push(result.response.path);
+              }
               return { id: call.id, name: call.name, response: result.response ?? { error: "tool failed" } };
             } catch {
               return { id: call.id, name: call.name, response: { error: "tool failed" } };
@@ -1527,6 +1531,30 @@ export function Rimuru() {
                         }`}
                       >
                         <span className="whitespace-pre-wrap">{m.text}</span>
+                        {m.cards && (
+                          <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: m.cards.length > 1 ? "1fr 1fr" : "1fr" }}>
+                            {m.cards.map((c) => (
+                              <button
+                                key={c.slug}
+                                onClick={() => doAction({ label: c.name, path: c.path })}
+                                className="group/card overflow-hidden rounded-xl border border-ln text-left transition-colors hover:border-acc"
+                              >
+                                <span
+                                  className="block h-20 w-full bg-cover bg-center transition-transform duration-500 group-hover/card:scale-[1.04]"
+                                  style={{ backgroundImage: `url(${c.image})` }}
+                                />
+                                <span className="block px-3 py-2">
+                                  <span className="block truncate font-display text-[13px] font-medium text-ink">
+                                    {c.name}
+                                  </span>
+                                  <span className="block truncate font-mono text-[8.5px] tracking-[0.14em] text-mut uppercase">
+                                    {c.tag}
+                                  </span>
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                         {m.actions && (
                           <div className="mt-2.5 flex flex-wrap gap-1.5">
                             {m.actions.map((a, j) => (

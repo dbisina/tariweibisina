@@ -261,10 +261,12 @@ export const useStudioStore = create<StudioState>()(
       // seed with the stale persisted `projects` array (old slugs, no
       // `kind`), so anything keyed on `kind` (e.g. /engineer/hackathons)
       // silently renders empty after hydration replaces the SSR seed.
-      version: 3,
+      // v4: olddeus gained its seed pitch deck and research moved into the
+      // store — persisted v3 rosters would override both back to null/stale.
+      version: 4,
       migrate: (persisted: unknown) => {
         const s = (persisted ?? {}) as StudioState;
-        if (s.config) s.config = { ...s.config, projects: defaultProjects() };
+        if (s.config) s.config = { ...s.config, projects: defaultProjects(), research: defaultResearch() };
         return s;
       },
       // Backfills any config keys added after a user's last visit (e.g.

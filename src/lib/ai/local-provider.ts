@@ -1,5 +1,5 @@
-import { ALL_PROJECTS } from "@/lib/projects";
-import type { ChatAction, ChatMessage, ChatProvider, ChatReply } from "./types";
+import { ALL_PROJECTS, type FeaturedProject } from "@/lib/projects";
+import type { ChatAction, ChatMessage, ChatProvider, ChatReply, ProjectCard } from "./types";
 import { OWNER } from "./knowledge";
 
 /**
@@ -19,8 +19,23 @@ export class LocalProvider implements ChatProvider {
     const project = ALL_PROJECTS.find((p) => q.includes(p.name.toLowerCase()));
     if (project) {
       return reply(
-        `${project.name} — ${project.blurb} It's tagged ${project.tag}. Want the full case page?`,
-        [{ label: `Open ${project.name}`, path: `/projects/${project.slug}` }]
+        `${project.name} — ${project.blurb} It's tagged ${project.tag}. Tap the card to see the full case.`,
+        undefined,
+        [card(project)]
+      );
+    }
+
+    // "recommend / best / most impressive" → the flagships, as rich cards
+    if (has("recommend", "best", "impressive", "top", "favorite", "favourite", "highlight")) {
+      const picks = ALL_PROJECTS.filter((p) => p.kind === "flagship").slice(0, 3);
+      const fill = ALL_PROJECTS.slice(0, 3);
+      const chosen = picks.length ? picks : fill;
+      return reply(
+        `Start with these — the flagships. ${chosen
+          .map((p) => `${p.name} (${p.tag.split("·")[1]?.trim().toLowerCase() ?? "flagship"})`)
+          .join(", ")}. Tap any card for the full case study.`,
+        undefined,
+        chosen.map(card)
       );
     }
 
@@ -31,12 +46,14 @@ export class LocalProvider implements ChatProvider {
       );
     }
     if (has("project", "work", "built", "portfolio", "case", "shown")) {
+      const picks = ALL_PROJECTS.filter((p) => p.kind === "flagship").slice(0, 3);
       return reply(
-        `Daniel has shipped ${ALL_PROJECTS.length} — systems like Relay, Aegis Matrix and ETLLM, plus client products like Hebron Hotels and StudyRAG. Browse them raw in the catalog, or read the full case studies.`,
+        `Daniel has shipped ${ALL_PROJECTS.length} projects — systems like Relay and Rimuru OS, plus client products like Hebron Hotels and Mamazee. Here are the flagships; browse everything in the catalog.`,
         [
           { label: "Full catalog", path: "/catalog" },
           { label: "Case studies", path: "/business/projects" },
-        ]
+        ],
+        picks.map(card)
       );
     }
     if (has("engineer", "stack", "kernel", "gpu", "research", "hackathon", "code")) {
@@ -93,6 +110,10 @@ export class LocalProvider implements ChatProvider {
   }
 }
 
-function reply(text: string, actions?: ChatAction[]): ChatReply {
-  return { text, actions, provider: "local" };
+function reply(text: string, actions?: ChatAction[], cards?: ProjectCard[]): ChatReply {
+  return { text, actions, cards: cards?.length ? cards : undefined, provider: "local" };
+}
+
+function card(p: FeaturedProject): ProjectCard {
+  return { slug: p.slug, name: p.name, tag: p.tag, image: p.image, oneLiner: p.blurb, path: `/projects/${p.slug}` };
 }

@@ -1,6 +1,5 @@
-import type { ChatAction, ChatMessage, ChatProvider, ChatReply } from "./types";
+import type { ChatAction, ChatMessage, ChatProvider, ChatReply, ProjectCard } from "./types";
 import { systemPrompt } from "./knowledge";
-import { seedBySlug } from "@/lib/content";
 import { nextGeminiKey, poolSize, reportGeminiKeyError } from "./key-pool";
 import { TOOLS, executeTool, type FunctionCall } from "./tools";
 
@@ -28,7 +27,7 @@ const MAX_TOOL_ROUNDS = 5;
 
 interface GenReply {
   text: string;
-  shownSlugs: string[];
+  cards: ProjectCard[];
 }
 
 async function callGemini(apiKey: string, messages: ChatMessage[]): Promise<GenReply> {
@@ -41,7 +40,7 @@ async function callGemini(apiKey: string, messages: ChatMessage[]): Promise<GenR
       parts: [{ text: m.content }],
     }));
 
-  const shownSlugs: string[] = [];
+  const cards: ProjectCard[] = [];
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const body = {
@@ -67,20 +66,20 @@ async function callGemini(apiKey: string, messages: ChatMessage[]): Promise<GenR
     const calls = parts.filter((p) => p.functionCall).map((p) => p.functionCall!);
 
     if (!calls.length) {
-      return { text: parts.map((p) => p.text ?? "").join(""), shownSlugs };
+      return { text: parts.map((p) => p.text ?? "").join(""), cards };
     }
 
     contents.push({ role: "model", parts });
     const responseParts = [];
     for (const call of calls) {
-      const { response, shownSlug } = await executeTool(call);
-      if (shownSlug) shownSlugs.push(shownSlug);
+      const { response, card } = await executeTool(call);
+      if (card && !cards.some((c) => c.slug === card.slug)) cards.push(card);
       responseParts.push({ functionResponse: { name: call.name, response } });
     }
     contents.push({ role: "user", parts: responseParts });
   }
 
-  return { text: "That took more steps than expected — try asking again.", shownSlugs };
+  return { text: "That took more steps than expected — try asking again.", cards };
 }
 
 export class GeminiProvider implements ChatProvider {
@@ -95,8 +94,8 @@ export class GeminiProvider implements ChatProvider {
       const key = this.apiKey ?? nextGeminiKey();
       if (!key) break;
       try {
-        const { text: raw, shownSlugs } = await callGemini(key, messages);
-        return parseActions(raw, shownSlugs);
+        const { text: raw, cards } = await callGemini(key, messages);
+        return parseActions(raw, cards);
       } catch (e) {
         lastErr = e;
         const status = (e as Error & { status?: number }).status;
@@ -112,10 +111,10 @@ export class GeminiProvider implements ChatProvider {
 }
 
 /** The system prompt asks the model to end with "ACTIONS: [label](path), …".
- * Pull those into real chips and strip them from the visible text, then
- * layer in real show_project navigations the model actually invoked (deduped
- * against the text-convention ones, capped at 3 total). */
-function parseActions(raw: string, shownSlugs: string[]): ChatReply {
+ * Pull those into real chips and strip them from the visible text. Projects
+ * the model surfaced via show_project arrive as rich cards instead —
+ * skip duplicating them as text chips. */
+function parseActions(raw: string, cards: ProjectCard[]): ChatReply {
   const actions: ChatAction[] = [];
   const m = raw.match(/ACTIONS:\s*(.+)\s*$/i);
   let text = raw;
@@ -125,16 +124,15 @@ function parseActions(raw: string, shownSlugs: string[]): ChatReply {
     let a: RegExpExecArray | null;
     while ((a = re.exec(m[1])) && actions.length < 3) {
       const target = a[2].trim();
+      if (cards.some((c) => c.path === target)) continue; // already a card
       if (target.startsWith("/")) actions.push({ label: a[1].trim(), path: target });
       else if (target.startsWith("http")) actions.push({ label: a[1].trim(), href: target });
     }
   }
-  for (const slug of shownSlugs) {
-    if (actions.length >= 3) break;
-    const path = `/projects/${slug}`;
-    if (actions.some((a) => a.path === path)) continue;
-    const p = seedBySlug(slug);
-    actions.push({ label: p ? `Open ${p.name}` : "Open project", path });
-  }
-  return { text: text || raw, actions: actions.length ? actions : undefined, provider: "gemini" };
+  return {
+    text: text || raw,
+    actions: actions.length ? actions : undefined,
+    cards: cards.length ? cards.slice(0, 4) : undefined,
+    provider: "gemini",
+  };
 }
