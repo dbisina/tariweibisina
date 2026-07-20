@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 import { SEED_PROJECTS, SEED_PITCHES } from "@/lib/content";
+import { RESEARCH_ENTRIES } from "@/lib/research";
 
 type ChangeFreq = NonNullable<MetadataRoute.Sitemap[number]["changeFrequency"]>;
 
@@ -42,5 +43,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...projectEntries, ...pitchEntries];
+  const researchEntries: MetadataRoute.Sitemap = RESEARCH_ENTRIES.map((r) => ({
+    url: `${SITE_URL}/engineer/research/${r.slug}`,
+    lastModified,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  return [...staticEntries, ...projectEntries, ...pitchEntries, ...researchEntries];
 }

@@ -5,6 +5,7 @@ import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { RESEARCH_ENTRIES, researchBySlug } from "@/lib/research";
 import { ResearchDetail } from "./research-detail";
+import { jsonLdScript, articleJsonLd, breadcrumbJsonLd } from "@/lib/seo";
 
 export function generateStaticParams() {
   return RESEARCH_ENTRIES.map((r) => ({ slug: r.slug }));
@@ -43,6 +44,17 @@ export default async function ResearchDetailPage({
 
   return (
     <div className="min-h-screen">
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(articleJsonLd(entry))} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Research", path: "/engineer/research" },
+            { name: entry.title, path: `/engineer/research/${slug}` },
+          ])
+        )}
+      />
       <SiteNav />
       <main className="mx-auto max-w-[1500px] px-4 pt-40 pb-32 md:px-6">
         <Link

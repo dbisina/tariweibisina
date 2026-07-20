@@ -13,6 +13,8 @@ import {
   SITE_TITLE_DEFAULT,
   SITE_TITLE_TEMPLATE,
   SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  GOOGLE_SITE_VERIFICATION,
   TWITTER_HANDLE,
   jsonLdScript,
   personJsonLd,
@@ -53,16 +55,7 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
-  keywords: [
-    "Daniel Tariwei Bisina",
-    "software engineer",
-    "AI systems engineer",
-    "GPU kernels",
-    "AI-native operating systems",
-    "full stack developer",
-    "DeusX Technologies",
-    "software engineer portfolio",
-  ],
+  keywords: SITE_KEYWORDS,
   authors: [{ name: OWNER.name, url: SITE_URL }],
   creator: OWNER.name,
   publisher: OWNER.company,
@@ -99,6 +92,7 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     statusBarStyle: "black-translucent",
   },
+  verification: GOOGLE_SITE_VERIFICATION ? { google: GOOGLE_SITE_VERIFICATION } : undefined,
 };
 
 export const viewport: Viewport = {

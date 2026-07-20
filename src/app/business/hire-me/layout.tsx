@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLdScript, serviceJsonLd } from "@/lib/seo";
 
 const TITLE = "Hire Me";
 const DESCRIPTION =
@@ -13,5 +14,10 @@ export const metadata: Metadata = {
 };
 
 export default function HireMeLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdScript(serviceJsonLd())} />
+      {children}
+    </>
+  );
 }

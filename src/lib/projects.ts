@@ -177,7 +177,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     "slug": "uhop",
-    "image": "https://picsum.photos/seed/tariwei-uhop/1024/704",
+    "image": "https://res.cloudinary.com/wjgwhrgf/image/upload/v1784577467/tariwei/projects/uhop.png",
     "index": "15",
     "name": "UHOP",
     "tag": "SYSTEMS · GPU RUNTIME",
@@ -187,7 +187,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     "slug": "airfree-geospatial",
-    "image": "https://picsum.photos/seed/tariwei-airfree-geospatial/1024/704",
+    "image": "https://res.cloudinary.com/wjgwhrgf/image/upload/v1784577481/tariwei/projects/airfree-geospatial.png",
     "index": "16",
     "name": "Airfree Geospatial",
     "tag": "WEB · CMS INFRA",
@@ -207,7 +207,7 @@ export const ALL_PROJECTS: FeaturedProject[] = [
   },
   {
     "slug": "mamazee",
-    "image": "https://picsum.photos/seed/tariwei-mamazee/1024/704",
+    "image": "https://res.cloudinary.com/wjgwhrgf/image/upload/v1784577494/tariwei/projects/mamazee.png",
     "index": "18",
     "name": "Mamazee",
     "tag": "BUSINESS · ECOMMERCE",
